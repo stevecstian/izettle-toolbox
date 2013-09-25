@@ -29,7 +29,7 @@ public class UUIDFactory {
 	 * @param uuid
 	 * @return A compact string representation of the bytes from the specified UUID.
 	 */
-	private static String toBase64String(UUID uuid) {
+	static String toBase64String(UUID uuid) {
 		String result = Base64.byteArrToB64String(asByteArray(uuid));
 		return result.split("=")[0]; // Remove trailing "=="
 	}

@@ -10,4 +10,13 @@
 	</parent>
 
 	<artifactId>izettle-java</artifactId>
+
+	<dependencies>
+
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+	</dependencies>
 </project>
