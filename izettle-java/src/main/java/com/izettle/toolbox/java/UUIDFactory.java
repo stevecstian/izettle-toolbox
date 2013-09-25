@@ -1,4 +1,4 @@
-package com.izettle.toolbox;
+package com.izettle.toolbox.java;
 
 import java.util.UUID;
 
