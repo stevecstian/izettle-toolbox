@@ -1,6 +1,15 @@
-*.class
-
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.ear
+
+# IntelliJ project files
+*.iml
+*.ipr
+*.iws
+.idea
+
+# Build outputs
+*.class
+target
+dependency-reduced-pom.xml
