@@ -1,4 +1,4 @@
-package com.izettle.toolbox.java;
+package com.izettle.java;
 
 public class Base64 {
 
