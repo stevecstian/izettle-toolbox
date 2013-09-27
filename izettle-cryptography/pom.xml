@@ -10,18 +10,21 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>izettle-java</artifactId>
+	<artifactId>izettle-cryptography</artifactId>
 
 	<dependencies>
-
-		<!-- Test dependencies -->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
+			<groupId>com.izettle.toolbox</groupId>
+			<artifactId>izettle-java</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpg-jdk15on</artifactId>
 		</dependency>
 	</dependencies>
+
 </project>
