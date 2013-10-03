@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * one client is created per endpoint.
  */
 public class AmazonSQSClientFactory {
-	private static final Logger LOG = LoggerFactory.getLogger(AmazonSQSClientFactory.class.getName());
+	private static final Logger LOG = LoggerFactory.getLogger(AmazonSQSClientFactory.class);
 	private static final Map<String, AmazonSQSClient> clients = new HashMap<>();
 
 	/**
