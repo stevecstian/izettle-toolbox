@@ -2,10 +2,9 @@ package com.izettle.messaging;
 
 import static com.izettle.java.CollectionUtils.partition;
 import static com.izettle.java.ValueChecks.isEmpty;
-import static com.izettle.messaging.AWSCredentialsWrapper.getCredentials;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -38,64 +37,66 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	private static final int MESSAGE_WAIT_SECONDS = 20;
 	private static final int MAX_BATCH_SIZE = 10;
 	private final String queueUrl;
-	private final AmazonSQS amazonSQS;
+	private final AmazonSQSClient amazonSQS;
 	private final MessageSerializer<M> messageSerializer;
 	private final MessageDeserializer<M> messageDeserializer;
 
-	public static <T> QueueService<T> nonEncryptedQueueService(final Class<T> messageClass,
+	public static <T> QueueService<T> nonEncryptedQueueService(
+			final Class<T> messageClass,
 			final String queueUrl,
-			final String accessKey,
-			final String secretKey,
-			final String endpoint) throws MessagingException {
+			final AmazonSQSClient amazonSQSClient
+	) throws MessagingException {
 		return new QueueService<>(messageClass,
 				queueUrl,
-				AmazonSQSClientFactory.getInstance(endpoint, getCredentials(accessKey, secretKey)),
+				amazonSQSClient,
 				null,
 				null,
 				null);
 	}
 
-	public static <T> MessageQueueConsumer<T> encryptedQueueServicePoller(final Class<T> messageClass,
+	public static <T> MessageQueueConsumer<T> encryptedQueueServicePoller(
+			final Class<T> messageClass,
 			final String queueUrl,
-			final String accessKey,
-			final String secretKey,
-			final String endpoint,
+			final AmazonSQSClient amazonSQSClient,
 			byte[] privatePgpKey,
-			final String privatePgpKeyPassphrase) throws MessagingException {
+			final String privatePgpKeyPassphrase
+	) throws MessagingException {
 		if (isEmpty(privatePgpKey) || isEmpty(privatePgpKeyPassphrase)) {
 			throw new MessagingException("Can't create encryptedQueueServicePoller with private PGP key as null or privatePgpKeyPassphrase as null");
 		}
 		return new QueueService<>(messageClass,
 				queueUrl,
-				AmazonSQSClientFactory.getInstance(endpoint, getCredentials(accessKey, secretKey)),
+				amazonSQSClient,
 				null,
 				privatePgpKey,
 				privatePgpKeyPassphrase);
 	}
 
-	public static <T> MessageQueueProducer<T> encryptedQueueServicePoster(final Class<T> messageClass,
+	public static <T> MessageQueueProducer<T> encryptedQueueServicePoster(
+			final Class<T> messageClass,
 			final String queueUrl,
-			final String accessKey,
-			final String secretKey,
-			final String endpoint,
-			final byte[] publicPgpKey) throws MessagingException {
+			final AmazonSQSClient amazonSQSClient,
+			final byte[] publicPgpKey
+	) throws MessagingException {
 		if (isEmpty(publicPgpKey)) {
 			throw new MessagingException("Can't create encryptedQueueServicePoster with null as public PGP key");
 		}
 		return new QueueService<>(messageClass,
 				queueUrl,
-				AmazonSQSClientFactory.getInstance(endpoint, getCredentials(accessKey, secretKey)),
+				amazonSQSClient,
 				publicPgpKey,
 				null,
 				null);
 	}
 
-	QueueService(Class<M> messageClass,
+	private QueueService(
+			Class<M> messageClass,
 			String queueUrl,
-			AmazonSQS amazonSQS,
+			AmazonSQSClient amazonSQS,
 			byte[] publicPgpKey,
 			byte[] privatePgpKey,
-			String privatePgpKeyPassphrase) throws MessagingException {
+			String privatePgpKeyPassphrase
+	) throws MessagingException {
 		try {
 			this.queueUrl = queueUrl;
 			this.amazonSQS = amazonSQS;

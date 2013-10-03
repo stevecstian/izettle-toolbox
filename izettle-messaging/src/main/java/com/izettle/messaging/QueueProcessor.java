@@ -3,8 +3,8 @@ package com.izettle.messaging;
 import static com.izettle.java.ValueChecks.isEmpty;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -32,31 +32,29 @@ public class QueueProcessor {
 	private final MessageHandler<Message> messageHandler;
 
 	public static QueueProcessor createQueueProcessor(
+			AmazonSQSClient amazonSQSClient,
 			String name,
 			String queueUrl,
-			AWSCredentials awsCredentials,
-			String endpoint,
 			MessageHandler<Message> messageHandler) {
 		return new QueueProcessor(name,
 				queueUrl,
-				AmazonSQSClientFactory.getInstance(endpoint, awsCredentials),
+				amazonSQSClient,
 				messageHandler);
 	}
 
 	public static <M> QueueProcessor createQueueProcessor(
+			AmazonSQSClient amazonSQSClient,
 			Class<M> classType,
 			String name,
 			String queueUrl,
-			AWSCredentials awsCredentials,
-			String endpoint,
 			MessageHandler<M> messageHandler) {
 		return new QueueProcessor(name,
 				queueUrl,
-				AmazonSQSClientFactory.getInstance(endpoint, awsCredentials),
-				new MessageHandlerForSingleMessageType<M>(classType, messageHandler));
+				amazonSQSClient,
+				new MessageHandlerForSingleMessageType<>(classType, messageHandler));
 	}
 
-	QueueProcessor(
+	private QueueProcessor(
 			String name,
 			String queueUrl,
 			AmazonSQS amazonSQS,
