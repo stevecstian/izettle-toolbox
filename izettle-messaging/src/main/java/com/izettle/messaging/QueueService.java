@@ -4,7 +4,7 @@ import static com.izettle.java.CollectionUtils.partition;
 import static com.izettle.java.ValueChecks.isEmpty;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -37,14 +37,14 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	private static final int MESSAGE_WAIT_SECONDS = 20;
 	private static final int MAX_BATCH_SIZE = 10;
 	private final String queueUrl;
-	private final AmazonSQSClient amazonSQS;
+	private final AmazonSQS amazonSQS;
 	private final MessageSerializer<M> messageSerializer;
 	private final MessageDeserializer<M> messageDeserializer;
 
 	public static <T> QueueService<T> nonEncryptedQueueService(
 			final Class<T> messageClass,
 			final String queueUrl,
-			final AmazonSQSClient amazonSQSClient
+			final AmazonSQS amazonSQSClient
 	) throws MessagingException {
 		return new QueueService<>(messageClass,
 				queueUrl,
@@ -57,7 +57,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	public static <T> MessageQueueConsumer<T> encryptedQueueServicePoller(
 			final Class<T> messageClass,
 			final String queueUrl,
-			final AmazonSQSClient amazonSQSClient,
+			final AmazonSQS amazonSQSClient,
 			byte[] privatePgpKey,
 			final String privatePgpKeyPassphrase
 	) throws MessagingException {
@@ -75,7 +75,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	public static <T> MessageQueueProducer<T> encryptedQueueServicePoster(
 			final Class<T> messageClass,
 			final String queueUrl,
-			final AmazonSQSClient amazonSQSClient,
+			final AmazonSQS amazonSQSClient,
 			final byte[] publicPgpKey
 	) throws MessagingException {
 		if (isEmpty(publicPgpKey)) {
@@ -89,10 +89,10 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 				null);
 	}
 
-	private QueueService(
+	QueueService(
 			Class<M> messageClass,
 			String queueUrl,
-			AmazonSQSClient amazonSQS,
+			AmazonSQS amazonSQS,
 			byte[] publicPgpKey,
 			byte[] privatePgpKey,
 			String privatePgpKeyPassphrase

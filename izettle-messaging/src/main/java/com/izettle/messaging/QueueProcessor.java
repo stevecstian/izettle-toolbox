@@ -54,7 +54,7 @@ public class QueueProcessor {
 				new MessageHandlerForSingleMessageType<>(classType, messageHandler));
 	}
 
-	private QueueProcessor(
+	QueueProcessor(
 			String name,
 			String queueUrl,
 			AmazonSQS amazonSQS,
