@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bouncycastle.openpgp.PGPException;
 
 /**
  * Convenience class for using Amazon Simple Queue Service.
@@ -46,13 +45,10 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 			final Class<T> messageClass,
 			final String queueUrl,
 			final AmazonSQS amazonSQSClient
-	) throws MessagingException {
+	) {
 		return new QueueService<>(messageClass,
 				queueUrl,
-				amazonSQSClient,
-				null,
-				null,
-				null);
+				amazonSQSClient);
 	}
 
 	public static <T> MessageQueueConsumer<T> encryptedQueueServicePoller(
@@ -98,14 +94,25 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 			byte[] privatePgpKey,
 			String privatePgpKeyPassphrase
 	) throws MessagingException {
-		try {
 			this.queueUrl = queueUrl;
 			this.amazonSQS = amazonSQS;
+		try {
 			this.messageSerializer = new MessageSerializer<>(publicPgpKey);
-			this.messageDeserializer = new MessageDeserializer<>(messageClass, privatePgpKey, privatePgpKeyPassphrase);
-		} catch (PGPException e) {
+		} catch (CryptographyException e) {
 			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
 		}
+		this.messageDeserializer = new MessageDeserializer<>(messageClass, privatePgpKey, privatePgpKeyPassphrase);
+	}
+
+	QueueService(
+			Class<M> messageClass,
+			String queueUrl,
+			AmazonSQS amazonSQS
+	) {
+		this.queueUrl = queueUrl;
+		this.amazonSQS = amazonSQS;
+		this.messageSerializer = new MessageSerializer<>();
+		this.messageDeserializer = new MessageDeserializer<>(messageClass);
 	}
 
 	/**
