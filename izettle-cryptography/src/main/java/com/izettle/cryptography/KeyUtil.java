@@ -11,8 +11,14 @@ import org.bouncycastle.openpgp.PGPUtil;
 
 public final class KeyUtil {
 
-	public static PGPPublicKey findPublicKey(final InputStream input) throws IOException, PGPException {
-		return findKey(new PublicKeyReader(input));
+	public static PGPPublicKey findPublicKey(final InputStream input) throws CryptographyException {
+		PublicKeyReader reader;
+		try {
+			reader = new PublicKeyReader(input);
+		} catch (IOException | PGPException e) {
+			throw new CryptographyException("Failed to read public key.", e);
+		}
+		return findKey(reader);
 	}
 
 	@SuppressWarnings("unchecked")

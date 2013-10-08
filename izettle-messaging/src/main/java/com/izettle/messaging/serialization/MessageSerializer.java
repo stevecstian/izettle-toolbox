@@ -5,6 +5,7 @@ import static com.izettle.java.ValueChecks.isEmpty;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.izettle.cryptography.CryptographyException;
 import com.izettle.cryptography.KeyUtil;
 import com.izettle.cryptography.PGP;
 import java.io.ByteArrayInputStream;
@@ -21,7 +22,7 @@ public class MessageSerializer<M> {
 		if (!isEmpty(publicPgpKey)) {
 			try (InputStream publicPgpKeyInputStream = new ByteArrayInputStream(publicPgpKey)) {
 				this.publicKey = KeyUtil.findPublicKey(publicPgpKeyInputStream);
-			} catch (IOException e) {
+			} catch (CryptographyException | IOException  e) {
 				throw new PGPException("Could not create public PGP key", e);
 			}
 		} else {
@@ -29,7 +30,7 @@ public class MessageSerializer<M> {
 		}
 	}
 	
-	public String encrypt(String message) throws IOException, PGPException {
+	public String encrypt(String message) throws CryptographyException {
 		if (!isDefined(publicKey)) return message;
 		
 		return new String(PGP.encrypt(message.getBytes(), publicKey));

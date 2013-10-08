@@ -12,6 +12,7 @@ import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
+import com.izettle.cryptography.CryptographyException;
 import com.izettle.cryptography.HashMD5;
 import com.izettle.messaging.serialization.MessageDeserializer;
 import com.izettle.messaging.serialization.MessageSerializer;
@@ -136,7 +137,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 			String encryptedBody = messageSerializer.encrypt(jsonBody);
 			SendMessageResult sendMessageResult = amazonSQS.sendMessage(new SendMessageRequest(queueUrl, encryptedBody));
 			return new MessageReceipt(sendMessageResult.getMessageId(), jsonBody);
-		} catch (IOException | PGPException e) {
+		} catch (IOException | CryptographyException e) {
 			throw new MessagingException("Failed to post message: " + message.getClass().toString(), e);
 		}
 	}
@@ -153,12 +154,12 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 				amazonSQS.sendMessageBatch(new SendMessageBatchRequest(queueUrl, new ArrayList<>(sendMessageBatchRequest)));
 
 			}
-		} catch (IOException | PGPException e) {
+		} catch (IOException | CryptographyException e) {
 			throw new MessagingException("Failed to post messages: " + messages.getClass().toString(), e);
 		}
 	}
 
-	private List<SendMessageBatchRequestEntry> prepareBatchEntries(Map<String, M> messages) throws IOException, PGPException {
+	private List<SendMessageBatchRequestEntry> prepareBatchEntries(Map<String, M> messages) throws IOException, CryptographyException {
 		List<SendMessageBatchRequestEntry> batchRequestEntries = new ArrayList<>(messages.size());
 
 		for (Entry<String, M> messageEntry : messages.entrySet()) {

@@ -5,6 +5,7 @@ import static com.izettle.java.ValueChecks.isEmpty;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
+import com.izettle.cryptography.CryptographyException;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
 import org.bouncycastle.openpgp.PGPException;
@@ -56,7 +57,7 @@ public class PublisherService<M> implements MessageQueueProducer<M> {
 			PublishRequest publishRequest = new PublishRequest(topicArn, encryptedBody, subject);
 			PublishResult publishResult = amazonSNS.publish(publishRequest);
 			return new MessageReceipt(publishResult.getMessageId(), jsonBody);
-		} catch (IOException | PGPException e) {
+		} catch (IOException | CryptographyException e) {
 			throw new MessagingException("Failed to publish message: " + message.getClass().toString(), e);
 		}
 	}
