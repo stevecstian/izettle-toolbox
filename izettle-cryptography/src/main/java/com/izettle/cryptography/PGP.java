@@ -35,44 +35,54 @@ public class PGP {
 			final byte[] data,
 			final InputStream privateKey,
 			final String passphrase)
-			throws IOException, PGPException {
-		final PGPLiteralData message = asLiteral(data, privateKey, passphrase);
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		Streams.pipeAll(message.getInputStream(), out);
+			throws CryptographyException {
+		final ByteArrayOutputStream out;
+		try {
+			final PGPLiteralData message = asLiteral(data, privateKey, passphrase);
+			out = new ByteArrayOutputStream();
+			Streams.pipeAll(message.getInputStream(), out);
+		} catch (IOException | PGPException e) {
+			throw new CryptographyException("Failed to decrypt.", e);
+		}
 		return out.toByteArray();
 	}
 
 	public static byte[] encrypt(
 			final byte[] secret,
 			final PGPPublicKey... keys)
-			throws IOException, PGPException {
-		final ByteArrayInputStream in = new ByteArrayInputStream(secret);
-		final ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-		final PGPLiteralDataGenerator literal = new PGPLiteralDataGenerator();
-		final PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(CompressionAlgorithmTags.UNCOMPRESSED);
-		final OutputStream pOut = literal.open(
-				comData.open(bOut),
-				PGPLiteralData.BINARY,
-				"filename",
-				in.available(),
-				new Date());
-		Streams.pipeAll(in, pOut);
-		comData.close();
-		final byte[] bytes = bOut.toByteArray();
-		final PGPEncryptedDataGenerator generator = new PGPEncryptedDataGenerator(
-				new JcePGPDataEncryptorBuilder(PGPEncryptedData.CAST5)
-						.setWithIntegrityPacket(true)
-						.setSecureRandom(new SecureRandom())
-						.setProvider(provider));
-		for (final PGPPublicKey key : keys) {
-			generator.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(key).setProvider(provider));
+			throws CryptographyException {
+		final ByteArrayOutputStream out;
+		try {
+			final ByteArrayInputStream in = new ByteArrayInputStream(secret);
+			final ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+			final PGPLiteralDataGenerator literal = new PGPLiteralDataGenerator();
+			final PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(CompressionAlgorithmTags.UNCOMPRESSED);
+			final OutputStream pOut = literal.open(
+					comData.open(bOut),
+					PGPLiteralData.BINARY,
+					"filename",
+					in.available(),
+					new Date());
+			Streams.pipeAll(in, pOut);
+			comData.close();
+			final byte[] bytes = bOut.toByteArray();
+			final PGPEncryptedDataGenerator generator = new PGPEncryptedDataGenerator(
+					new JcePGPDataEncryptorBuilder(PGPEncryptedData.CAST5)
+							.setWithIntegrityPacket(true)
+							.setSecureRandom(new SecureRandom())
+							.setProvider(provider));
+			for (final PGPPublicKey key : keys) {
+				generator.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(key).setProvider(provider));
+			}
+			out = new ByteArrayOutputStream();
+			final ArmoredOutputStream armor = new ArmoredOutputStream(out);
+			final OutputStream cOut = generator.open(armor, bytes.length);
+			cOut.write(bytes);
+			cOut.close();
+			armor.close();
+		} catch (IOException | PGPException e) {
+			throw new CryptographyException("Failed to encrypt.", e);
 		}
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final ArmoredOutputStream armor = new ArmoredOutputStream(out);
-		final OutputStream cOut = generator.open(armor, bytes.length);
-		cOut.write(bytes);
-		cOut.close();
-		armor.close();
 		return out.toByteArray();
 	}
 

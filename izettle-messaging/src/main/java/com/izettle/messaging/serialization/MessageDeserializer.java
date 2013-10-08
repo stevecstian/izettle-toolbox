@@ -5,9 +5,11 @@ import static com.izettle.java.ValueChecks.areDefined;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.izettle.cryptography.CryptographyException;
 import com.izettle.cryptography.PGP;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import org.bouncycastle.openpgp.PGPException;
 
 public class MessageDeserializer<M> {
@@ -22,7 +24,7 @@ public class MessageDeserializer<M> {
 		this.messageClass = messageClass;
 	}
 
-	public String decrypt(String encrypted) throws IOException, PGPException {
+	public String decrypt(String encrypted) throws CryptographyException, UnsupportedEncodingException {
 		if (areDefined(privatePgpKey, privatePgpKeyPassphrase)) {
 			final ByteArrayInputStream keyStream = new ByteArrayInputStream(privatePgpKey);
 			return new String(PGP.decrypt(encrypted.getBytes(), keyStream, privatePgpKeyPassphrase), "UTF-8");
