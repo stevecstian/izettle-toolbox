@@ -33,7 +33,7 @@ public class QueueServiceTest {
 
 	@Before
 	public final void before() throws Exception {
-		queueService = new QueueService<>(TestMessage.class, "", mockAmazonSQS, null, null, null);
+		queueService = new QueueService<>(TestMessage.class, "", mockAmazonSQS);
 	}
 
 	@Test

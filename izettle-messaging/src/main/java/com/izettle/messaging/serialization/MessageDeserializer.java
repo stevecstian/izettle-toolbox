@@ -1,7 +1,7 @@
 package com.izettle.messaging.serialization;
 
-import static com.izettle.java.ValueChecks.isDefined;
 import static com.izettle.java.ValueChecks.areDefined;
+import static com.izettle.java.ValueChecks.isDefined;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,8 +9,6 @@ import com.izettle.cryptography.CryptographyException;
 import com.izettle.cryptography.PGP;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.bouncycastle.openpgp.PGPException;
 
 public class MessageDeserializer<M> {
 	private final byte[] privatePgpKey;
@@ -18,13 +16,19 @@ public class MessageDeserializer<M> {
 	private final static ObjectMapper jsonMapper = new ObjectMapper();
 	private final Class<M> messageClass;
 
-	public MessageDeserializer(Class<M> messageClass, byte[] privatePgpKey, final String privatePgpKeyPassphrase) throws PGPException {
+	public MessageDeserializer(Class<M> messageClass, byte[] privatePgpKey, final String privatePgpKeyPassphrase) {
 		this.privatePgpKey = privatePgpKey;
 		this.privatePgpKeyPassphrase = privatePgpKeyPassphrase;
 		this.messageClass = messageClass;
 	}
 
-	public String decrypt(String encrypted) throws CryptographyException, UnsupportedEncodingException {
+	public MessageDeserializer(Class<M> messageClass) {
+		this.privatePgpKey = null;
+		this.privatePgpKeyPassphrase = null;
+		this.messageClass = messageClass;
+	}
+
+	public String decrypt(String encrypted) throws IOException, CryptographyException {
 		if (areDefined(privatePgpKey, privatePgpKeyPassphrase)) {
 			final ByteArrayInputStream keyStream = new ByteArrayInputStream(privatePgpKey);
 			return new String(PGP.decrypt(encrypted.getBytes(), keyStream, privatePgpKeyPassphrase), "UTF-8");
@@ -32,7 +36,7 @@ public class MessageDeserializer<M> {
 		return encrypted;
 	}
 
-	public M deserialize(String message) throws IOException, PGPException {
+	public M deserialize(String message) throws IOException {
 		return jsonMapper.readValue(message, messageClass);
 	}
 

@@ -8,7 +8,6 @@ import com.amazonaws.services.sns.model.PublishResult;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
-import org.bouncycastle.openpgp.PGPException;
 
 /**
  * Convenience class for using Amazon Simple Notification Service.
@@ -20,8 +19,8 @@ public class PublisherService<M> implements MessageQueueProducer<M> {
 	private final AmazonSNSClient amazonSNS;
 	private final MessageSerializer<M> messageSerializer;
 
-	public static <T> MessageQueueProducer<T> nonEncryptedPublisherService(AmazonSNSClient client, final String topicArn) throws MessagingException {
-		return new PublisherService<>(client, topicArn, null);
+	public static <T> MessageQueueProducer<T> nonEncryptedPublisherService(AmazonSNSClient client, final String topicArn) {
+		return new PublisherService<>(client, topicArn);
 	}
 
 	public static <T> MessageQueueProducer<T> encryptedPublisherService(AmazonSNSClient client, final String topicArn, final byte[] publicPgpKey) throws MessagingException {
@@ -31,12 +30,18 @@ public class PublisherService<M> implements MessageQueueProducer<M> {
 		return new PublisherService<>(client, topicArn, publicPgpKey);
 	}
 
+	private PublisherService(AmazonSNSClient client, String topicArn) {
+		this.amazonSNS = client;
+		this.topicArn = topicArn;
+		this.messageSerializer = new MessageSerializer<>();
+	}
+
 	private PublisherService(AmazonSNSClient client, String topicArn, byte[] publicPgpKey) throws MessagingException {
 		this.amazonSNS = client;
 		this.topicArn = topicArn;
 		try {
 			this.messageSerializer = new MessageSerializer<>(publicPgpKey);
-		} catch (PGPException e) {
+		} catch (CryptographyException e) {
 			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
 		}
 	}

@@ -17,7 +17,7 @@ public class MessageDispatcherTest {
 	@Test(expected = com.izettle.messaging.MessagingException.class)
 	public void shouldThrowExceptionIfNoMessageHandlersForMessageTypeIsPresent() throws Exception {
 		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
-		MessageSerializer<TestMessage> messageSerializer = new MessageSerializer<>(null);
+		MessageSerializer<TestMessage> messageSerializer = new MessageSerializer<>();
 		Message message = new Message();
 		message.setBody(messageSerializer.serialize(new TestMessage("")));
 		message.setBody("{\"Subject\":\"com.izettle.messaging.messages.MessageWithoutHandle\", \"Message\": \"{}\"}");

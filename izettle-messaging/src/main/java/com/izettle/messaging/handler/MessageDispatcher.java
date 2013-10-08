@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.bouncycastle.openpgp.PGPException;
 
 /**
  * Routes messages to other MessageHandler<>:s based on message type. All handlers added with the
@@ -26,18 +25,22 @@ public class MessageDispatcher implements MessageHandler<Message> {
 	private final Map<String, ListOfMessageHandlersForType> messageHandlersPerMessageType = new ConcurrentHashMap<>();
 	private final static ObjectMapper jsonMapper = new ObjectMapper();
 
-	public static MessageDispatcher nonEncryptedMessageDispatcher() throws PGPException {
-		return new MessageDispatcher(null, null);
+	public static MessageDispatcher nonEncryptedMessageDispatcher() {
+		return new MessageDispatcher();
 	}
 
-	public static MessageDispatcher encryptedMessageDispatcher(byte[] privatePgpKey, final String privatePgpKeyPassphrase) throws PGPException {
+	public static MessageDispatcher encryptedMessageDispatcher(byte[] privatePgpKey, final String privatePgpKeyPassphrase) throws MessagingException {
 		if (isEmpty(privatePgpKey) || isEmpty(privatePgpKeyPassphrase)) {
-			throw new PGPException("Can't create encryptedMessageDispatcher with private PGP key as null or privatePgpKeyPassphrase as null");
+			throw new MessagingException("Can't create encryptedMessageDispatcher with private PGP key as null or privatePgpKeyPassphrase as null");
 		}
 		return new MessageDispatcher(privatePgpKey, privatePgpKeyPassphrase);
 	}
 	
-	private MessageDispatcher(byte[] privatePgpKey, String privatePgpKeyPassphrase) throws PGPException {
+	private MessageDispatcher() {
+		this.messageDeserializer = new MessageDeserializer<>(String.class);
+	}
+
+	private MessageDispatcher(byte[] privatePgpKey, String privatePgpKeyPassphrase) {
 		this.messageDeserializer = new MessageDeserializer<>(String.class, privatePgpKey, privatePgpKeyPassphrase);
 	}
 
