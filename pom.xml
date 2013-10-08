@@ -7,7 +7,7 @@
 	<groupId>com.izettle.toolbox</groupId>
 	<artifactId>izettle-toolbox</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 
 	<modules>
 		<module>izettle-java</module>
@@ -25,12 +25,12 @@
 			<dependency>
 				<groupId>com.izettle.toolbox</groupId>
 				<artifactId>izettle-java</artifactId>
-				<version>1.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.izettle.toolbox</groupId>
 				<artifactId>izettle-cryptography</artifactId>
-				<version>1.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
