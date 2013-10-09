@@ -36,6 +36,36 @@ public class ValueChecks {
 	}
 
 	/**
+	 * The inverse of <code>areDefined</code>.
+	 *
+	 * @param object Object.
+	 * @return True any of the specified objects is null, false otherwise.
+	 */
+	public static boolean notDefined(Object... object) {
+		return !areDefined(object);
+	}
+
+	/**
+	 * Returns first non-null parameter.
+	 *
+	 * @param <T> The type of the subject
+	 * @param objects Objects.
+	 * @return First non-null parameter, or null of no non-null parameter found.
+	 */
+	public static <T> T coalesce(T... objects) {
+
+		if (notEmpty(objects)) {
+			for (T object : objects) {
+				if (isDefined(object)) {
+					return object;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Checks if the given object is empty. Here empty is defined as: <ul> <li>a null {@link Object}</li> <li>an empty {@link String}</li>
 	 * <li>an empty {@link java.lang.reflect.Array}</li> <li>an empty {@link java.util.Collection}</li> <li>an empty {@link java.util.Map}</li> </ul>
 	 *
@@ -59,5 +89,15 @@ public class ValueChecks {
 			return ((Map<?, ?>) o).isEmpty();
 		}
 		return false;
+	}
+
+	/**
+	 * The inverse of <code>isEmpty()</code>.
+	 *
+	 * @param o Object under test.
+	 * @return True if the object is not empty, false otherwise.
+	 */
+	public static boolean notEmpty(Object o) {
+		return !isEmpty(o);
 	}
 }
