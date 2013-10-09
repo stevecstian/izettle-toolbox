@@ -1,7 +1,9 @@
 package com.izettle.java;
 
 import static com.izettle.java.ValueChecks.isEmpty;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -47,5 +49,13 @@ public class ValueChecksSpec {
 		assertFalse("one element array", isEmpty(new Object[1]));
 		assertFalse("single element list", isEmpty(Arrays.asList("foo")));
 		assertFalse("single key map", isEmpty(Collections.singletonMap("foo", "bar")));
+	}
+
+	@Test
+	public void coalesce() {
+		Object nullObject = null;
+
+		assertNull(ValueChecks.coalesce(nullObject));
+		assertEquals("Foo", ValueChecks.coalesce(nullObject, "Foo"));
 	}
 }

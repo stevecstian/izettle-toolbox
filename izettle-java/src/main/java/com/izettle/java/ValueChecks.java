@@ -46,20 +46,23 @@ public class ValueChecks {
 	}
 
 	/**
-	 * Utility method for shorter notation of possible null check before assignment, eg: String s2 = s1 != null ? s1 :
-	 * ""; can instead be written as: String s2 = define(s1, "");
+	 * Returns first non-null parameter.
 	 *
 	 * @param <T> The type of the subject
-	 * @param <S> The type for the fallback value, must be same type, or subclass of T
-	 * @param subject check if this is null
-	 * @param fallback value to use if subject was null
-	 * @return the subject if not null, fallback otherwise
+	 * @param objects Objects.
+	 * @return First non-null parameter, or null of no non-null parameter found.
 	 */
-	public static <T, S extends T> T define(T subject, S fallback) {
-		if (isDefined(subject)) {
-			return subject;
+	public static <T> T coalesce(T... objects) {
+
+		if (notEmpty(objects)) {
+			for (T object : objects) {
+				if (isDefined(object)) {
+					return object;
+				}
+			}
 		}
-		return fallback;
+
+		return null;
 	}
 
 	/**
