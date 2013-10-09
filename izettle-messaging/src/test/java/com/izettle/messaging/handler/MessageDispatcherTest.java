@@ -28,6 +28,8 @@ public class MessageDispatcherTest {
 	@Test
 	public void shouldCallSingleHandlerWhenReceivingMessage() throws Exception {
 		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
+
+		@SuppressWarnings("unchecked")
 		MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
 
 		dispatcher.addHandler(TestMessage.class, testMessageHandler);
@@ -42,8 +44,13 @@ public class MessageDispatcherTest {
 	@Test
 	public void shouldCallCorrectHandlerWhenReceivingMessage() throws Exception {
 		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
+
+		@SuppressWarnings("unchecked")
 		MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
+
+		@SuppressWarnings("unchecked")
 		MessageHandler<String> stringHandler = mock(MessageHandler.class);
+
 		dispatcher.addHandler(TestMessage.class, testMessageHandler);
 		dispatcher.addHandler(String.class, stringHandler);
 		
@@ -58,7 +65,10 @@ public class MessageDispatcherTest {
 	@Test
 	public void shouldDeserializeMessageFromJson() throws Exception {
 		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
+
+		@SuppressWarnings("unchecked")
 		MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
+
 		dispatcher.addHandler(TestMessage.class, testMessageHandler);
 		
 		Message message = new Message();
