@@ -64,7 +64,6 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 		return new QueueService<>(messageClass,
 				queueUrl,
 				amazonSQSClient,
-				null,
 				privatePgpKey,
 				privatePgpKeyPassphrase);
 	}
@@ -81,18 +80,27 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 		return new QueueService<>(messageClass,
 				queueUrl,
 				amazonSQSClient,
-				publicPgpKey,
-				null,
-				null);
+				publicPgpKey);
 	}
 
 	QueueService(
 			Class<M> messageClass,
 			String queueUrl,
 			AmazonSQS amazonSQS,
-			byte[] publicPgpKey,
 			byte[] privatePgpKey,
 			String privatePgpKeyPassphrase
+	) {
+		this.queueUrl = queueUrl;
+		this.amazonSQS = amazonSQS;
+		this.messageSerializer = new MessageSerializer<>();
+		this.messageDeserializer = new MessageDeserializer<>(messageClass, privatePgpKey, privatePgpKeyPassphrase);
+	}
+
+	QueueService(
+			Class<M> messageClass,
+			String queueUrl,
+			AmazonSQS amazonSQS,
+			byte[] publicPgpKey
 	) throws MessagingException {
 			this.queueUrl = queueUrl;
 			this.amazonSQS = amazonSQS;
@@ -101,7 +109,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 		} catch (CryptographyException e) {
 			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
 		}
-		this.messageDeserializer = new MessageDeserializer<>(messageClass, privatePgpKey, privatePgpKeyPassphrase);
+		this.messageDeserializer = new MessageDeserializer<>(messageClass);
 	}
 
 	QueueService(
