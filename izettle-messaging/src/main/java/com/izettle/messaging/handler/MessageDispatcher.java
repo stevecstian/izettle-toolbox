@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MessageDispatcher implements MessageHandler<Message> {
 	private final MessageDeserializer<String> messageDeserializer;
-	private final Map<String, ListOfMessageHandlersForType> messageHandlersPerMessageType = new ConcurrentHashMap<>();
+	private final Map<String, ListOfMessageHandlersForType> messageHandlersPerEventName = new ConcurrentHashMap<>();
 	private final static ObjectMapper jsonMapper = new ObjectMapper();
 
 	public static MessageDispatcher nonEncryptedMessageDispatcher() {
@@ -63,13 +63,13 @@ public class MessageDispatcher implements MessageHandler<Message> {
 		}
 	}
 
-	public <M> void addHandler(Class<M> classType, String messageTypeName, MessageHandler<M> handler) {
-		if (!messageHandlersPerMessageType.containsKey(messageTypeName)) {
-			messageHandlersPerMessageType.put(messageTypeName, new ListOfMessageHandlersForType<>(classType));
+	public <M> void addHandler(Class<M> classType, String eventName, MessageHandler<M> handler) {
+		if (!messageHandlersPerEventName.containsKey(eventName)) {
+			messageHandlersPerEventName.put(eventName, new ListOfMessageHandlersForType<>(classType));
 		}
 
 		@SuppressWarnings("unchecked")
-		ListOfMessageHandlersForType<M> listOfMessageHandlersForType = (ListOfMessageHandlersForType<M>) messageHandlersPerMessageType.get(messageTypeName);
+		ListOfMessageHandlersForType<M> listOfMessageHandlersForType = (ListOfMessageHandlersForType<M>) messageHandlersPerEventName.get(eventName);
 
 		listOfMessageHandlersForType.add(handler);
 	}
@@ -83,11 +83,11 @@ public class MessageDispatcher implements MessageHandler<Message> {
 		String messageBody = message.getBody();
 		AmazonSNSMessage sns = jsonMapper.readValue(messageBody, AmazonSNSMessage.class);
 		String decryptedMessage = messageDeserializer.decrypt(sns.getMessage());
-		String messageTypeName = sns.getSubject();
+		String eventName = sns.getSubject();
 		
-		if (!messageHandlersPerMessageType.containsKey(messageTypeName)) {
-			throw new MessagingException("No handlers for message type " + messageTypeName);
+		if (!messageHandlersPerEventName.containsKey(eventName)) {
+			throw new MessagingException("No handlers for event " + eventName);
 		}
-		messageHandlersPerMessageType.get(messageTypeName).callAllHandlers(decryptedMessage);
+		messageHandlersPerEventName.get(eventName).callAllHandlers(decryptedMessage);
 	}
 }
