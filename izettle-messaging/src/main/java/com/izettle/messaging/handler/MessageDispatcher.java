@@ -63,8 +63,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
 		}
 	}
 
-	public <M> void addHandler(Class<M> classType, MessageHandler<M> handler) {
-		String messageTypeName = classType.getName();
+	public <M> void addHandler(Class<M> classType, String messageTypeName, MessageHandler<M> handler) {
 		if (!messageHandlersPerMessageType.containsKey(messageTypeName)) {
 			messageHandlersPerMessageType.put(messageTypeName, new ListOfMessageHandlersForType<>(classType));
 		}
@@ -73,6 +72,10 @@ public class MessageDispatcher implements MessageHandler<Message> {
 		ListOfMessageHandlersForType<M> listOfMessageHandlersForType = (ListOfMessageHandlersForType<M>) messageHandlersPerMessageType.get(messageTypeName);
 
 		listOfMessageHandlersForType.add(handler);
+	}
+
+	public <M> void addHandler(Class<M> classType, MessageHandler<M> handler) {
+		addHandler(classType, classType.getName(), handler);
 	}
 	
 	@Override
