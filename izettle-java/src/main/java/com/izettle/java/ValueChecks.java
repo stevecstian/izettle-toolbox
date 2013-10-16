@@ -36,33 +36,15 @@ public class ValueChecks {
 	}
 
 	/**
-	 * The inverse of <code>areDefined</code>.
-	 *
-	 * @param object Object.
-	 * @return True any of the specified objects is null, false otherwise.
-	 */
-	public static boolean notDefined(Object... object) {
-		return !areDefined(object);
-	}
-
-	/**
 	 * Returns first non-null parameter.
 	 *
 	 * @param <T> The type of the subject
-	 * @param objects Objects.
+	 * @param o1 First object.
+	 * @param o2 Second object.
 	 * @return First non-null parameter, or null of no non-null parameter found.
 	 */
-	public static <T> T coalesce(T... objects) {
-
-		if (notEmpty(objects)) {
-			for (T object : objects) {
-				if (isDefined(object)) {
-					return object;
-				}
-			}
-		}
-
-		return null;
+	public static <T> T coalesce(T o1, T o2) {
+		return o1 != null ? o1 : o2;
 	}
 
 	/**
