@@ -80,4 +80,28 @@ public class MessageDispatcherTest {
 		TestMessage testMessage = argumentCaptor.getValue();
 		assertEquals("Hello!", testMessage.getMessage());
 	}
+
+	@Test
+	public void shouldCallHandlerForEventNameWhenReceivingMessage() throws Exception {
+
+		// Arrange
+		@SuppressWarnings("unchecked")
+		MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
+		@SuppressWarnings("unchecked")
+		MessageHandler<String> stringHandler = mock(MessageHandler.class);
+
+		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
+		dispatcher.addHandler(String.class, stringHandler);
+		dispatcher.addHandler(TestMessage.class, "ForcedEventName", testMessageHandler);
+
+		Message message = new Message();
+		message.setBody("{\"Subject\":\"ForcedEventName\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+
+		// Act
+		dispatcher.handle(message);
+
+		// Assert
+		verify(testMessageHandler).handle(any(TestMessage.class));
+		verify(stringHandler, never()).handle(any(String.class));
+	}
 }

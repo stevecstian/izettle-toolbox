@@ -1,5 +1,6 @@
 package com.izettle.messaging;
 
+import static com.izettle.java.ValueChecks.isDefined;
 import static com.izettle.java.ValueChecks.isEmpty;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
@@ -17,28 +18,39 @@ import java.io.IOException;
 public class PublisherService<M> implements MessageQueueProducer<M> {
 	private final String topicArn;
 	private final AmazonSNSClient amazonSNS;
+	private final String eventName;
 	private final MessageSerializer<M> messageSerializer;
 
 	public static <T> MessageQueueProducer<T> nonEncryptedPublisherService(AmazonSNSClient client, final String topicArn) {
-		return new PublisherService<>(client, topicArn);
+		return nonEncryptedPublisherService(client, topicArn, null);
+	}
+
+	public static <T> MessageQueueProducer<T> nonEncryptedPublisherService(AmazonSNSClient client, final String topicArn, String eventName) {
+		return new PublisherService<>(client, topicArn, eventName);
 	}
 
 	public static <T> MessageQueueProducer<T> encryptedPublisherService(AmazonSNSClient client, final String topicArn, final byte[] publicPgpKey) throws MessagingException {
+		return encryptedPublisherService(client, topicArn, null, publicPgpKey);
+	}
+
+	public static <T> MessageQueueProducer<T> encryptedPublisherService(AmazonSNSClient client, final String topicArn, String eventName, final byte[] publicPgpKey) throws MessagingException {
 		if (isEmpty(publicPgpKey)) {
 			throw new MessagingException("Can't create encryptedPublisherService with null as public PGP key");
 		}
-		return new PublisherService<>(client, topicArn, publicPgpKey);
+		return new PublisherService<>(client, topicArn, eventName, publicPgpKey);
 	}
 
-	private PublisherService(AmazonSNSClient client, String topicArn) {
+	private PublisherService(AmazonSNSClient client, String topicArn, String eventName) {
 		this.amazonSNS = client;
 		this.topicArn = topicArn;
+		this.eventName = eventName;
 		this.messageSerializer = new MessageSerializer<>();
 	}
 
-	private PublisherService(AmazonSNSClient client, String topicArn, byte[] publicPgpKey) throws MessagingException {
+	private PublisherService(AmazonSNSClient client, String topicArn, String eventName, byte[] publicPgpKey) throws MessagingException {
 		this.amazonSNS = client;
 		this.topicArn = topicArn;
+		this.eventName = eventName;
 		try {
 			this.messageSerializer = new MessageSerializer<>(publicPgpKey);
 		} catch (CryptographyException e) {
@@ -56,7 +68,7 @@ public class PublisherService<M> implements MessageQueueProducer<M> {
 	@Override
 	public MessageReceipt post(M message) throws MessagingException {
 		try {
-			String subject = message.getClass().getName();
+			String subject = getEventNameForMessage(message);
 			String jsonBody = messageSerializer.serialize(message);
 			String encryptedBody = messageSerializer.encrypt(jsonBody);
 			PublishRequest publishRequest = new PublishRequest(topicArn, encryptedBody, subject);
@@ -65,5 +77,12 @@ public class PublisherService<M> implements MessageQueueProducer<M> {
 		} catch (IOException | CryptographyException e) {
 			throw new MessagingException("Failed to publish message: " + message.getClass().toString(), e);
 		}
+	}
+
+	private String getEventNameForMessage(M message) {
+		if (isDefined(this.eventName)) {
+			return this.eventName;
+		}
+		return message.getClass().getName();
 	}
 }
