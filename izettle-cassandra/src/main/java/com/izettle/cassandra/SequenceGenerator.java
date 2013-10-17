@@ -1,3 +1,5 @@
+package com.izettle.cassandra;
+
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.model.ColumnFamily;
@@ -55,7 +57,7 @@ public class SequenceGenerator {
 
 			mutationBatch
 					.withRow(columnFamily, sequenceKey)
-					.putColumn(COLUMN_NAME, nextSequenceNumber, null);
+					.putColumn(COLUMN_NAME, nextSequenceNumber);
 
 			lock.releaseWithMutation(mutationBatch);
 
@@ -91,7 +93,7 @@ public class SequenceGenerator {
 
 			mutationBatch
 					.withRow(columnFamily, sequenceKey)
-					.putColumn(COLUMN_NAME, INITIAL_SEQUENCE_VALUE, null);
+					.putColumn(COLUMN_NAME, INITIAL_SEQUENCE_VALUE);
 
 			lock.releaseWithMutation(mutationBatch);
 
