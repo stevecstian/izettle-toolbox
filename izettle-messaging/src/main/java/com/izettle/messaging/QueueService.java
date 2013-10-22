@@ -34,7 +34,6 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 
 	private static final Logger LOG = Logger.getLogger(QueueService.class.getName());
 	private static final int MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE = 10;
-	private static final int MESSAGE_WAIT_SECONDS = 20;
 	private static final int MAX_BATCH_SIZE = 10;
 	private final String queueUrl;
 	private final AmazonSQS amazonSQS;
@@ -184,18 +183,30 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 
 		return batchRequestEntries;
 	}
-
 	/**
-	 * Polls message queue for new messages.
+	 * Polls message queue for new messages. Waits for messages for 20 sek.
 	 *
 	 * @return Received messages.
 	 * @throws MessagingException Failed to poll queue.
 	 */
 	@Override
 	public List<MessageWrapper<M>> poll() throws MessagingException {
+		return poll(20);
+	}
+
+
+	/**
+	 * Polls message queue for new messages.
+	 *
+	 * @param messageWaitTimeInSeconds, nr of seconds the poll should wait.
+	 * @return Received messages.
+	 * @throws MessagingException Failed to poll queue.
+	 */
+	@Override
+	public List<MessageWrapper<M>> poll(int messageWaitTimeInSeconds) throws MessagingException {
 		ReceiveMessageRequest messageRequest = new ReceiveMessageRequest(queueUrl);
 		messageRequest.setMaxNumberOfMessages(MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE);
-		messageRequest.setWaitTimeSeconds(MESSAGE_WAIT_SECONDS);
+		messageRequest.setWaitTimeSeconds(messageWaitTimeInSeconds);
 		List<Message> messages;
 		List<MessageWrapper<M>> receivedMessages = new ArrayList<>();
 
