@@ -1,7 +1,7 @@
 package com.izettle.messaging.serialization;
 
-import static com.izettle.java.ValueChecks.areDefined;
-import static com.izettle.java.ValueChecks.isDefined;
+import static com.izettle.java.ValueChecks.defined;
+import static com.izettle.java.ValueChecks.defined;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +29,7 @@ public class MessageDeserializer<M> {
 	}
 
 	public String decrypt(String encrypted) throws IOException, CryptographyException {
-		if (areDefined(privatePgpKey, privatePgpKeyPassphrase)) {
+		if (defined(privatePgpKey, privatePgpKeyPassphrase)) {
 			final ByteArrayInputStream keyStream = new ByteArrayInputStream(privatePgpKey);
 			return new String(PGP.decrypt(encrypted.getBytes(), keyStream, privatePgpKeyPassphrase), "UTF-8");
 		}
@@ -41,7 +41,7 @@ public class MessageDeserializer<M> {
 	}
 
 	public static String removeSnsEnvelope(String message) throws IOException {
-		if (isDefined(message) && message.startsWith("{")) {
+		if (defined(message) && message.startsWith("{")) {
 			JsonNode root = jsonMapper.readTree(message);
 			if (root.has("TopicArn") && root.has("Message")) {
 				return root.get("Message").asText();

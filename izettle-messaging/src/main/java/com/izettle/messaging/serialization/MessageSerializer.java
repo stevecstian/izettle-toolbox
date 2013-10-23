@@ -1,6 +1,6 @@
 package com.izettle.messaging.serialization;
 
-import static com.izettle.java.ValueChecks.isDefined;
+import static com.izettle.java.ValueChecks.defined;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +29,7 @@ public class MessageSerializer<M> {
 	}
 	
 	public String encrypt(String message) throws CryptographyException {
-		if (!isDefined(publicKey)) return message;
+		if (!defined(publicKey)) return message;
 		
 		return new String(PGP.encrypt(message.getBytes(), publicKey));
 	}

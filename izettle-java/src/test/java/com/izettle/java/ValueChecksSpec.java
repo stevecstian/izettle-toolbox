@@ -1,6 +1,6 @@
 package com.izettle.java;
 
-import static com.izettle.java.ValueChecks.isEmpty;
+import static com.izettle.java.ValueChecks.empty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -16,38 +16,45 @@ public class ValueChecksSpec {
 	@Test
 	public void isDefined() {
 		Integer i = null;
-		assertFalse(ValueChecks.isDefined(i));
+		assertFalse(ValueChecks.defined(i));
 		i = 1;
-		assertTrue(ValueChecks.isDefined(i));
+		assertTrue(ValueChecks.defined(i));
 	}
 
 	@Test
 	public void areDefined() {
-		assertTrue(ValueChecks.areDefined("Foo", new Integer(1)));
-		assertFalse(ValueChecks.areDefined("Foo", null));
-		assertFalse(ValueChecks.areDefined(null, null));
+		assertTrue(ValueChecks.defined("Foo", new Integer(1)));
+		assertFalse(ValueChecks.defined("Foo", null));
+		assertFalse(ValueChecks.defined(null, null));
 
 		// If the args-array itself is null, it should return false.
 		Object[] noObjects = null;
-		assertFalse(ValueChecks.areDefined(noObjects));
+		assertFalse(ValueChecks.defined(noObjects));
+	}
+
+	@Test
+	public void undefined() {
+		assertTrue(ValueChecks.undefined(null));
+		assertTrue(ValueChecks.undefined("Foo", null));
+		assertFalse(ValueChecks.undefined("Foo", new Integer(2)));
 	}
 
 	@Test
 	public void isEmpty_emptyValues() {
-		assertTrue("null", isEmpty(null));
-		assertTrue("empty string", isEmpty(""));
-		assertTrue("empty array", isEmpty(new Object[0]));
-		assertTrue("empty array", isEmpty(new byte[0]));
-		assertTrue("empty array list", isEmpty(new ArrayList<String>()));
-		assertTrue("empty map", isEmpty(new HashMap<String, String>()));
+		assertTrue("null", empty(null));
+		assertTrue("empty string", empty(""));
+		assertTrue("empty array", empty(new Object[0]));
+		assertTrue("empty array", empty(new byte[0]));
+		assertTrue("empty array list", empty(new ArrayList<String>()));
+		assertTrue("empty map", empty(new HashMap<String, String>()));
 	}
 
 	@Test
 	public void isEmpty_nonEmptyValues() {
-		assertFalse("single space", isEmpty(" "));
-		assertFalse("one element array", isEmpty(new Object[1]));
-		assertFalse("single element list", isEmpty(Arrays.asList("foo")));
-		assertFalse("single key map", isEmpty(Collections.singletonMap("foo", "bar")));
+		assertFalse("single space", empty(" "));
+		assertFalse("one element array", empty(new Object[1]));
+		assertFalse("single element list", empty(Arrays.asList("foo")));
+		assertFalse("single key map", empty(Collections.singletonMap("foo", "bar")));
 	}
 
 	@Test
