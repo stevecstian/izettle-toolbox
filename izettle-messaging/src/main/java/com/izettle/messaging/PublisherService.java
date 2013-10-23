@@ -1,7 +1,7 @@
 package com.izettle.messaging;
 
-import static com.izettle.java.ValueChecks.isDefined;
-import static com.izettle.java.ValueChecks.isEmpty;
+import static com.izettle.java.ValueChecks.defined;
+import static com.izettle.java.ValueChecks.empty;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
@@ -34,7 +34,7 @@ public class PublisherService<M> implements MessageQueueProducer<M> {
 	}
 
 	public static <T> MessageQueueProducer<T> encryptedPublisherService(AmazonSNSClient client, final String topicArn, String eventName, final byte[] publicPgpKey) throws MessagingException {
-		if (isEmpty(publicPgpKey)) {
+		if (empty(publicPgpKey)) {
 			throw new MessagingException("Can't create encryptedPublisherService with null as public PGP key");
 		}
 		return new PublisherService<>(client, topicArn, eventName, publicPgpKey);
@@ -80,7 +80,7 @@ public class PublisherService<M> implements MessageQueueProducer<M> {
 	}
 
 	private String getEventNameForMessage(M message) {
-		if (isDefined(this.eventName)) {
+		if (defined(this.eventName)) {
 			return this.eventName;
 		}
 		return message.getClass().getName();

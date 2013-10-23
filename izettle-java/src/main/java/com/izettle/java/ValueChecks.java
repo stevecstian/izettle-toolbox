@@ -9,20 +9,10 @@ public class ValueChecks {
 	/**
 	 * An alternative to the semantics of null-checks.
 	 *
-	 * @param object Object.
-	 * @return True if the object has a defined value (not null), false otherwise.
-	 */
-	public static boolean isDefined(Object object) {
-		return object != null;
-	}
-
-	/**
-	 * An alternative to the semantics of null-checks.
-	 *
 	 * @param objects Objects.
 	 * @return True if all objects have defined values (not null), false otherwise.
 	 */
-	public static boolean areDefined(Object... objects) {
+	public static boolean defined(Object... objects) {
 		if (objects != null) {
 			for (Object object : objects) {
 				if (object == null) {
@@ -33,6 +23,16 @@ public class ValueChecks {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Checks if any of the objects are undefined (null).
+	 *
+	 * @param objects Objects.
+	 * @return True if any object is undefined (null), false otherwise.
+	 */
+	public static boolean undefined(Object... objects) {
+		return !defined(objects);
 	}
 
 	/**
@@ -54,7 +54,7 @@ public class ValueChecks {
 	 * @param o
 	 * @return true if the object is empty, false otherwise
 	 */
-	public static boolean isEmpty(Object o) {
+	public static boolean empty(Object o) {
 		if (o == null) {
 			return true;
 		}
@@ -80,6 +80,6 @@ public class ValueChecks {
 	 * @return True if the object is not empty, false otherwise.
 	 */
 	public static boolean notEmpty(Object o) {
-		return !isEmpty(o);
+		return !empty(o);
 	}
 }
