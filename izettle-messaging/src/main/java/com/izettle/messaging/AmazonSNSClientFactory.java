@@ -1,9 +1,10 @@
 package com.izettle.messaging;
 
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.services.sns.AmazonSNSClient;
-import java.util.HashMap;
+import com.amazonaws.services.sns.AmazonSNSAsync;
+import com.amazonaws.services.sns.AmazonSNSAsyncClient;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AmazonSNSClientFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(AmazonSNSClientFactory.class);
-	private static final Map<String, AmazonSNSClient> clients = new HashMap<>();
+	private static final Map<String, AmazonSNSAsync> clients = new ConcurrentHashMap<>();
 
 	/**
 	 * Creates Amazon SNS client for given endpoint using the provided credentials.
@@ -22,12 +23,12 @@ public class AmazonSNSClientFactory {
 	 * @param awsCredentials AWS credentials with access to the endpoint.
 	 * @return Amazon SNS client.
 	 */
-	public static synchronized AmazonSNSClient getInstance(String endpoint, AWSCredentials awsCredentials) {
+	public static AmazonSNSAsync getInstance(String endpoint, AWSCredentials awsCredentials) {
 
 		LOG.info(String.format("Creating AWS client for endpoint %s", endpoint));
 
 		if (!clients.containsKey(endpoint)) {
-			AmazonSNSClient amazonSNSClient = new AmazonSNSClient(awsCredentials);
+			AmazonSNSAsync amazonSNSClient = new AmazonSNSAsyncClient(awsCredentials);
 			amazonSNSClient.setEndpoint(endpoint);
 			clients.put(endpoint, amazonSNSClient);
 		}
