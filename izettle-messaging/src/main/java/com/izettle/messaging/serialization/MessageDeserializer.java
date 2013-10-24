@@ -1,6 +1,6 @@
 package com.izettle.messaging.serialization;
 
-import static com.izettle.java.ValueChecks.defined;
+import static com.izettle.java.ValueChecks.allDefined;
 import static com.izettle.java.ValueChecks.defined;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,7 +29,7 @@ public class MessageDeserializer<M> {
 	}
 
 	public String decrypt(String encrypted) throws IOException, CryptographyException {
-		if (defined(privatePgpKey, privatePgpKeyPassphrase)) {
+		if (allDefined(privatePgpKey, privatePgpKeyPassphrase)) {
 			final ByteArrayInputStream keyStream = new ByteArrayInputStream(privatePgpKey);
 			return new String(PGP.decrypt(encrypted.getBytes(), keyStream, privatePgpKeyPassphrase), "UTF-8");
 		}
