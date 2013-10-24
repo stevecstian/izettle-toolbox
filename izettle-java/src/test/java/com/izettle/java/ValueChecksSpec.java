@@ -14,7 +14,7 @@ import org.junit.Test;
 public class ValueChecksSpec {
 
 	@Test
-	public void isDefined() {
+	public void defined() {
 		Integer i = null;
 		assertFalse(ValueChecks.defined(i));
 		i = 1;
@@ -22,10 +22,10 @@ public class ValueChecksSpec {
 	}
 
 	@Test
-	public void areDefined() {
-		assertTrue(ValueChecks.defined("Foo", new Integer(1)));
-		assertFalse(ValueChecks.defined("Foo", null));
-		assertFalse(ValueChecks.defined(null, null));
+	public void allDefined() {
+		assertTrue(ValueChecks.allDefined("Foo", new Integer(1)));
+		assertFalse(ValueChecks.allDefined("Foo", null));
+		assertFalse(ValueChecks.allDefined(null, null));
 
 		// If the args-array itself is null, it should return false.
 		Object[] noObjects = null;
@@ -35,8 +35,12 @@ public class ValueChecksSpec {
 	@Test
 	public void undefined() {
 		assertTrue(ValueChecks.undefined(null));
-		assertTrue(ValueChecks.undefined("Foo", null));
-		assertFalse(ValueChecks.undefined("Foo", new Integer(2)));
+		assertFalse(ValueChecks.undefined("Foo"));
+	}
+
+	@Test
+	public void anyUndefined() {
+		assertFalse(ValueChecks.anyUndefined("Foo", new Integer(2)));
 	}
 
 	@Test
