@@ -9,6 +9,11 @@
 *.iws
 .idea
 
+# Eclipse project files
+.project
+.classpath
+.settings
+
 # Build outputs
 *.class
 target

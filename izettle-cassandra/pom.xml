@@ -16,6 +16,7 @@
 		<dependency>
 			<groupId>com.netflix.astyanax</groupId>
 			<artifactId>astyanax</artifactId>
+			<version>${astyanax.version}</version>
 		</dependency>
 	</dependencies>
 
