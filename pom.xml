@@ -22,7 +22,7 @@
 		<astyanax.version>1.56.37</astyanax.version>
 		<aws.version>1.4.1</aws.version>
 		<bouncycastle.version>1.47</bouncycastle.version>
-		<jackson.version>2.1.4</jackson.version>
+		<jackson.version>2.2.3</jackson.version>
 		<slf4j.version>1.7.2</slf4j.version>
 	</properties>
 
