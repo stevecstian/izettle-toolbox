@@ -4,7 +4,6 @@ import static com.izettle.java.ValueChecks.empty;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -32,25 +31,25 @@ public class QueueProcessor {
 	private final MessageHandler<Message> messageHandler;
 
 	public static QueueProcessor createQueueProcessor(
-			AmazonSQSClient amazonSQSClient,
+			AmazonSQS amazonSQS,
 			String name,
 			String queueUrl,
 			MessageHandler<Message> messageHandler) {
 		return new QueueProcessor(name,
 				queueUrl,
-				amazonSQSClient,
+				amazonSQS,
 				messageHandler);
 	}
 
 	public static <M> QueueProcessor createQueueProcessor(
-			AmazonSQSClient amazonSQSClient,
+			AmazonSQS amazonSQS,
 			Class<M> classType,
 			String name,
 			String queueUrl,
 			MessageHandler<M> messageHandler) {
 		return new QueueProcessor(name,
 				queueUrl,
-				amazonSQSClient,
+				amazonSQS,
 				new MessageHandlerForSingleMessageType<>(classType, messageHandler));
 	}
 

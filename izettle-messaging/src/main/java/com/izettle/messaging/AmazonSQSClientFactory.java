@@ -1,9 +1,10 @@
 package com.izettle.messaging;
 
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.services.sqs.AmazonSQSClient;
-import java.util.HashMap;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AmazonSQSClientFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(AmazonSQSClientFactory.class);
-	private static final Map<String, AmazonSQSClient> clients = new HashMap<>();
+	private static final Map<String, AmazonSQSAsync> clients = new ConcurrentHashMap<>();
 
 	/**
 	 * Creates Amazon SQS client for given endpoint using the provided credentials.
@@ -22,12 +23,12 @@ public class AmazonSQSClientFactory {
 	 * @param awsCredentials AWS credentials with access to the endpoint.
 	 * @return Amazon SQS client.
 	 */
-	public static synchronized AmazonSQSClient getInstance(String endpoint, AWSCredentials awsCredentials) {
+	public static AmazonSQSAsync getInstance(String endpoint, AWSCredentials awsCredentials) {
 
 		LOG.info(String.format("Creating AWS client for endpoint %s", endpoint));
 
 		if (!clients.containsKey(endpoint)) {
-			AmazonSQSClient amazonSQSClient = new AmazonSQSClient(awsCredentials);
+			AmazonSQSAsync amazonSQSClient = new AmazonSQSAsyncClient(awsCredentials);
 			amazonSQSClient.setEndpoint(endpoint);
 			clients.put(endpoint, amazonSQSClient);
 		}
