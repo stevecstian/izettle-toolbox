@@ -17,6 +17,8 @@ import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.izettle.messaging.serialization.AmazonSNSMessage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,7 +35,7 @@ public class QueueServiceTest {
 
 	@Before
 	public final void before() throws Exception {
-		queueService = new QueueService<>(TestMessage.class, "", mockAmazonSQS);
+		queueService = new QueueService<>(TestMessage.class, "queueUrl", mockAmazonSQS);
 	}
 
 	@Test
@@ -127,4 +129,37 @@ public class QueueServiceTest {
 		assertEquals(0, receivedMessages.size());
 	}
 
+	@Test
+	public void postBatchAsSNSMessagesShouldSendMessagesWithSNSEnvelope() throws Exception {
+
+		// Arrange
+		ArgumentCaptor<SendMessageBatchRequest> captor = ArgumentCaptor.forClass(SendMessageBatchRequest.class);
+
+		// Act
+		queueService.postBatchAsSNSMessages(
+				Arrays.asList(
+						new TestMessage("Hello")
+						, new TestMessage("world")
+				)
+				, "subject"
+		);
+
+		// Assert
+		verify(mockAmazonSQS).sendMessageBatch(captor.capture());
+
+		SendMessageBatchRequest sendMessageBatchRequest = captor.getValue();
+		assertThat(sendMessageBatchRequest.getQueueUrl()).isEqualTo("queueUrl");
+
+		List<SendMessageBatchRequestEntry> entries = sendMessageBatchRequest.getEntries();
+		assertThat(entries.size()).isEqualTo(2);
+
+		ObjectMapper mapper = new ObjectMapper();
+		AmazonSNSMessage msg1 = mapper.readValue(entries.get(0).getMessageBody(), AmazonSNSMessage.class);
+		assertThat(msg1.getSubject()).isEqualTo("subject");
+		assertThat(msg1.getMessage()).isEqualTo("{\"message\":\"Hello\"}");
+
+		AmazonSNSMessage msg2 = mapper.readValue(entries.get(1).getMessageBody(), AmazonSNSMessage.class);
+		assertThat(msg2.getSubject()).isEqualTo("subject");
+		assertThat(msg2.getMessage()).isEqualTo("{\"message\":\"world\"}");
+	}
 }
