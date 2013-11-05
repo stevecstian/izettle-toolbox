@@ -24,10 +24,9 @@ public class AmazonSQSClientFactory {
 	 * @return Amazon SQS client.
 	 */
 	public static AmazonSQSAsync getInstance(String endpoint, AWSCredentials awsCredentials) {
-
-		LOG.info(String.format("Creating AWS client for endpoint %s", endpoint));
-
 		if (!clients.containsKey(endpoint)) {
+			LOG.info(String.format("Creating AWS client for endpoint %s", endpoint));
+
 			AmazonSQSAsync amazonSQSClient = new AmazonSQSAsyncClient(awsCredentials);
 			amazonSQSClient.setEndpoint(endpoint);
 			clients.put(endpoint, amazonSQSClient);
