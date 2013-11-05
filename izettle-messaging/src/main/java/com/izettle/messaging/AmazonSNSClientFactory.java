@@ -24,10 +24,9 @@ public class AmazonSNSClientFactory {
 	 * @return Amazon SNS client.
 	 */
 	public static AmazonSNSAsync getInstance(String endpoint, AWSCredentials awsCredentials) {
-
-		LOG.info(String.format("Creating AWS client for endpoint %s", endpoint));
-
 		if (!clients.containsKey(endpoint)) {
+			LOG.info(String.format("Creating AWS client for endpoint %s", endpoint));
+
 			AmazonSNSAsync amazonSNSClient = new AmazonSNSAsyncClient(awsCredentials);
 			amazonSNSClient.setEndpoint(endpoint);
 			clients.put(endpoint, amazonSNSClient);
