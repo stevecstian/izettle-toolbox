@@ -12,8 +12,11 @@ import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.cryptography.HashMD5;
+import com.izettle.messaging.serialization.AmazonSNSMessage;
 import com.izettle.messaging.serialization.MessageDeserializer;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
@@ -39,6 +42,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	private final AmazonSQS amazonSQS;
 	private final MessageSerializer<M> messageSerializer;
 	private final MessageDeserializer<M> messageDeserializer;
+	private final ObjectMapper jsonMapper = new ObjectMapper();
 
 	public static <T> QueueService<T> nonEncryptedQueueService(
 			final Class<T> messageClass,
@@ -164,27 +168,56 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	 */
 	public void postBatch(Map<String, M> messages) throws MessagingException {
 		try {
-			for (Collection<SendMessageBatchRequestEntry> sendMessageBatchRequest : partition(prepareBatchEntries(messages), MAX_BATCH_SIZE)) {
-				amazonSQS.sendMessageBatch(new SendMessageBatchRequest(queueUrl, new ArrayList<>(sendMessageBatchRequest)));
+			List<SendMessageBatchRequestEntry> allEntries = new ArrayList<>(messages.size());
 
+			for (Entry<String, M> messageEntry : messages.entrySet()) {
+				String messageBody = messageSerializer.encrypt(messageSerializer.serialize(messageEntry.getValue()));
+				allEntries.add(new SendMessageBatchRequestEntry(messageEntry.getKey(), messageBody));
 			}
+
+			sendMessageBatch(allEntries);
 		} catch (IOException | CryptographyException e) {
 			throw new MessagingException("Failed to post messages: " + messages.getClass().toString(), e);
 		}
 	}
 
-	private List<SendMessageBatchRequestEntry> prepareBatchEntries(Map<String, M> messages) throws IOException, CryptographyException {
-		List<SendMessageBatchRequestEntry> batchRequestEntries = new ArrayList<>(messages.size());
-
-		for (Entry<String, M> messageEntry : messages.entrySet()) {
-			batchRequestEntries.add(new SendMessageBatchRequestEntry(messageEntry.getKey(),
-					messageSerializer.encrypt(messageSerializer.serialize(messageEntry.getValue()))));
-		}
-
-		return batchRequestEntries;
-	}
 	/**
-	 * Polls message queue for new messages. Waits for messages for 20 sek.
+	 * Posts many messages to queue, with a message envelope that makes them look like they
+	 * were sent through Amazon SNS.
+	 *
+	 * @param messages list of messages to post
+	 * @param messageSubject the value that will be used as "subject" in the SNS envelope
+	 * @throws MessagingException Failed to post messages.
+	 */
+	public void postBatchAsSNSMessages(Collection<M> messages, String messageSubject) throws MessagingException {
+		try {
+			Collection<SendMessageBatchRequestEntry> allEntries = new ArrayList<>(messages.size());
+			int messageIdInBatch = 0;
+			for (M message : messages) {
+				++messageIdInBatch;
+				String messageBody = wrapInSNSMessage(message, messageSubject);
+				allEntries.add(new SendMessageBatchRequestEntry(String.valueOf(messageIdInBatch), messageBody));
+			}
+			sendMessageBatch(allEntries);
+		} catch (IOException | CryptographyException e) {
+			throw new MessagingException("Failed to post messages: " + messages.getClass().toString(), e);
+		}
+	}
+
+	private String wrapInSNSMessage(M message, String subject) throws JsonProcessingException, CryptographyException {
+		String messageBody = messageSerializer.encrypt(messageSerializer.serialize(message));
+		AmazonSNSMessage snsMessage = new AmazonSNSMessage(subject, messageBody);
+		return jsonMapper.writeValueAsString(snsMessage);
+	}
+
+	private void sendMessageBatch(Collection<SendMessageBatchRequestEntry> messages) {
+		for (Collection<SendMessageBatchRequestEntry> batch : partition(messages, MAX_BATCH_SIZE)) {
+			amazonSQS.sendMessageBatch(new SendMessageBatchRequest(queueUrl, new ArrayList<>(batch)));
+		}
+	}
+
+	/**
+	 * Polls message queue for new messages. Waits for messages for 20 sec.
 	 *
 	 * @return Received messages.
 	 * @throws MessagingException Failed to poll queue.
