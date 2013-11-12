@@ -3,7 +3,10 @@ package com.izettle.messaging.handler;
 /**
  * Implementations of this interface should be able to process messages of the specified type.
  * Implementations MUST be able to handle the fact that a message might be received several times
- * dues to queueing mechanisms and retries. 
+ * dues to queueing mechanisms and retries.
+ *
+ * A message handler can throw a <code>RetryableMessageHandlerException</code>, to indicate to
+ * the callers that the message cannot be handled right now, but should be retried at a later time.
  * 
  * @param <M> The type of message that is being handled.
  */

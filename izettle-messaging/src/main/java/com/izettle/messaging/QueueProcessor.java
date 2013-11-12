@@ -92,13 +92,24 @@ public class QueueProcessor {
 			try {
 				messageHandler.handle(message);
 				delete(message.getReceiptHandle());
+			} catch (RetryableMessageHandlerException ignored) {
+				/*
+				 If the message handler throws this exception, we should retry handling the message some time later.
+				 This could be the case where the handler is waiting for other messages to come in first, before
+				 handling this particular message.
+				 Regardless, the handler has decided that this is not a general error situation, and thus
+				 should not be logged in the same way that general exceptions (below) are done.
+				 The message will be polled again by Amazon SQS.
+				 */
+				LOG.info("Will retry handling message {} later.", message.getMessageId());
 			} catch (Exception e) {
 				/*
 				 Note: We should only log here and continue with the other messages fetched. The reason for that is
 				 that we can during release have different versions of the messages, some possible to parse and some
 				 not.
+				 Please note that in Amazon SQS, the message will be retried after some time (default 30s).
 				 */
-				LOG.warn("Failed to handle message {} from queue.", message.getMessageId(), e);
+				LOG.warn("Failed to handle message {} from queue. Will retry later, until the message has passed its retention duration.", message.getMessageId(), e);
 			}
 		}
 	}
