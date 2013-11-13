@@ -7,7 +7,7 @@
 	<parent>
 		<artifactId>izettle-toolbox</artifactId>
 		<groupId>com.izettle.toolbox</groupId>
-		<version>1.0.5</version>
+		<version>1.0.6-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>izettle-messaging</artifactId>
