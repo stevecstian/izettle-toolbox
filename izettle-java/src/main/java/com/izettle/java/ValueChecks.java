@@ -94,12 +94,30 @@ public class ValueChecks {
 	}
 
 	/**
-	 * The inverse of <code>isEmpty()</code>.
+	 * The inverse of <code>empty()</code>.
 	 *
 	 * @param o Object under test.
 	 * @return True if the object is not empty, false otherwise.
 	 */
 	public static boolean notEmpty(Object o) {
 		return !empty(o);
+	}
+
+	/**
+	 * Checks if any of the objects satisfy <code>empty()</code>.
+	 *
+	 * @param objects the list of objects to check
+	 * @return True if any object satisfies <code>empty()</code>.
+	 */
+	public static boolean anyEmpty(Object... objects) {
+		if (empty(objects)) {
+			return true;
+		}
+		for (Object object : objects) {
+			if (empty(object)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

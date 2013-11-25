@@ -1,5 +1,7 @@
 package com.izettle.messaging;
 
+import static com.izettle.java.ValueChecks.anyEmpty;
+
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.PropertiesCredentials;
@@ -16,7 +18,10 @@ public class AWSCredentialsWrapper {
 		}
 	}
 	
-	public static AWSCredentials getCredentials(String accessKey, String secretKey) throws MessagingException {
+	public static AWSCredentials getCredentials(String accessKey, String secretKey) {
+		if (anyEmpty(accessKey, secretKey)) {
+			return null;
+		}
 		return new BasicAWSCredentials(accessKey, secretKey);
 	}
 }

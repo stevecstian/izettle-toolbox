@@ -1,37 +1,62 @@
 package com.izettle.messaging;
 
+import static com.izettle.java.ValueChecks.undefined;
+
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.amazonaws.services.sns.AmazonSNSAsyncClient;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Factory that creates Amazon SNS clients for specific endpoints. This factory should be used to ensure that only
- * one client is created per endpoint.
+ * Factory that creates Amazon SNS clients for specific endpoints.
  */
 public class AmazonSNSClientFactory {
-	private static final Logger LOG = LoggerFactory.getLogger(AmazonSNSClientFactory.class);
-	private static final Map<String, AmazonSNSAsync> clients = new ConcurrentHashMap<>();
 
 	/**
 	 * Creates Amazon SNS client for given endpoint using the provided credentials.
 	 *
 	 * @param endpoint Amazon SNS endpoint.
-	 * @param awsCredentials AWS credentials with access to the endpoint.
 	 * @return Amazon SNS client.
 	 */
-	public static AmazonSNSAsync getInstance(String endpoint, AWSCredentials awsCredentials) {
-		if (!clients.containsKey(endpoint)) {
-			LOG.info(String.format("Creating AWS client for endpoint %s", endpoint));
+	public static AmazonSNSAsync createInstance(String endpoint) {
+		return createInstance(endpoint, null);
+	}
 
-			AmazonSNSAsync amazonSNSClient = new AmazonSNSAsyncClient(awsCredentials);
-			amazonSNSClient.setEndpoint(endpoint);
-			clients.put(endpoint, amazonSNSClient);
+	/**
+	 * Creates Amazon SNS client for given endpoint using the provided credentials.
+	 *
+	 * @param endpoint Amazon SNS endpoint.
+	 * @param accessKey AWS credentials with access to the endpoint, or null to use default aws credentials.
+	 * @param secretKey AWS credentials with access to the endpoint.
+	 * @return Amazon SNS client.
+	 */
+	public static AmazonSNSAsync createInstance(String endpoint, String accessKey, String secretKey) {
+		return createInstance(endpoint, AWSCredentialsWrapper.getCredentials(accessKey, secretKey));
+	}
+
+	/**
+	 * Creates Amazon SNS client for given endpoint using the provided credentials.
+	 *
+	 * @param endpoint Amazon SNS endpoint.
+	 * @param awsCredentials AWS credentials with access to the endpoint, or null to use default aws credentials.
+	 * @return Amazon SNS client.
+	 */
+	public static AmazonSNSAsync createInstance(String endpoint, AWSCredentials awsCredentials) {
+		AmazonSNSAsync client = createInstance(awsCredentials);
+		client.setEndpoint(endpoint);
+		return client;
+	}
+
+	/**
+	 * Creates Amazon SNS client for given endpoint using the provided credentials.
+	 *
+	 * @param awsCredentials AWS credentials with access to the endpoint, or null to use default aws credentials.
+	 * @return Amazon SNS client.
+	 */
+	private static AmazonSNSAsync createInstance(AWSCredentials awsCredentials) {
+		if (undefined(awsCredentials)) {
+			return new AmazonSNSAsyncClient();
+		} else {
+			return new AmazonSNSAsyncClient(awsCredentials);
 		}
-
-		return clients.get(endpoint);
 	}
 }
