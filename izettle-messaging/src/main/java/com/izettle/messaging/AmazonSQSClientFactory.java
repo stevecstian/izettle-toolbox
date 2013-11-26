@@ -1,37 +1,62 @@
 package com.izettle.messaging;
 
+import static com.izettle.java.ValueChecks.undefined;
+
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Factory that creates Amazon SQS clients for specific endpoints. This factory should be used to ensure that only
- * one client is created per endpoint.
+ * Factory that creates Amazon SQS clients for specific endpoints.
  */
 public class AmazonSQSClientFactory {
-	private static final Logger LOG = LoggerFactory.getLogger(AmazonSQSClientFactory.class);
-	private static final Map<String, AmazonSQSAsync> clients = new ConcurrentHashMap<>();
 
 	/**
 	 * Creates Amazon SQS client for given endpoint using the provided credentials.
 	 *
 	 * @param endpoint Amazon SQS endpoint.
-	 * @param awsCredentials AWS credentials with access to the endpoint.
 	 * @return Amazon SQS client.
 	 */
-	public static AmazonSQSAsync getInstance(String endpoint, AWSCredentials awsCredentials) {
-		if (!clients.containsKey(endpoint)) {
-			LOG.info(String.format("Creating AWS client for endpoint %s", endpoint));
+	public static AmazonSQSAsync createInstance(String endpoint) {
+		return createInstance(endpoint, null);
+	}
 
-			AmazonSQSAsync amazonSQSClient = new AmazonSQSAsyncClient(awsCredentials);
-			amazonSQSClient.setEndpoint(endpoint);
-			clients.put(endpoint, amazonSQSClient);
+	/**
+	 * Creates Amazon SQS client for given endpoint using the provided credentials.
+	 *
+	 * @param endpoint Amazon SQS endpoint.
+	 * @param accessKey AWS credentials with access to the endpoint, or null to use default aws credentials.
+	 * @param secretKey AWS credentials with access to the endpoint.
+	 * @return Amazon SQS client.
+	 */
+	public static AmazonSQSAsync createInstance(String endpoint, String accessKey, String secretKey) {
+		return createInstance(endpoint, AWSCredentialsWrapper.getCredentials(accessKey, secretKey));
+	}
+
+	/**
+	 * Creates Amazon SQS client for given endpoint using the provided credentials.
+	 *
+	 * @param endpoint Amazon SQS endpoint.
+	 * @param awsCredentials AWS credentials with access to the endpoint, or null to use default aws credentials.
+	 * @return Amazon SQS client.
+	 */
+	public static AmazonSQSAsync createInstance(String endpoint, AWSCredentials awsCredentials) {
+		AmazonSQSAsync client = createInstance(awsCredentials);
+		client.setEndpoint(endpoint);
+		return client;
+	}
+
+	/**
+	 * Creates Amazon SQS client for given endpoint using the provided credentials.
+	 *
+	 * @param awsCredentials AWS credentials with access to the endpoint, or null to use default aws credentials.
+	 * @return Amazon SQS client.
+	 */
+	private static AmazonSQSAsync createInstance(AWSCredentials awsCredentials) {
+		if (undefined(awsCredentials)) {
+			return new AmazonSQSAsyncClient();
+		} else {
+			return new AmazonSQSAsyncClient(awsCredentials);
 		}
-
-		return clients.get(endpoint);
 	}
 }

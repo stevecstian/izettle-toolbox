@@ -1,5 +1,6 @@
 package com.izettle.java;
 
+import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -65,5 +66,22 @@ public class ValueChecksSpec {
 	public void coalesce() {
 		Object nullObject = null;
 		assertEquals("Foo", ValueChecks.coalesce(nullObject, "Foo"));
+	}
+
+	@Test
+	public void anyEmpty_emptyValues() {
+		assertTrue(anyEmpty(null));
+		assertTrue(anyEmpty(""));
+		assertTrue(anyEmpty(99, ""));
+		assertTrue(anyEmpty(99, null));
+		assertTrue(anyEmpty(null, "test"));
+		assertTrue(anyEmpty(new Object(), new HashMap<String, String>()));
+	}
+
+	@Test
+	public void anyEmpty_nonEmptyValues() {
+		assertFalse(anyEmpty(new Object()));
+		assertFalse(anyEmpty(" ", 9));
+		assertFalse(anyEmpty(99, 98));
 	}
 }
