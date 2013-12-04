@@ -1,0 +1,1 @@
+test file for resource loading given a context class

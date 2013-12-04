@@ -12,37 +12,63 @@ public abstract class ResourceUtils {
 	private ResourceUtils() {
 	}
 
+	/**
+	 * Will return a byte array of the resource
+	 * Will look in all classloaders
+	 *
+	 * @param resourceName The file name of the resource
+	 * @return byte array representation
+	 * @throws IOException On resource not found
+	 */
 	public static byte[] getResourceAsBytes(String resourceName)
 			throws IOException {
 		ResourceLoader resourceLoader = new ResourceLoader();
 		return resourceLoader.getBytesFromResource(resourceName);
 	}
 
+	/**
+	 * Will return a byte array of the resource
+	 * Will use {@code contextClass}'s classloader
+	 * @param contextClass The class to use for class loading
+	 * @param resourceName The file name of the resource
+	 * @return byte array representation
+	 * @throws IOException On resource not found
+	 */
+	public static byte[] getResourceAsBytes(Class<?> contextClass, String resourceName)
+			throws IOException {
+		return getBytesFromStream(getResource(contextClass, resourceName).openStream());
+	}
+
+	/**
+	 * Get an input stream to a resource. Be sure to close it
+	 * Will look in all classloaders
+	 *
+	 * @param resourceName The file name of the resource
+	 * @return In input stream of the resource
+	 * @throws IOException On not found
+	 */
 	public static InputStream getResourceAsStream(String resourceName) throws IOException {
 		ResourceLoader resourceLoader = new ResourceLoader();
 		return resourceLoader.getInputStream(resourceName);
+	}
+
+	/**
+	 * Get an input stream to a resource. Be sure to close it
+	 * Will use {@code contextClass}'s classloader
+	 * @param contextClass The class to use for class loading
+	 * @param resourceName The file name of the resource
+	 * @return In input stream of the resource
+	 * @throws IOException On not found
+	 */
+	public static InputStream getResourceAsStream(Class<?> contextClass, String resourceName) throws IOException {
+		return getResource(contextClass, resourceName).openStream();
 	}
 
 	private static class ResourceLoader {
 
 		private byte[] getBytesFromResource(String resourceName) throws IOException {
 			InputStream inputStream = getInputStream(resourceName);
-			byte[] outputBytes;
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			try {
-				byte[] buffer = new byte[1024];
-				int read;
-				while ((read = inputStream.read(buffer)) != -1) {
-					outputStream.write(buffer, 0, read);
-				}
-				outputStream.flush();
-				outputBytes = outputStream.toByteArray();
-			} finally {
-				if (inputStream != null) {
-					inputStream.close();
-				}
-			}
-			return outputBytes;
+			return getBytesFromStream(inputStream);
 		}
 
 		public InputStream getInputStream(String resourceName) throws IOException {
@@ -79,11 +105,30 @@ public abstract class ResourceUtils {
 		}
 	}
 
+	public static byte[] getBytesFromStream(InputStream inputStream) throws IOException {
+		byte[] outputBytes;
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		try {
+			byte[] buffer = new byte[1024];
+			int read;
+			while ((read = inputStream.read(buffer)) != -1) {
+				outputStream.write(buffer, 0, read);
+			}
+			outputStream.flush();
+			outputBytes = outputStream.toByteArray();
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+			}
+		}
+		return outputBytes;
+	}
+
 	/**
 	 * Returns a {@code URL} pointing to {@code resourceName} if the resource is
 	 * found in the class path. {@code Resources.class.getClassLoader()} is used
 	 * to locate the resource.
-	 * 
+	 *
 	 * @throws NullPointerException if resource is not found
 	 */
 	public static URL getResource(String resourceName) {
@@ -94,8 +139,8 @@ public abstract class ResourceUtils {
 
 	/**
 	 * Returns a {@code URL} pointing to {@code resourceName} that is relative to
-	 * {@code contextClass}, if the resource is found in the class path. 
-	 * 
+	 * {@code contextClass}, if the resource is found in the class path.
+	 *
 	 * @throws NullPointerException if resource is not found
 	 */
 	public static URL getResource(Class<?> contextClass, String resourceName) {
