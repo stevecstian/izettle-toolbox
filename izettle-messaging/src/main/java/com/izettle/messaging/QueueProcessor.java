@@ -50,7 +50,7 @@ public class QueueProcessor {
 		return new QueueProcessor(name,
 				queueUrl,
 				amazonSQS,
-				new MessageHandlerForSingleMessageType<>(classType, messageHandler));
+				new MessageHandlerForSingleMessageType<>(messageHandler, classType));
 	}
 
 	QueueProcessor(
