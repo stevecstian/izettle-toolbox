@@ -1,6 +1,6 @@
 package com.izettle.messaging;
 
-import static com.izettle.java.ValueChecks.empty;
+import static com.izettle.java.ValueChecks.isEmpty;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -80,7 +80,7 @@ public class QueueProcessor {
 			throw new MessagingException("Failed to poll message queue.", e);
 		}
 
-		if (!empty(messages)) {
+		if (!isEmpty(messages)) {
 			handleMessages(messages);
 		}
 	}

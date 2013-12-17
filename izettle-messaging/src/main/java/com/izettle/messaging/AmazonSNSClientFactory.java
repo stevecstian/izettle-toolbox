@@ -1,6 +1,6 @@
 package com.izettle.messaging;
 
-import static com.izettle.java.ValueChecks.undefined;
+import static com.izettle.java.ValueChecks.isNull;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSAsync;
@@ -53,7 +53,7 @@ public class AmazonSNSClientFactory {
 	 * @return Amazon SNS client.
 	 */
 	private static AmazonSNSAsync createInstance(AWSCredentials awsCredentials) {
-		if (undefined(awsCredentials)) {
+		if (isNull(awsCredentials)) {
 			return new AmazonSNSAsyncClient();
 		} else {
 			return new AmazonSNSAsyncClient(awsCredentials);

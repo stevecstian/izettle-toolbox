@@ -1,6 +1,6 @@
 package com.izettle.messaging.serialization;
 
-import static com.izettle.java.ValueChecks.defined;
+import static com.izettle.java.ValueChecks.isNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,9 +13,10 @@ import java.io.InputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 
 public class MessageSerializer<M> {
+
 	private final PGPPublicKey publicKey;
 	private final static ObjectMapper jsonMapper = new ObjectMapper();
-	
+
 	public MessageSerializer(byte[] publicPgpKey) throws CryptographyException {
 		try (InputStream publicPgpKeyInputStream = new ByteArrayInputStream(publicPgpKey)) {
 			this.publicKey = KeyUtil.findPublicKey(publicPgpKeyInputStream);
@@ -27,13 +28,15 @@ public class MessageSerializer<M> {
 	public MessageSerializer() {
 		this.publicKey = null;
 	}
-	
+
 	public String encrypt(String message) throws CryptographyException {
-		if (!defined(publicKey)) return message;
-		
+		if (isNull(publicKey)) {
+			return message;
+		}
+
 		return new String(PGP.encrypt(message.getBytes(), publicKey));
 	}
-	
+
 	public String serialize(M message) throws JsonProcessingException {
 		return jsonMapper.writeValueAsString(message);
 	}

@@ -1,6 +1,6 @@
 package com.izettle.messaging.handler;
 
-import static com.izettle.java.ValueChecks.empty;
+import static com.izettle.java.ValueChecks.isEmpty;
 
 import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +30,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
 	}
 
 	public static MessageDispatcher encryptedMessageDispatcher(byte[] privatePgpKey, final String privatePgpKeyPassphrase) throws MessagingException {
-		if (empty(privatePgpKey) || empty(privatePgpKeyPassphrase)) {
+		if (isEmpty(privatePgpKey) || isEmpty(privatePgpKeyPassphrase)) {
 			throw new MessagingException("Can't create encryptedMessageDispatcher with private PGP key as null or privatePgpKeyPassphrase as null");
 		}
 		return new MessageDispatcher(privatePgpKey, privatePgpKeyPassphrase);

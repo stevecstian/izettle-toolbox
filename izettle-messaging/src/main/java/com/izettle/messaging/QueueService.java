@@ -1,7 +1,7 @@
 package com.izettle.messaging;
 
 import static com.izettle.java.CollectionUtils.partition;
-import static com.izettle.java.ValueChecks.empty;
+import static com.izettle.java.ValueChecks.isEmpty;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -61,7 +61,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 			byte[] privatePgpKey,
 			final String privatePgpKeyPassphrase
 	) throws MessagingException {
-		if (empty(privatePgpKey) || empty(privatePgpKeyPassphrase)) {
+		if (isEmpty(privatePgpKey) || isEmpty(privatePgpKeyPassphrase)) {
 			throw new MessagingException("Can't create encryptedQueueServicePoller with private PGP key as null or privatePgpKeyPassphrase as null");
 		}
 		return new QueueService<>(messageClass,
@@ -77,7 +77,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 			final AmazonSQS amazonSQSClient,
 			final byte[] publicPgpKey
 	) throws MessagingException {
-		if (empty(publicPgpKey)) {
+		if (isEmpty(publicPgpKey)) {
 			throw new MessagingException("Can't create encryptedQueueServicePoster with null as public PGP key");
 		}
 		return new QueueService<>(messageClass,

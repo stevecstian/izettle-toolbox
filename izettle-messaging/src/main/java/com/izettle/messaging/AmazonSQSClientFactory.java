@@ -1,6 +1,6 @@
 package com.izettle.messaging;
 
-import static com.izettle.java.ValueChecks.undefined;
+import static com.izettle.java.ValueChecks.isNull;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
@@ -53,7 +53,7 @@ public class AmazonSQSClientFactory {
 	 * @return Amazon SQS client.
 	 */
 	private static AmazonSQSAsync createInstance(AWSCredentials awsCredentials) {
-		if (undefined(awsCredentials)) {
+		if (isNull(awsCredentials)) {
 			return new AmazonSQSAsyncClient();
 		} else {
 			return new AmazonSQSAsyncClient(awsCredentials);

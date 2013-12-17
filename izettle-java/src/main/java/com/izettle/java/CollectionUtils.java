@@ -1,6 +1,6 @@
 package com.izettle.java;
 
-import static com.izettle.java.ValueChecks.empty;
+import static com.izettle.java.ValueChecks.isEmpty;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,7 +57,7 @@ public class CollectionUtils {
 			}
 			part.add(v);
 		}
-		if (!empty(part)) {
+		if (!isEmpty(part)) {
 			retList.add(part);
 		}
 		return retList;
