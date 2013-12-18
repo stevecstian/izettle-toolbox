@@ -24,7 +24,7 @@ public class CalendarUtils {
 	/**
 	 *
 	 * This method will add the appropriate date count, to delay something a certain workday count.
-	 * When passing in delayWeekends as 0, the same day will be returned in case of a workday. For Saturday and Sunday
+	 * When passing in 0 as nrWorkDays, the same day will be returned in case of a workday. For Saturday and Sunday
 	 * the following Monday is returned.
 	 * Note that bank holidays are not taken into consideration.
 	 *
