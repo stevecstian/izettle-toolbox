@@ -103,10 +103,6 @@ public class CalendarTruncator {
 	 * @return The first instant of the day of the provided instant
 	 */
 	public static Date truncateInstant(TimeZoneId timeZoneId, CalendarField field, Date instant) {
-		/*
-		 * No earlier than 30 minues past midnight, local time, We want to clear all last days
-		 * transactions for each country
-		 */
 		Calendar calendar = CalendarCreator.create(timeZoneId);
 		calendar.setTime(instant);
 		switch (field) {
