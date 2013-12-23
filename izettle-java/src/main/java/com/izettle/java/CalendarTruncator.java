@@ -5,78 +5,10 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
-public class CalendarUtils {
+public class CalendarTruncator {
 
-	private CalendarUtils() {
-	}
-
-	public static Calendar createCalendar(TimeZoneId timeZoneId) {
-		return Calendar.getInstance(timeZoneId.getTimeZone());
-	}
-
-	public static Calendar createCalendar(TimeZoneId timeZoneId, Locale locale) {
-		return Calendar.getInstance(timeZoneId.getTimeZone(), locale);
-	}
-
-	/**
-	 *
-	 * This method will add the appropriate date count, to delay something a certain workday count.
-	 * When passing in 0 as nrWorkDays, the same day will be returned in case of a workday. For Saturday and Sunday
-	 * the following Monday is returned.
-	 * Note that bank holidays are not taken into consideration.
-	 *
-	 * @param timeZoneId The time zone to use when doing the calendar calculation
-	 * @param fromDate - the date to start the workday delay from.
-	 * @param nrWorkDays - number of work days to delay.
-	 * @return the date after delayWorkdays have been applied.
-	 */
-	public static Date addWorkDays(TimeZoneId timeZoneId, Date fromDate, final int nrWorkDays) {
-		Calendar calendar = createCalendar(timeZoneId);
-		calendar.setTime(fromDate);
-		int delayDaysRemaining = nrWorkDays;
-		boolean isWorkday;
-		while (true) {
-			isWorkday = Calendar.SATURDAY != calendar.get(Calendar.DAY_OF_WEEK) && Calendar.SUNDAY != calendar.get(Calendar.DAY_OF_WEEK);
-			if (isWorkday) {
-				if (delayDaysRemaining <= 0) {
-					break;
-				}
-				delayDaysRemaining--;
-			}
-			calendar.add(Calendar.DAY_OF_YEAR, 1);
-		}
-		return calendar.getTime();
-	}
-
-	public static Date addWorkdaysFromNow(TimeZoneId timeZoneId, final int nrWorkDays) {
-		return addWorkDays(timeZoneId, new Date(), nrWorkDays);
-	}
-
-	/**
-	 * Will return the number of calendar days between the two instants
-	 * @param fromInstant the earlier date
-	 * @param untilInstant the later date
-	 * @param timeZoneId The timezone to use when doing the calendar calculation
-	 * @return until - from, expressed in nr of days
-	 */
-	public static int dateDiff(TimeZoneId timeZoneId, Date fromInstant, Date untilInstant) {
-		Calendar fromCal = createCalendar(timeZoneId);
-		fromCal.setTime(fromInstant);
-		fromCal.set(Calendar.MILLISECOND, 0);
-		fromCal.set(Calendar.SECOND, 0);
-		fromCal.set(Calendar.MINUTE, 0);
-		fromCal.set(Calendar.HOUR_OF_DAY, 0);
-		Calendar toCal = createCalendar(timeZoneId);
-		toCal.setTime(untilInstant);
-		toCal.set(Calendar.MILLISECOND, 0);
-		toCal.set(Calendar.SECOND, 0);
-		toCal.set(Calendar.MINUTE, 0);
-		toCal.set(Calendar.HOUR_OF_DAY, 0);
-		long millis = toCal.getTimeInMillis() - fromCal.getTimeInMillis();
-		return (int) TimeUnit.DAYS.convert(millis, TimeUnit.MILLISECONDS);
+	private CalendarTruncator() {
 	}
 
 	/**
@@ -86,7 +18,7 @@ public class CalendarUtils {
 	 * @return The Date of the first instant of the provided year
 	 */
 	public static Date getFirstInstantOfYear(TimeZoneId timeZoneId, int year) {
-		Calendar resultDate = createCalendar(timeZoneId);
+		Calendar resultDate = CalendarCreator.create(timeZoneId);
 		resultDate.set(year, 0, 1, 0, 0, 0);
 		resultDate.set(Calendar.MILLISECOND, 0);
 		resultDate.set(Calendar.YEAR, year);
@@ -103,7 +35,7 @@ public class CalendarUtils {
 	public static Date getFirstInstantOfMonth(TimeZoneId timeZoneId, int year, int month) {
 		int y = year + (month - 1) / 12;
 		int m = (month - 1) % 12;
-		Calendar resultDate = createCalendar(timeZoneId);
+		Calendar resultDate = CalendarCreator.create(timeZoneId);
 		resultDate.set(y, m, 1, 0, 0, 0);
 		resultDate.set(Calendar.MILLISECOND, 0);
 		return resultDate.getTime();
@@ -117,7 +49,7 @@ public class CalendarUtils {
 	 * @return The Date of the first instant of the provided week
 	 */
 	public static Date getFirstInstantOfWeek(TimeZoneId timeZoneId, int year, int weekNumber) {
-		Calendar resultDate = createCalendar(timeZoneId);
+		Calendar resultDate = CalendarCreator.create(timeZoneId);
 		resultDate.setFirstDayOfWeek(Calendar.MONDAY);
 		resultDate.setMinimalDaysInFirstWeek(4);
 		resultDate.set(year, 0, 1, 0, 0, 0);
@@ -140,7 +72,7 @@ public class CalendarUtils {
 	 * @throws ParseException when the date String is in the wrong format (yyyy-MM-dd)
 	 */
 	public static Date getFirstInstantOfDay(TimeZoneId timeZoneId, String dateString) throws ParseException {
-		DateFormat formatter = TimeUtils.createDateFormatter(timeZoneId);
+		DateFormat formatter = DateFormatCreator.createDateFormatter(timeZoneId);
 		return formatter.parse(dateString);
 	}
 
@@ -175,7 +107,7 @@ public class CalendarUtils {
 		 * No earlier than 30 minues past midnight, local time, We want to clear all last days
 		 * transactions for each country
 		 */
-		Calendar calendar = createCalendar(timeZoneId);
+		Calendar calendar = CalendarCreator.create(timeZoneId);
 		calendar.setTime(instant);
 		switch (field) {
 			case YEAR:
@@ -214,4 +146,5 @@ public class CalendarUtils {
 		}
 		return calendar.getTime();
 	}
+
 }
