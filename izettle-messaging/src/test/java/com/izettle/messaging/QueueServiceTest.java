@@ -138,10 +138,8 @@ public class QueueServiceTest {
 		// Act
 		queueService.postBatchAsSNSMessages(
 				Arrays.asList(
-						new TestMessage("Hello")
-						, new TestMessage("world")
-				)
-				, "subject"
+						new TestMessage("Hello"), new TestMessage("world")
+				), "subject"
 		);
 
 		// Assert

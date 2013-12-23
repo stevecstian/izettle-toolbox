@@ -6,65 +6,59 @@ import java.util.Map;
 
 public class ValueChecks {
 
-	/**
-	 * An alternative to the semantics of null-checks.
-	 *
-	 * @param object Object.
-	 * @return True if the object is defined (not null), false otherwise.
-	 */
-	public static boolean defined(Object object) {
-		return object != null;
+	private ValueChecks() {
 	}
 
 	/**
-	 * An alternative to the semantics of null-checks.
+	 * Checks if any of the arguments is null
 	 *
-	 * @param objects Objects.
-	 * @return True if all objects have defined values (not null), false otherwise.
+	 * @param objects Object.
+	 * @return True if any object is null, false otherwise.
 	 */
-	public static boolean allDefined(Object... objects) {
-		if (objects != null) {
-			for (Object object : objects) {
-				if (object == null) {
-					return false;
-				}
+	public static boolean anyNull(Object... objects) {
+		if (objects == null) {
+			return true;
+		}
+		for (Object object : objects) {
+			if (object == null) {
+				return true;
 			}
-		} else {
-			return false;
+		}
+		return false;
+	}
+
+	public static boolean noneNull(Object... objects) {
+		return !anyNull(objects);
+	}
+
+	public static boolean allNull(Object... objects) {
+		if (objects == null) {
+			return true;
+		}
+		for (Object object : objects) {
+			if (object != null) {
+				return false;
+			}
 		}
 		return true;
 	}
 
 	/**
-	 * Checks if the object are undefined (null).
-	 *
-	 * @param object Object.
-	 * @return True if the object is undefined (null), false otherwise.
-	 */
-	public static boolean undefined(Object object) {
-		return !defined(object);
-	}
-
-	/**
-	 * Checks if the object are undefined (null).
-	 *
-	 * @param object Object.
-	 * @return True if any object is undefined (null), false otherwise.
-	 */
-	public static boolean anyUndefined(Object... object) {
-		return !allDefined(object);
-	}
-
-	/**
-	 * Returns first non-null parameter.
+	 * Utility method for shorter notation of possible null check before assignment,
+	 * eg:
+	 * <code>String s2 = s1 != null ? s1 : "";</code>
+	 * can instead be written as:
+	 * <code>String s2 = coalesce(s1, "");</code>
+	 * While adding type safety, this method is intended to behave in the exact way as MySQLs ifNull method
 	 *
 	 * @param <T> The type of the subject
-	 * @param o1 First object.
-	 * @param o2 Second object.
-	 * @return First non-null parameter, or null of no non-null parameter found.
+	 * @param <S> The type for the fallback value, must be same type, or subclass of T
+	 * @param subject check if this is null
+	 * @param fallback value to use if subject was null
+	 * @return the subject if not null, fallback otherwise
 	 */
-	public static <T> T coalesce(T o1, T o2) {
-		return o1 != null ? o1 : o2;
+	public static <T, S extends T> T coalesce(T subject, S fallback) {
+		return subject != null ? subject : fallback;
 	}
 
 	/**
@@ -94,16 +88,6 @@ public class ValueChecks {
 	}
 
 	/**
-	 * The inverse of <code>empty()</code>.
-	 *
-	 * @param o Object under test.
-	 * @return True if the object is not empty, false otherwise.
-	 */
-	public static boolean notEmpty(Object o) {
-		return !empty(o);
-	}
-
-	/**
 	 * Checks if any of the objects satisfy <code>empty()</code>.
 	 *
 	 * @param objects the list of objects to check
@@ -119,5 +103,35 @@ public class ValueChecks {
 			}
 		}
 		return false;
+	}
+
+	public static boolean noneEmpty(Object... objects) {
+		return !anyEmpty(objects);
+	}
+
+	public static boolean allEmpty(Object... objects) {
+		if (empty(objects)) {
+			return true;
+		}
+		for (Object object : objects) {
+			if (!empty(object)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Utility method for shorter notation of check for emptiness before assignment, eg: String s3 = isEmpty(s1) ? s1 :s2;
+	 * can instead be written as: String s3 = ifEmpty(s1, s2); While adding type safety,
+	 *
+	 * @param <T> The type of the subject
+	 * @param <S> The type for the fallback value, must be same type, or subclass of T
+	 * @param subject check if this is null
+	 * @param fallback value to use if subject was null
+	 * @return the subject if not null, fallback otherwise
+	 */
+	public static <T, S extends T> T ifEmpty(T subject, S fallback) {
+		return empty(subject) ? fallback : subject;
 	}
 }

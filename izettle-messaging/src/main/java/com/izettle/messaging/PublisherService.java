@@ -1,6 +1,6 @@
 package com.izettle.messaging;
 
-import static com.izettle.java.ValueChecks.defined;
+import static com.izettle.java.ValueChecks.coalesce;
 import static com.izettle.java.ValueChecks.empty;
 
 import com.amazonaws.services.sns.AmazonSNS;
@@ -16,6 +16,7 @@ import java.io.IOException;
  * @param <M> Message type.
  */
 public class PublisherService<M> implements MessageQueueProducer<M> {
+
 	private final String topicArn;
 	private final AmazonSNS amazonSNS;
 	private final String eventName;
@@ -80,9 +81,6 @@ public class PublisherService<M> implements MessageQueueProducer<M> {
 	}
 
 	private String getEventNameForMessage(M message) {
-		if (defined(this.eventName)) {
-			return this.eventName;
-		}
-		return message.getClass().getName();
+		return coalesce(this.eventName, message.getClass().getName());
 	}
 }

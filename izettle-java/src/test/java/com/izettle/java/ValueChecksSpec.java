@@ -10,38 +10,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ValueChecksSpec {
 
 	@Test
-	public void defined() {
-		Integer i = null;
-		assertFalse(ValueChecks.defined(i));
-		i = 1;
-		assertTrue(ValueChecks.defined(i));
-	}
-
-	@Test
 	public void allDefined() {
-		assertTrue(ValueChecks.allDefined("Foo", new Integer(1)));
-		assertFalse(ValueChecks.allDefined("Foo", null));
-		assertFalse(ValueChecks.allDefined(null, null));
+		assertFalse(ValueChecks.anyNull("Foo", new Integer(1)));
+		assertTrue(ValueChecks.anyNull("Foo", null));
+		assertTrue(ValueChecks.anyNull(null, null));
 
 		// If the args-array itself is null, it should return false.
 		Object[] noObjects = null;
-		assertFalse(ValueChecks.defined(noObjects));
-	}
-
-	@Test
-	public void undefined() {
-		assertTrue(ValueChecks.undefined(null));
-		assertFalse(ValueChecks.undefined("Foo"));
-	}
-
-	@Test
-	public void anyUndefined() {
-		assertFalse(ValueChecks.anyUndefined("Foo", new Integer(2)));
+		assertTrue(ValueChecks.anyNull(noObjects));
+		assertFalse(ValueChecks.anyNull("Foo", new Integer(2)));
 	}
 
 	@Test
@@ -63,14 +46,8 @@ public class ValueChecksSpec {
 	}
 
 	@Test
-	public void coalesce() {
-		Object nullObject = null;
-		assertEquals("Foo", ValueChecks.coalesce(nullObject, "Foo"));
-	}
-
-	@Test
 	public void anyEmpty_emptyValues() {
-		assertTrue(anyEmpty(null));
+		assertTrue(anyEmpty((Object[]) null));
 		assertTrue(anyEmpty(""));
 		assertTrue(anyEmpty(99, ""));
 		assertTrue(anyEmpty(99, null));
@@ -79,9 +56,51 @@ public class ValueChecksSpec {
 	}
 
 	@Test
+	public void allNullEmpty() {
+		assertTrue(ValueChecks.allNull(null, null));
+		assertFalse(ValueChecks.allNull("A", null));
+		assertFalse(ValueChecks.allNull(null, "A"));
+		assertTrue(ValueChecks.allNull((Object[]) null));
+		assertTrue(ValueChecks.allNull((Object) null));
+	}
+
+	@Test
+	public void allEmpty() {
+		assertTrue(ValueChecks.allEmpty(null, null));
+		assertFalse(ValueChecks.allEmpty("A", null));
+		assertFalse(ValueChecks.allEmpty(null, "A"));
+		assertTrue(ValueChecks.allEmpty("", null));
+		assertTrue(ValueChecks.allEmpty(null, ""));
+		assertTrue(ValueChecks.allEmpty((Object[]) null));
+		assertTrue(ValueChecks.allEmpty((Object) null));
+	}
+
+	@Test
 	public void anyEmpty_nonEmptyValues() {
 		assertFalse(anyEmpty(new Object()));
 		assertFalse(anyEmpty(" ", 9));
 		assertFalse(anyEmpty(99, 98));
+	}
+
+	@Test
+	public void coalesce() {
+		Object nullObject = null;
+		assertEquals("Foo", ValueChecks.coalesce(nullObject, "Foo"));
+		Integer one = null;
+		Integer two = 2;
+		assertEquals(two, ValueChecks.coalesce(one, two));
+		one = 1;
+		assertEquals(one, ValueChecks.coalesce(one, two));
+		Assert.assertNull(ValueChecks.coalesce(null, null));
+	}
+
+	@Test
+	public void ifEmpty() {
+		String one = "";
+		String two = "two";
+		assertEquals(two, ValueChecks.ifEmpty(one, two));
+		one = "one";
+		assertEquals(one, ValueChecks.ifEmpty(one, two));
+		Assert.assertNull(ValueChecks.ifEmpty("", null));
 	}
 }
