@@ -1,7 +1,7 @@
 package com.izettle.messaging.serialization;
 
 import static com.izettle.java.ValueChecks.anyNull;
-import static com.izettle.java.ValueChecks.isEmpty;
+import static com.izettle.java.ValueChecks.empty;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +42,7 @@ public class MessageDeserializer<M> {
 	}
 
 	public static String removeSnsEnvelope(String message) throws IOException {
-		if (!isEmpty(message) && message.startsWith("{")) {
+		if (!empty(message) && message.startsWith("{")) {
 			JsonNode root = jsonMapper.readTree(message);
 			if (root.has("TopicArn") && root.has("Message")) {
 				return root.get("Message").asText();

@@ -10,23 +10,13 @@ public class ValueChecks {
 	}
 
 	/**
-	 * Checks if the object is null.
-	 *
-	 * @param object Object.
-	 * @return True if the object is null, false otherwise.
-	 */
-	public static boolean isNull(Object object) {
-		return object == null;
-	}
-
-	/**
 	 * Checks if any of the arguments is null
 	 *
 	 * @param objects Object.
 	 * @return True if any object is null, false otherwise.
 	 */
 	public static boolean anyNull(Object... objects) {
-		if (isNull(objects)) {
+		if (objects == null) {
 			return true;
 		}
 		for (Object object : objects) {
@@ -37,12 +27,28 @@ public class ValueChecks {
 		return false;
 	}
 
+	public static boolean noneNull(Object... objects) {
+		return !anyNull(objects);
+	}
+
+	public static boolean allNull(Object... objects) {
+		if (objects == null) {
+			return true;
+		}
+		for (Object object : objects) {
+			if (object != null) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * Utility method for shorter notation of possible null check before assignment,
 	 * eg:
 	 * <code>String s2 = s1 != null ? s1 : "";</code>
 	 * can instead be written as:
-	 * <code>String s2 = ifNull(s1, "");</code>
+	 * <code>String s2 = coalesce(s1, "");</code>
 	 * While adding type safety, this method is intended to behave in the exact way as MySQLs ifNull method
 	 *
 	 * @param <T> The type of the subject
@@ -51,20 +57,8 @@ public class ValueChecks {
 	 * @param fallback value to use if subject was null
 	 * @return the subject if not null, fallback otherwise
 	 */
-	public static <T, S extends T> T ifNull(T subject, S fallback) {
-		return isNull(subject) ? fallback : subject;
-	}
-
-	/**
-	 * Returns first non-null parameter.
-	 *
-	 * @param <T> The type of the subject
-	 * @param o1 First object.
-	 * @param o2 Second object.
-	 * @return First non-null parameter, or null of no non-null parameter found.
-	 */
-	public static <T> T coalesce(T o1, T o2) {
-		return ifNull(o1, o2);
+	public static <T, S extends T> T coalesce(T subject, S fallback) {
+		return subject != null ? subject : fallback;
 	}
 
 	/**
@@ -74,7 +68,7 @@ public class ValueChecks {
 	 * @param o
 	 * @return true if the object is empty, false otherwise
 	 */
-	public static boolean isEmpty(Object o) {
+	public static boolean empty(Object o) {
 		if (o == null) {
 			return true;
 		}
@@ -100,15 +94,31 @@ public class ValueChecks {
 	 * @return True if any object satisfies <code>empty()</code>.
 	 */
 	public static boolean anyEmpty(Object... objects) {
-		if (isEmpty(objects)) {
+		if (empty(objects)) {
 			return true;
 		}
 		for (Object object : objects) {
-			if (isEmpty(object)) {
+			if (empty(object)) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	public static boolean noneEmpty(Object... objects) {
+		return !anyEmpty(objects);
+	}
+
+	public static boolean allEmpty(Object... objects) {
+		if (empty(objects)) {
+			return true;
+		}
+		for (Object object : objects) {
+			if (!empty(object)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -122,6 +132,6 @@ public class ValueChecks {
 	 * @return the subject if not null, fallback otherwise
 	 */
 	public static <T, S extends T> T ifEmpty(T subject, S fallback) {
-		return isEmpty(subject) ? fallback : subject;
+		return empty(subject) ? fallback : subject;
 	}
 }

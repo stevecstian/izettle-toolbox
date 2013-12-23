@@ -1,7 +1,7 @@
 package com.izettle.cryptography;
 
 import static com.izettle.java.Base64.byteArrToB64String;
-import static com.izettle.java.ValueChecks.isEmpty;
+import static com.izettle.java.ValueChecks.empty;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -20,7 +20,7 @@ public abstract class HashMD5 {
 			md = MessageDigest.getInstance("MD5");
 			md.reset();
 			for (String string : subjects) {
-				if (!isEmpty(string)) {
+				if (!empty(string)) {
 					md.update(string.getBytes("utf-8"));
 				}
 			}

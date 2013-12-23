@@ -1,7 +1,5 @@
 package com.izettle.messaging;
 
-import static com.izettle.java.ValueChecks.isNull;
-
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
@@ -53,7 +51,7 @@ public class AmazonSQSClientFactory {
 	 * @return Amazon SQS client.
 	 */
 	private static AmazonSQSAsync createInstance(AWSCredentials awsCredentials) {
-		if (isNull(awsCredentials)) {
+		if (awsCredentials == null) {
 			return new AmazonSQSAsyncClient();
 		} else {
 			return new AmazonSQSAsyncClient(awsCredentials);

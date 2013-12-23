@@ -1,7 +1,5 @@
 package com.izettle.messaging.serialization;
 
-import static com.izettle.java.ValueChecks.isNull;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
@@ -30,7 +28,7 @@ public class MessageSerializer<M> {
 	}
 
 	public String encrypt(String message) throws CryptographyException {
-		if (isNull(publicKey)) {
+		if (publicKey == null) {
 			return message;
 		}
 
