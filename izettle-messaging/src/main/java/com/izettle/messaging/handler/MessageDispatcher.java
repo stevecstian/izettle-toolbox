@@ -6,6 +6,7 @@ import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.messaging.MessagingException;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
+import com.izettle.messaging.serialization.JsonSerializer;
 import com.izettle.messaging.serialization.MessageDeserializer;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MessageDispatcher implements MessageHandler<Message> {
 	private final MessageDeserializer<String> messageDeserializer;
 	private final Map<String, ListOfMessageHandlersForType> messageHandlersPerEventName = new ConcurrentHashMap<>();
-	private final static ObjectMapper jsonMapper = new ObjectMapper();
+	private final static ObjectMapper jsonMapper = JsonSerializer.getInstance();
 
 	public static MessageDispatcher nonEncryptedMessageDispatcher() {
 		return new MessageDispatcher();
@@ -47,7 +48,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
 	private static class ListOfMessageHandlersForType<M> {
 		private final Class<M> messageType;
 		public final List<MessageHandler<M>> handlers = new ArrayList<>();
-		private final static ObjectMapper jsonMapper = new ObjectMapper();
+		private final static ObjectMapper jsonMapper = JsonSerializer.getInstance();
 		
 		public ListOfMessageHandlersForType(Class<M> messageType) {
 			this.messageType = messageType;

@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.cryptography.HashMD5;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
+import com.izettle.messaging.serialization.JsonSerializer;
 import com.izettle.messaging.serialization.MessageDeserializer;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	private final AmazonSQS amazonSQS;
 	private final MessageSerializer<M> messageSerializer;
 	private final MessageDeserializer<M> messageDeserializer;
-	private final ObjectMapper jsonMapper = new ObjectMapper();
+	private final ObjectMapper jsonMapper = JsonSerializer.getInstance();
 
 	public static <T> QueueService<T> nonEncryptedQueueService(
 			final Class<T> messageClass,

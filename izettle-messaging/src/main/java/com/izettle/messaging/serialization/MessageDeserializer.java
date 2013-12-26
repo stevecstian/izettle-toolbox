@@ -14,7 +14,7 @@ public class MessageDeserializer<M> {
 
 	private final byte[] privatePgpKey;
 	private final String privatePgpKeyPassphrase;
-	private final static ObjectMapper jsonMapper = new ObjectMapper();
+	private static final ObjectMapper jsonMapper = JsonSerializer.getInstance();
 	private final Class<M> messageClass;
 
 	public MessageDeserializer(Class<M> messageClass, byte[] privatePgpKey, final String privatePgpKeyPassphrase) {
