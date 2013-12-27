@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.java.DateFormatCreator;
 import com.izettle.java.ResourceUtils;
-import com.izettle.java.enums.TimeZoneId;
+import com.izettle.java.TimeZoneId;
 import com.izettle.messaging.TestMessage;
 import com.izettle.messaging.TestMessageWithDate;
 import java.io.IOException;

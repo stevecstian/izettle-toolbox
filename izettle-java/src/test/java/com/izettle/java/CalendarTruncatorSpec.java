@@ -11,10 +11,10 @@ import static com.izettle.java.CalendarTruncator.getFirstInstantOfMonth;
 import static com.izettle.java.CalendarTruncator.getFirstInstantOfWeek;
 import static com.izettle.java.CalendarTruncator.getFirstInstantOfYear;
 import static com.izettle.java.CalendarTruncator.truncateInstant;
-import static com.izettle.java.enums.TimeZoneId.EUROPE_HELSINKI;
-import static com.izettle.java.enums.TimeZoneId.EUROPE_LONDON;
-import static com.izettle.java.enums.TimeZoneId.EUROPE_STOCKHOLM;
-import static com.izettle.java.enums.TimeZoneId.UTC;
+import static com.izettle.java.TimeZoneId.EUROPE_HELSINKI;
+import static com.izettle.java.TimeZoneId.EUROPE_LONDON;
+import static com.izettle.java.TimeZoneId.EUROPE_STOCKHOLM;
+import static com.izettle.java.TimeZoneId.UTC;
 import static org.junit.Assert.assertEquals;
 
 import java.text.DateFormat;

@@ -1,4 +1,4 @@
-package com.izettle.java.enums;
+package com.izettle.java;
 
 public enum CurrencyId {
 

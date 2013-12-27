@@ -1,6 +1,5 @@
 package com.izettle.java;
 
-import com.izettle.java.enums.TimeZoneId;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
