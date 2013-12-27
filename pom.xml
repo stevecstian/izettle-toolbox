@@ -7,7 +7,7 @@
 	<groupId>com.izettle.toolbox</groupId>
 	<artifactId>izettle-toolbox</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0.8-SNAPSHOT</version>
+	<version>1.0.8</version>
 
 	<modules>
 		<module>izettle-java</module>
