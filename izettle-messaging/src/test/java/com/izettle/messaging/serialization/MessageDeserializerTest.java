@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.izettle.java.DateFormatCreator;
 import com.izettle.java.ResourceUtils;
-import com.izettle.java.enums.TimeZoneId;
+import com.izettle.java.TimeZoneId;
 import com.izettle.messaging.TestMessage;
 import com.izettle.messaging.TestMessageWithDate;
 import java.io.IOException;
