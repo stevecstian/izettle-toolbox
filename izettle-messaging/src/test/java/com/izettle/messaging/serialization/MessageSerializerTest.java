@@ -5,10 +5,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
+import com.izettle.java.DateFormatCreator;
 import com.izettle.java.ResourceUtils;
+import com.izettle.java.enums.TimeZoneId;
 import com.izettle.messaging.TestMessage;
+import com.izettle.messaging.TestMessageWithDate;
 import java.io.IOException;
+import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,5 +76,20 @@ public class MessageSerializerTest {
 		String decryptedBody = pgpDeserializer.decrypt(encryptedBody);
 		TestMessage deserializedMessage = pgpDeserializer.deserialize(decryptedBody);
 		assertEquals(msg.getMessage(), deserializedMessage.getMessage());
+	}
+
+	@Test
+	public void serializingMessageWithDateShouldFormatTheDateAccordingToRfc3339() throws Exception {
+		// Arrange
+		Date testDate = DateFormatCreator.createDateAndTimeMillisFormatter(TimeZoneId.UTC)
+				.parse("2001-12-23 02:05:06.123");
+		TestMessageWithDate msg = new TestMessageWithDate(testDate);
+
+		// Act
+		String messageAsJson = new MessageSerializer<TestMessageWithDate>().serialize(msg);
+
+		// Assert
+		String dateFieldAsString = new ObjectMapper().readTree(messageAsJson).get("date").asText();
+		assertEquals("2001-12-23T02:05:06.123+0000", dateFieldAsString);
 	}
 }
