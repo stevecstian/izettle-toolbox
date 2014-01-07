@@ -34,6 +34,15 @@ public abstract class DateFormatCreator {
 	}
 
 	/**
+	 * Create a formatter commonly used when communicating with services over the internet.
+	 * Example: "2013-12-24T21:34:56.123+0000".
+	 * @return the newly created formatter
+	 */
+	public static DateFormat createRFC3339Formatter() {
+		return createFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZ", TimeZoneId.UTC);
+	}
+
+	/**
 	 * @param timeZoneId the time zone id of the spectator
 	 * @return date formatter with pattern <b>yyyy-MM-dd</b>(ISO-8601 Date).
 	 */
