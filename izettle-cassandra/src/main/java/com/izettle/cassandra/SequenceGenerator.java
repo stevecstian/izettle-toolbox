@@ -1,5 +1,7 @@
 package com.izettle.cassandra;
 
+import static com.izettle.java.ValueChecks.anyEmpty;
+
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.model.ColumnFamily;
@@ -11,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * A sequence generator that generates a monotonically increasing sequence. The state is persisted in a given Cassandra
  * column family.
- *
  * The sequence generator handles multiple sequences, each sequence is identified by a key represented as a string.
  */
 public class SequenceGenerator {
@@ -80,6 +81,24 @@ public class SequenceGenerator {
 	 * @throws SequenceGeneratorException Failed to reset sequence.
 	 */
 	public void reset(String sequenceKey) throws SequenceGeneratorException {
+		try {
+			reset(sequenceKey, INITIAL_SEQUENCE_VALUE);
+		} catch (SequenceGeneratorException e) {
+			throw new SequenceGeneratorException("Failed to reset sequence!", e);
+		}
+	}
+
+	/**
+	 * Resets the sequence based on a given initial value.
+	 *
+	 * @param sequenceKey Sequence key.
+	 * @param initialSequenceValue Initial sequence number.
+	 * @throws SequenceGeneratorException Failed to create the sequence.
+	 */
+	public void reset(String sequenceKey, Long initialSequenceValue) throws SequenceGeneratorException {
+		if (anyEmpty(sequenceKey, initialSequenceValue)) {
+			throw new SequenceGeneratorException("Can't create a sequence without a sequence key or an initial value");
+		}
 
 		ColumnPrefixDistributedRowLock<String> lock =
 				new ColumnPrefixDistributedRowLock<>(keyspace, columnFamily, sequenceKey)
@@ -93,7 +112,7 @@ public class SequenceGenerator {
 
 			mutationBatch
 					.withRow(columnFamily, sequenceKey)
-					.putColumn(COLUMN_NAME, INITIAL_SEQUENCE_VALUE);
+					.putColumn(COLUMN_NAME, initialSequenceValue);
 
 			lock.releaseWithMutation(mutationBatch);
 
@@ -104,7 +123,8 @@ public class SequenceGenerator {
 				throw new SequenceGeneratorException("Failed to release lock after exception.", e);
 			}
 
-			throw new SequenceGeneratorException("Failed to reset sequence!", e);
+			throw new SequenceGeneratorException("Failed to create sequence!", e);
 		}
+
 	}
 }
