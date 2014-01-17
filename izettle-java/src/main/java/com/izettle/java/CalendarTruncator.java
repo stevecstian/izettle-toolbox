@@ -81,6 +81,10 @@ public class CalendarTruncator {
 		MINUTE,
 		HOUR,
 		DAY,
+		/**
+		 * ISO 8601 Weeks starting on Mondays, with week 01 being the week with the year's first Thursday in it
+		 */
+		WEEK,
 		MONTH,
 		YEAR
 	}
@@ -115,6 +119,15 @@ public class CalendarTruncator {
 				break;
 			case MONTH:
 				calendar.set(Calendar.DAY_OF_MONTH, 1);
+				calendar.set(Calendar.HOUR_OF_DAY, 0);
+				calendar.set(Calendar.MINUTE, 0);
+				calendar.set(Calendar.SECOND, 0);
+				calendar.set(Calendar.MILLISECOND, 0);
+				break;
+			case WEEK:
+				calendar.setMinimalDaysInFirstWeek(4);
+				calendar.setFirstDayOfWeek(Calendar.MONDAY);
+				calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 				calendar.set(Calendar.HOUR_OF_DAY, 0);
 				calendar.set(Calendar.MINUTE, 0);
 				calendar.set(Calendar.SECOND, 0);
