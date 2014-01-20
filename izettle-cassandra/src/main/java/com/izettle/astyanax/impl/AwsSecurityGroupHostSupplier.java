@@ -40,10 +40,10 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 	private Region region;
 	private final int port;
 	private final Filter filter;
-    private volatile List<Host> previousHosts;
+	private volatile List<Host> previousHosts;
 
-    private static final int DEFAULT_TIMEOUT = 5000;
-    private static final Region DEFAULT_REGION = Region.getRegion(Regions.EU_WEST_1);
+	private static final int DEFAULT_TIMEOUT = 5000;
+	private static final Region DEFAULT_REGION = Region.getRegion(Regions.EU_WEST_1);
 	private static final String metadataEndpoint = "http://169.254.169.254/latest/meta-data/placement/availability-zone";
 
 	/**
@@ -68,7 +68,8 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 
 	/**
 	 * Constructor with the default region. Will try to determine the Cassandra region based 
-	 * on the current instance placement. Astyanax should be running on an AWS instance if this constructor is used.
+	 * on the current instance placement.
+	 * Astyanax should be running on an AWS instance if this constructor is used.
 	 *  
 	 * @param client - {@link AmazonEC2Client} implementation
 	 * @param groupId - AWS security group id
@@ -107,20 +108,20 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 		return null;
 	}
 
-    /*
-     * Find out and set the region if it hasn't already been set
-     */
-    private void setMyRegion() {
-    	if (region == null) {
-        	region = findMyRegion();
-            if (region != null) {
-            	client.setRegion(region);
-            } else {
-            	// set to default region for now, will try again next time
-            	client.setRegion(DEFAULT_REGION);
-            }
-    	}
-    }
+	/*
+	 * Find out and set the region if it hasn't already been set
+	 */
+	private void setMyRegion() {
+		if (region == null) {
+			region = findMyRegion();
+			if (region != null) {
+				client.setRegion(region);
+			} else {
+				// set to default region for now, will try again next time
+				client.setRegion(DEFAULT_REGION);
+			}
+		}
+	}
 
 	@Override
 	public synchronized List<Host> get() {
@@ -135,22 +136,22 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 					String privateIP = instance.getPrivateIpAddress();
 					if (privateIP != null) {
 						LOG.info("Registering a possible node on IP {} with the C* connection pool", privateIP);
-	                    Host host = new Host(privateIP, port);
-	                    ipToHost.put(privateIP, host);
+						Host host = new Host(privateIP, port);
+						ipToHost.put(privateIP, host);
 					}
 				}
 			}
 
-            previousHosts = Lists.newArrayList(ipToHost.values());
-            return previousHosts;
+			previousHosts = Lists.newArrayList(ipToHost.values());
+			return previousHosts;
 		} catch (AmazonClientException ex) {
-            if (previousHosts == null) {
-                throw new RuntimeException(ex);
-            }
-            LOG.warn("Failed to get hosts for sg: {} in region: {}.  Will use previously known hosts instead", 
-            		Arrays.toString(filter.getValues().toArray()), 
-            		region == null ? DEFAULT_REGION.toString() : region.toString());
-            return previousHosts;
+			if (previousHosts == null) {
+				throw new RuntimeException(ex);
+			}
+			LOG.warn("Failed to get hosts for sg: {} in region: {}.  Will use previously known hosts instead",
+					Arrays.toString(filter.getValues().toArray()),
+					region == null ? DEFAULT_REGION.toString() : region.toString());
+			return previousHosts;
 		}
 	}
 }
