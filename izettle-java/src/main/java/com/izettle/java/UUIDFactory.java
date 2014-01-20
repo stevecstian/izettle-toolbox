@@ -42,9 +42,8 @@ public class UUIDFactory {
 	 */
 	public static String createAlternative(String uuid, byte[] mask) {
 		byte[] bytes = uuidToByteArray(uuid);
-		int maskIndex = 0;
-		for(int i = 0; i < bytes.length; ++i, maskIndex = (maskIndex + 1) % mask.length) {
-			bytes[i] ^= mask[maskIndex];
+		for(int i = 0; i < bytes.length; ++i) {
+			bytes[i] ^= mask[i % mask.length];
 		}
 		return toBase64String(bytes);
 	}
