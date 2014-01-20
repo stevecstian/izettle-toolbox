@@ -5,6 +5,7 @@ import static com.izettle.java.CalendarTruncator.CalendarField.HOUR;
 import static com.izettle.java.CalendarTruncator.CalendarField.MINUTE;
 import static com.izettle.java.CalendarTruncator.CalendarField.MONTH;
 import static com.izettle.java.CalendarTruncator.CalendarField.SECOND;
+import static com.izettle.java.CalendarTruncator.CalendarField.WEEK;
 import static com.izettle.java.CalendarTruncator.CalendarField.YEAR;
 import static com.izettle.java.CalendarTruncator.getFirstInstantOfDay;
 import static com.izettle.java.CalendarTruncator.getFirstInstantOfMonth;
@@ -71,6 +72,7 @@ public class CalendarTruncatorSpec {
 		assertEquals("2013-06-14 23:00:00.000", df.format(truncateInstant(EUROPE_HELSINKI, DAY, instant)));
 		//general truncation checks:
 		assertEquals("2001-01-01 00:00:00.000", df.format(truncateInstant(EUROPE_STOCKHOLM, YEAR, df.parse("2001-09-05 05:30:12.345"))));
+		assertEquals("2001-01-15 00:00:00.000", df.format(truncateInstant(EUROPE_STOCKHOLM, WEEK, df.parse("2001-01-18 05:30:12.345"))));
 		assertEquals("2001-01-01 00:00:00.000", df.format(truncateInstant(EUROPE_STOCKHOLM, MONTH, df.parse("2001-01-05 05:30:12.345"))));
 		assertEquals("2001-01-01 00:00:00.000", df.format(truncateInstant(EUROPE_STOCKHOLM, DAY, df.parse("2001-01-01 05:30:12.345"))));
 		assertEquals("2001-01-01 05:00:00.000", df.format(truncateInstant(EUROPE_STOCKHOLM, HOUR, df.parse("2001-01-01 05:30:12.345"))));
@@ -92,6 +94,7 @@ public class CalendarTruncatorSpec {
 		assertEquals("2013-06-14 21:00:00.000", df.format(truncateInstant(EUROPE_HELSINKI, DAY, instant)));
 		//general truncation checks:
 		assertEquals("2001-01-01 00:00:00.000", df.format(truncateInstant(UTC, YEAR, df.parse("2001-09-05 05:30:12.345"))));
+		assertEquals("2001-01-15 00:00:00.000", df.format(truncateInstant(UTC, WEEK, df.parse("2001-01-18 05:30:12.345"))));
 		assertEquals("2001-01-01 00:00:00.000", df.format(truncateInstant(UTC, MONTH, df.parse("2001-01-05 05:30:12.345"))));
 		assertEquals("2001-01-01 00:00:00.000", df.format(truncateInstant(UTC, DAY, df.parse("2001-01-01 05:30:12.345"))));
 		assertEquals("2001-01-01 05:00:00.000", df.format(truncateInstant(UTC, HOUR, df.parse("2001-01-01 05:30:12.345"))));
