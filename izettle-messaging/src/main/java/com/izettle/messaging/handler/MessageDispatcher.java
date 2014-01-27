@@ -85,6 +85,13 @@ public class MessageDispatcher implements MessageHandler<Message> {
 		AmazonSNSMessage sns = jsonMapper.readValue(messageBody, AmazonSNSMessage.class);
 		String decryptedMessage = messageDeserializer.decrypt(sns.getMessage());
 		String eventName = sns.getSubject();
+		if (empty(eventName)) {
+			throw new MessagingException(
+					"Received message without event name. "
+					+ "MessageDispatcher requires a message subject in order to know which handler to route the message to. "
+					+ "Make sure that you publish your message with a message subject before trying to receive it."
+			);
+		}
 		
 		if (!messageHandlersPerEventName.containsKey(eventName)) {
 			throw new MessagingException("No handlers for event " + eventName);

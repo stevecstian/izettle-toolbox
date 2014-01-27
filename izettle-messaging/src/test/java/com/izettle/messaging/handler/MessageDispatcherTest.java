@@ -8,29 +8,34 @@ import static org.mockito.Mockito.verify;
 
 import com.amazonaws.services.sqs.model.Message;
 import com.izettle.messaging.TestMessage;
-import com.izettle.messaging.serialization.MessageSerializer;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 public class MessageDispatcherTest {
 
+	private final MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
+	@SuppressWarnings("unchecked")
+	private final MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
+	@SuppressWarnings("unchecked")
+	private final MessageHandler<String> stringHandler = mock(MessageHandler.class);
+
 	@Test(expected = com.izettle.messaging.MessagingException.class)
 	public void shouldThrowExceptionIfNoMessageHandlersForMessageTypeIsPresent() throws Exception {
-		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
-		MessageSerializer<TestMessage> messageSerializer = new MessageSerializer<>();
 		Message message = new Message();
-		message.setBody(messageSerializer.serialize(new TestMessage("")));
 		message.setBody("{\"Subject\":\"com.izettle.messaging.messages.MessageWithoutHandle\", \"Message\": \"{}\"}");
 
 		dispatcher.handle(message);
 	}
 
+	@Test(expected = com.izettle.messaging.MessagingException.class)
+	public void shouldThrowExceptionIfMessageHasNoSubject() throws Exception {
+		Message message = new Message();
+		message.setBody("{\"Message\": \"{}\"}");
+		dispatcher.handle(message);
+	}
+
 	@Test
 	public void shouldCallSingleHandlerWhenReceivingMessage() throws Exception {
-		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
-
-		@SuppressWarnings("unchecked")
-		MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
 
 		dispatcher.addHandler(TestMessage.class, testMessageHandler);
 
@@ -43,13 +48,6 @@ public class MessageDispatcherTest {
 
 	@Test
 	public void shouldCallCorrectHandlerWhenReceivingMessage() throws Exception {
-		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
-
-		@SuppressWarnings("unchecked")
-		MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
-
-		@SuppressWarnings("unchecked")
-		MessageHandler<String> stringHandler = mock(MessageHandler.class);
 
 		dispatcher.addHandler(TestMessage.class, testMessageHandler);
 		dispatcher.addHandler(String.class, stringHandler);
@@ -64,10 +62,6 @@ public class MessageDispatcherTest {
 
 	@Test
 	public void shouldDeserializeMessageFromJson() throws Exception {
-		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
-
-		@SuppressWarnings("unchecked")
-		MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
 
 		dispatcher.addHandler(TestMessage.class, testMessageHandler);
 		
@@ -85,12 +79,6 @@ public class MessageDispatcherTest {
 	public void shouldCallHandlerForEventNameWhenReceivingMessage() throws Exception {
 
 		// Arrange
-		@SuppressWarnings("unchecked")
-		MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
-		@SuppressWarnings("unchecked")
-		MessageHandler<String> stringHandler = mock(MessageHandler.class);
-
-		MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
 		dispatcher.addHandler(String.class, stringHandler);
 		dispatcher.addHandler(TestMessage.class, "ForcedEventName", testMessageHandler);
 
