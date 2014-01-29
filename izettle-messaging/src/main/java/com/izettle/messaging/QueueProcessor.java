@@ -86,7 +86,7 @@ public class QueueProcessor {
 	}
 
 	private void handleMessages(List<Message> messages) {
-		LOG.info("Message queue processor {} fetched {} message(s) from queue.", name, messages.size());
+		LOG.debug("Message queue processor {} fetched {} message(s) from queue.", name, messages.size());
 
 		for (Message message : messages) {
 			try {
@@ -101,7 +101,7 @@ public class QueueProcessor {
 				 should not be logged in the same way that general exceptions (below) are done.
 				 The message will be polled again by Amazon SQS.
 				 */
-				LOG.info("Will retry handling message {} later.", message.getMessageId());
+				LOG.debug("Will retry handling message {} later.", message.getMessageId());
 			} catch (Exception e) {
 				/*
 				 Note: We should only log here and continue with the other messages fetched. The reason for that is
