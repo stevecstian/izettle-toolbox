@@ -2,6 +2,7 @@ package com.izettle.java;
 
 import static com.izettle.java.ResourceUtils.getResourceAsBytes;
 import static com.izettle.java.ResourceUtils.getResourceAsStream;
+import static com.izettle.java.ResourceUtils.getResourceListing;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.io.InputStream;
@@ -44,5 +45,14 @@ public class ResourceUtilsTest {
 	public void testGetResourceAsStreamWithContextClass() throws Exception {
 		InputStream stream = getResourceAsStream(ResourceUtilsTest.class, "resourcewithcontexttestfile.txt");
 		assertThat(stream).isNotNull();
+	}
+
+	@Test
+	public void testGetResourceListingShouldReturnAllFilesInResourceDirectory() throws Exception {
+		String[] files = getResourceListing(ResourceUtilsTest.class, "resourceloadertest");
+		assertThat(files).isNotEmpty();
+		assertThat(files).contains("file1.txt");
+		assertThat(files).contains("file2.txt");
+		assertThat(files).doesNotContain("resourceloadertestfile.txt");
 	}
 }
