@@ -114,7 +114,6 @@ public abstract class ResourceUtils {
 			while ((read = inputStream.read(buffer)) != -1) {
 				outputStream.write(buffer, 0, read);
 			}
-			outputStream.flush();
 			outputBytes = outputStream.toByteArray();
 		} finally {
 			if (inputStream != null) {
