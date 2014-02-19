@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MessageDispatcher implements MessageHandler<Message> {
 	private final MessageDeserializer<String> messageDeserializer;
 	private final Map<String, ListOfMessageHandlersForType> messageHandlersPerEventName = new ConcurrentHashMap<>();
+	private final List<MessageHandler<AmazonSNSMessage>> defaultMessageHandlers = new ArrayList<>();
 	private final static ObjectMapper jsonMapper = JsonSerializer.getInstance();
 
 	public static MessageDispatcher nonEncryptedMessageDispatcher() {
@@ -58,9 +59,13 @@ public class MessageDispatcher implements MessageHandler<Message> {
 		}
 		public void callAllHandlers(String message) throws Exception {
 			M msg = jsonMapper.readValue(message, messageType);
-			for (MessageHandler<M> handler : handlers) {
-				handler.handle(msg);
-			}
+			MessageDispatcher.callAllHandlers(handlers, msg);
+		}
+	}
+
+	private static <M> void callAllHandlers(List<MessageHandler<M>> handlers, M message) throws Exception {
+		for (MessageHandler<M> handler : handlers) {
+			handler.handle(message);
 		}
 	}
 
@@ -78,6 +83,13 @@ public class MessageDispatcher implements MessageHandler<Message> {
 	public <M> void addHandler(Class<M> classType, MessageHandler<M> handler) {
 		addHandler(classType, classType.getName(), handler);
 	}
+
+	/**
+	 * Adds a message handler that should be called if none of the other message handlers match the incoming message.
+	 */
+	public void addDefaultHandler(MessageHandler<AmazonSNSMessage> handler) {
+		defaultMessageHandlers.add(handler);
+	}
 	
 	@Override
 	public void handle(Message message) throws Exception {
@@ -93,9 +105,13 @@ public class MessageDispatcher implements MessageHandler<Message> {
 			);
 		}
 		
-		if (!messageHandlersPerEventName.containsKey(eventName)) {
-			throw new MessagingException("No handlers for event " + eventName);
+		if (messageHandlersPerEventName.containsKey(eventName)) {
+			messageHandlersPerEventName.get(eventName).callAllHandlers(decryptedMessage);
+		} else {
+			if (empty(defaultMessageHandlers)) {
+				throw new MessagingException("No handlers for event " + eventName);
+			}
+			callAllHandlers(defaultMessageHandlers, sns);
 		}
-		messageHandlersPerEventName.get(eventName).callAllHandlers(decryptedMessage);
 	}
 }
