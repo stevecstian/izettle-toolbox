@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import com.amazonaws.services.sqs.model.Message;
 import com.izettle.messaging.TestMessage;
+import com.izettle.messaging.serialization.AmazonSNSMessage;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -18,6 +19,8 @@ public class MessageDispatcherTest {
 	private final MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
 	@SuppressWarnings("unchecked")
 	private final MessageHandler<String> stringHandler = mock(MessageHandler.class);
+	@SuppressWarnings("unchecked")
+	private final MessageHandler<AmazonSNSMessage> testSNSMessageHandler = mock(MessageHandler.class);
 
 	@Test(expected = com.izettle.messaging.MessagingException.class)
 	public void shouldThrowExceptionIfNoMessageHandlersForMessageTypeIsPresent() throws Exception {
@@ -91,5 +94,19 @@ public class MessageDispatcherTest {
 		// Assert
 		verify(testMessageHandler).handle(any(TestMessage.class));
 		verify(stringHandler, never()).handle(any(String.class));
+	}
+
+	@Test
+	public void shouldCallDefaultHandlerWhenReceivingMessageAndNoOtherMessageHandlersMatch() throws Exception {
+
+		dispatcher.addHandler(TestMessage.class, testMessageHandler);
+		dispatcher.addDefaultHandler(testSNSMessageHandler);
+
+		Message message = new Message();
+		message.setBody("{\"Subject\":\"MessageTypeThatDoesNotMatch\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+		dispatcher.handle(message);
+
+		verify(testSNSMessageHandler).handle(any(AmazonSNSMessage.class));
+		verify(testMessageHandler, never()).handle(any(TestMessage.class));
 	}
 }
