@@ -1,35 +1,36 @@
 package com.izettle.astyanax.impl;
 
-import java.util.Arrays;
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.Reservation;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.netflix.astyanax.connectionpool.Host;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import com.amazonaws.services.ec2.model.DescribeInstancesResult;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.Reservation;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.netflix.astyanax.connectionpool.Host;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import com.google.common.base.Supplier;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cassandra Astyanax Host Supplier for Multiregion AWS implementations,
- * that discovers Cassandra nodes based on a given security group 
+ * that discovers Cassandra nodes based on a given security group
  * and returns nodes only in the current/given region.
- * 
+ *
  * @author progre55
  */
 public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
@@ -48,10 +49,10 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 
 	/**
 	 * Constructor with a specific region. Can run on non-AWS installations.
-	 * 
-	 * @param client - {@link AmazonEC2Client} implementation
-	 * @param groupId - AWS security group id
-	 * @param region - AWS {@link Region} to look for nodes in
+	 *
+	 * @param client      - {@link AmazonEC2Client} implementation
+	 * @param groupId     - AWS security group id
+	 * @param region      - AWS {@link Region} to look for nodes in
 	 * @param defaultPort - default Cassandra api port
 	 */
 	public AwsSecurityGroupHostSupplier(AmazonEC2Client client, String groupId, Region region, int defaultPort) {
@@ -67,12 +68,12 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 	}
 
 	/**
-	 * Constructor with the default region. Will try to determine the Cassandra region based 
+	 * Constructor with the default region. Will try to determine the Cassandra region based
 	 * on the current instance placement.
 	 * Astyanax should be running on an AWS instance if this constructor is used.
-	 *  
-	 * @param client - {@link AmazonEC2Client} implementation
-	 * @param groupId - AWS security group id
+	 *
+	 * @param client      - {@link AmazonEC2Client} implementation
+	 * @param groupId     - AWS security group id
 	 * @param defaultPort - default Cassandra api port
 	 */
 	public AwsSecurityGroupHostSupplier(AmazonEC2Client client, String groupId, int defaultPort) {
@@ -135,14 +136,15 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 				for (Instance instance : reservation.getInstances()) {
 					String privateIP = instance.getPrivateIpAddress();
 					if (privateIP != null) {
-						LOG.info("Registering a possible node on IP {} with the C* connection pool", privateIP);
 						Host host = new Host(privateIP, port);
 						ipToHost.put(privateIP, host);
 					}
 				}
 			}
 
-			previousHosts = Lists.newArrayList(ipToHost.values());
+			ArrayList<Host> currentHosts = Lists.newArrayList(ipToHost.values());
+			logHostUpdate(previousHosts, currentHosts);
+			previousHosts = currentHosts;
 			return previousHosts;
 		} catch (AmazonClientException ex) {
 			if (previousHosts == null) {
@@ -153,5 +155,25 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 					region == null ? DEFAULT_REGION.toString() : region.toString());
 			return previousHosts;
 		}
+	}
+
+	private void logHostUpdate(List<Host> previous, List<Host> current) {
+
+		if (current != null) {
+			for (Host host : current) {
+				if (previous == null || !previous.contains(host)) {
+					LOG.info("Registering a possible node on IP {} with the C* connection pool", host.getIpAddress());
+				}
+			}
+		}
+
+		if (previous != null) {
+			for (Host host : previous) {
+				if (current == null || !current.contains(host)) {
+					LOG.info("Removing a possible node on IP {} with the C* connection pool", host.getIpAddress());
+				}
+			}
+		}
+
 	}
 }
