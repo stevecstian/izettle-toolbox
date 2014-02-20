@@ -160,4 +160,14 @@ public class QueueServiceTest {
 		assertThat(msg2.getSubject()).isEqualTo("subject");
 		assertThat(msg2.getMessage()).isEqualTo("{\"message\":\"world\"}");
 	}
+
+	@Test
+	public void postAsSNSMessageShouldSendMessagesWithSNSEnvelope() throws Exception {
+
+		// Act
+		queueService.postAsSNSMessage(new TestMessage("Hello"), "subject");
+
+		// Assert
+		verify(mockAmazonSQS).sendMessageBatch(any(SendMessageBatchRequest.class));
+	}
 }
