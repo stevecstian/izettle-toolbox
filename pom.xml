@@ -5,7 +5,7 @@
 	<groupId>com.izettle.toolbox</groupId>
 	<artifactId>izettle-toolbox</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0.13</version>
+	<version>1.0.14-SNAPSHOT</version>
 
 	<scm>
 		<url>https://github.com/iZettle/izettle-toolbox</url>
