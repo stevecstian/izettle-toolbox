@@ -22,6 +22,7 @@ import com.izettle.messaging.serialization.MessageDeserializer;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -180,6 +181,18 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 		} catch (IOException | CryptographyException e) {
 			throw new MessagingException("Failed to post messages: " + messages.getClass().toString(), e);
 		}
+	}
+
+	/**
+	 * Posts a single messages to queue, with a message envelope that makes it look like it
+	 * was sent through Amazon SNS.
+	 *
+	 * @param message message to post
+	 * @param messageSubject the value that will be used as "subject" in the SNS envelope
+	 * @throws MessagingException Failed to post message.
+	 */
+	public void postAsSNSMessage(M message, String messageSubject) throws MessagingException {
+		postBatchAsSNSMessages(Arrays.asList(message), messageSubject);
 	}
 
 	/**
