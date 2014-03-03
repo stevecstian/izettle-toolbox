@@ -51,7 +51,7 @@ public class QueueServiceTest {
 
 		queueService.post(testMessage);
 
-		List<MessageWrapper<TestMessage>> receivedMessages = queueService.poll();
+		List<PolledMessage<TestMessage>> receivedMessages = queueService.poll();
 
 		assertThat(receivedMessages).hasSize(1);
 
@@ -117,7 +117,7 @@ public class QueueServiceTest {
 			}
 		});
 
-		List<MessageWrapper<TestMessage>> receivedMessages = queueService.poll();
+		List<PolledMessage<TestMessage>> receivedMessages = queueService.poll();
 
 		assertEquals(2, receivedMessages.size());
 

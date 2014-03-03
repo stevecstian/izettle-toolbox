@@ -15,7 +15,6 @@ import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
-import com.izettle.cryptography.HashMD5;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
 import com.izettle.messaging.serialization.JsonSerializer;
 import com.izettle.messaging.serialization.MessageDeserializer;
@@ -131,15 +130,15 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	/**
 	 * Deletes a message from queue.
 	 *
-	 * @param messageWrapper Received message.
+	 * @param message Received message.
 	 * @throws MessagingException Failed to delete message.
 	 */
 	@Override
-	public void delete(MessageWrapper<M> messageWrapper) throws MessagingException {
+	public void delete(PolledMessage<M> message) throws MessagingException {
 		try {
-			amazonSQS.deleteMessage(new DeleteMessageRequest(queueUrl, messageWrapper.getMessageReceiptHandle()));
+			amazonSQS.deleteMessage(new DeleteMessageRequest(queueUrl, message.getMessageId()));
 		} catch (AmazonClientException ase) {
-			throw new MessagingException("Failed to delete message with receipt handle " + messageWrapper.getMessageReceiptHandle(), ase);
+			throw new MessagingException("Failed to delete message with id " + message.getMessageId(), ase);
 		}
 	}
 
@@ -237,7 +236,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	 * @throws MessagingException Failed to poll queue.
 	 */
 	@Override
-	public List<MessageWrapper<M>> poll() throws MessagingException {
+	public List<PolledMessage<M>> poll() throws MessagingException {
 		return poll(20);
 	}
 
@@ -250,12 +249,12 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	 * @throws MessagingException Failed to poll queue.
 	 */
 	@Override
-	public List<MessageWrapper<M>> poll(int messageWaitTimeInSeconds) throws MessagingException {
+	public List<PolledMessage<M>> poll(int messageWaitTimeInSeconds) throws MessagingException {
 		ReceiveMessageRequest messageRequest = new ReceiveMessageRequest(queueUrl);
 		messageRequest.setMaxNumberOfMessages(MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE);
 		messageRequest.setWaitTimeSeconds(messageWaitTimeInSeconds);
 		List<Message> messages;
-		List<MessageWrapper<M>> receivedMessages = new ArrayList<>();
+		List<PolledMessage<M>> receivedMessages = new ArrayList<>();
 
 		try {
 			messages = amazonSQS.receiveMessage(messageRequest).getMessages();
@@ -271,7 +270,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 				decryptedMessage = messageDeserializer.decrypt(messageBody);
 				M messageEntity = messageDeserializer.deserialize(decryptedMessage);
 				String messageReceiptHandle = message.getReceiptHandle();
-				MessageWrapper<M> receivedMessage = new MessageWrapper<>(messageEntity, messageReceiptHandle, HashMD5.digestStringsToB64Hash(decryptedMessage), message.getMessageId());
+				PolledMessage<M> receivedMessage = new PolledMessage<>(messageEntity, messageReceiptHandle);
 				receivedMessages.add(receivedMessage);
 			} catch (Exception e) {
 				/*
