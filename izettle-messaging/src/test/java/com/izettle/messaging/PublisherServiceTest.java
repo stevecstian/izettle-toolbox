@@ -26,10 +26,10 @@ public class PublisherServiceTest {
 		
 		// Arrange
 		TestMessage message = new TestMessage("ad99bb4f");
-		MessageQueueProducer<TestMessage> publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
+		MessagePublisher publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
 
 		// Act
-		publisherService.post(message);
+		publisherService.post(message, TestMessage.class.getName());
 
 		// Assert
 		ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
@@ -44,10 +44,10 @@ public class PublisherServiceTest {
 
 		// Arrange
 		TestMessage message = new TestMessage("ad99bb4f");
-		MessageQueueProducer<TestMessage> publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn", "ForcedEventName");
+		MessagePublisher publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
 
 		// Act
-		publisherService.post(message);
+		publisherService.post(message, "ForcedEventName");
 
 		// Assert
 		ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);

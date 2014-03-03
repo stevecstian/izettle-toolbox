@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 
-public class MessageSerializer<M> {
+public class MessageSerializer {
 
 	private final PGPPublicKey publicKey;
 	private final static ObjectMapper jsonMapper = JsonSerializer.getInstance();
@@ -35,7 +35,7 @@ public class MessageSerializer<M> {
 		return new String(PGP.encrypt(message.getBytes(), publicKey));
 	}
 
-	public String serialize(M message) throws JsonProcessingException {
+	public String serialize(Object message) throws JsonProcessingException {
 		return jsonMapper.writeValueAsString(message);
 	}
 }
