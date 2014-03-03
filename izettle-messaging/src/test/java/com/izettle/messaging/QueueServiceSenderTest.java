@@ -1,7 +1,6 @@
 package com.izettle.messaging;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -10,9 +9,6 @@ import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.EmptyBatchRequestException;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
@@ -21,45 +17,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-public class QueueServiceTest {
+public class QueueServiceSenderTest {
 
-	private QueueService<TestMessage> queueService;
+	private MessageQueueProducer<TestMessage> messageQueueProducer;
+	private MessagePublisher messagePublisher;
 	private AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
+	private static final String subject = "subject";
 
 	@Before
 	public final void before() throws Exception {
-		queueService = new QueueService<>(TestMessage.class, "queueUrl", mockAmazonSQS);
+		messageQueueProducer = QueueServiceSender.nonEncryptedMessageQueueProducer("queueUrl", mockAmazonSQS);
+		messagePublisher = QueueServiceSender.nonEncryptedMessagePublisher("queueUrl", mockAmazonSQS);
 	}
 
 	@Test
-	public void addAndDeleteUserMessageShouldWork() throws Exception {
+	public void postMessageShouldWork() throws Exception {
 		when(mockAmazonSQS.sendMessage(any(SendMessageRequest.class))).thenReturn(mock(SendMessageResult.class));
-		ReceiveMessageResult receiveMessageResult = mock(ReceiveMessageResult.class);
-		Message message = mock(Message.class);
-		when(message.getBody()).thenReturn("{}");
-		when(receiveMessageResult.getMessages()).thenReturn(Arrays.asList(message));
-		when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(receiveMessageResult);
-
-		TestMessage testMessage = new TestMessage("Hello!");
-
-		queueService.post(testMessage);
-
-		List<PolledMessage<TestMessage>> receivedMessages = queueService.poll();
-
-		assertThat(receivedMessages).hasSize(1);
-
-		when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(mock(ReceiveMessageResult.class));
-
-		queueService.delete(receivedMessages.get(0));
-		receivedMessages = queueService.poll();
-		assertThat(receivedMessages).isEmpty();
+		messageQueueProducer.post(new TestMessage("Hello!"));
+		verify(mockAmazonSQS, times(1)).sendMessage(any(SendMessageRequest.class));
 	}
 
 	@Test
@@ -69,64 +50,28 @@ public class QueueServiceTest {
 		SendMessageBatchRequest emptyRequest = new SendMessageBatchRequest("queue-url-can-be-anything", new ArrayList<SendMessageBatchRequestEntry>());
 		when(mockAmazonSQS.sendMessageBatch(emptyRequest)).thenThrow(new EmptyBatchRequestException("Empty yo"));
 
-		queueService.postBatch(messageBatch(10));
-
+		messagePublisher.postBatch(messageBatch(10), subject);
 		verify(mockAmazonSQS, times(1)).sendMessageBatch(captor.capture());
 		assertThat(captor.getValue().getEntries()).hasSize(10);
 
-		queueService.postBatch(messageBatch(20));
-
+		messagePublisher.postBatch(messageBatch(20), subject);
 		verify(mockAmazonSQS, times(3)).sendMessageBatch(any(SendMessageBatchRequest.class));
-		queueService.postBatch(messageBatch(11));
 
+		messagePublisher.postBatch(messageBatch(11), subject);
 		verify(mockAmazonSQS, times(5)).sendMessageBatch(captor.capture());
 		assertThat(captor.getValue().getEntries()).hasSize(1);
 
-		queueService.postBatch(messageBatch(9));
-
-		// capture sixth interaction
+		messagePublisher.postBatch(messageBatch(9), subject);
 		verify(mockAmazonSQS, times(6)).sendMessageBatch(captor.capture());
 		assertThat(captor.getValue().getEntries()).hasSize(9);
 	}
 
-	private Map<String, TestMessage> messageBatch(int size) {
-		Map<String, TestMessage> userBatch = new HashMap<>();
+	private Collection<TestMessage> messageBatch(int size) {
+		List<TestMessage> result = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
-			final TestMessage testMessage = new TestMessage("test" + i);
-			userBatch.put(testMessage.getMessage(), testMessage);
+			result.add(new TestMessage("test" + i));
 		}
-		return userBatch;
-	}
-
-	@Test
-	public void addAndDeleteBatchMessagesShouldWork() throws Exception {
-
-		ReceiveMessageResult receiveMessageResult = mock(ReceiveMessageResult.class);
-		Message message = mock(Message.class);
-		when(message.getBody()).thenReturn("{}");
-		when(receiveMessageResult.getMessages()).thenReturn(Arrays.asList(message, message));
-		when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(receiveMessageResult);
-
-		final TestMessage user1 = new TestMessage("Hello");
-		final TestMessage user2 = new TestMessage("world!");
-
-		queueService.postBatch(new HashMap<String, TestMessage>() {
-			{
-				put(user1.getMessage(), user1);
-				put(user2.getMessage(), user2);
-			}
-		});
-
-		List<PolledMessage<TestMessage>> receivedMessages = queueService.poll();
-
-		assertEquals(2, receivedMessages.size());
-
-		when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(mock(ReceiveMessageResult.class));
-
-		queueService.delete(receivedMessages.get(0));
-		queueService.delete(receivedMessages.get(1));
-		receivedMessages = queueService.poll();
-		assertEquals(0, receivedMessages.size());
+		return result;
 	}
 
 	@Test
@@ -136,7 +81,7 @@ public class QueueServiceTest {
 		ArgumentCaptor<SendMessageBatchRequest> captor = ArgumentCaptor.forClass(SendMessageBatchRequest.class);
 
 		// Act
-		queueService.postBatch(
+		messagePublisher.postBatch(
 				Arrays.asList(
 						new TestMessage("Hello"), new TestMessage("world")
 				), "subject"
@@ -165,7 +110,7 @@ public class QueueServiceTest {
 	public void postAsSNSMessageShouldSendMessagesWithSNSEnvelope() throws Exception {
 
 		// Act
-		queueService.post(new TestMessage("Hello"), "subject");
+		messagePublisher.post(new TestMessage("Hello"), "subject");
 
 		// Assert
 		verify(mockAmazonSQS).sendMessageBatch(any(SendMessageBatchRequest.class));
