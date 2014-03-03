@@ -35,14 +35,14 @@ import java.util.logging.Logger;
  *
  * @param <M> Message type.
  */
-public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueConsumer<M> {
+public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueConsumer<M>, MessagePublisher {
 
 	private static final Logger LOG = Logger.getLogger(QueueService.class.getName());
 	private static final int MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE = 10;
 	private static final int MAX_BATCH_SIZE = 10;
 	private final String queueUrl;
 	private final AmazonSQS amazonSQS;
-	private final MessageSerializer<M> messageSerializer;
+	private final MessageSerializer messageSerializer;
 	private final MessageDeserializer<M> messageDeserializer;
 	private final ObjectMapper jsonMapper = JsonSerializer.getInstance();
 
@@ -97,7 +97,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	) {
 		this.queueUrl = queueUrl;
 		this.amazonSQS = amazonSQS;
-		this.messageSerializer = new MessageSerializer<>();
+		this.messageSerializer = new MessageSerializer();
 		this.messageDeserializer = new MessageDeserializer<>(messageClass, privatePgpKey, privatePgpKeyPassphrase);
 	}
 
@@ -110,7 +110,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 			this.queueUrl = queueUrl;
 			this.amazonSQS = amazonSQS;
 		try {
-			this.messageSerializer = new MessageSerializer<>(publicPgpKey);
+			this.messageSerializer = new MessageSerializer(publicPgpKey);
 		} catch (CryptographyException e) {
 			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
 		}
@@ -124,7 +124,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	) {
 		this.queueUrl = queueUrl;
 		this.amazonSQS = amazonSQS;
-		this.messageSerializer = new MessageSerializer<>();
+		this.messageSerializer = new MessageSerializer();
 		this.messageDeserializer = new MessageDeserializer<>(messageClass);
 	}
 
@@ -188,11 +188,12 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	 * was sent through Amazon SNS.
 	 *
 	 * @param message message to post
-	 * @param messageSubject the value that will be used as "subject" in the SNS envelope
+	 * @param eventName the value that will be used as "subject" in the SNS envelope
 	 * @throws MessagingException Failed to post message.
 	 */
-	public void postAsSNSMessage(M message, String messageSubject) throws MessagingException {
-		postBatchAsSNSMessages(Arrays.asList(message), messageSubject);
+	@Override
+	public <T> void post(T message, String eventName) throws MessagingException {
+		postBatch(Arrays.asList(message), eventName);
 	}
 
 	/**
@@ -200,16 +201,20 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 	 * were sent through Amazon SNS.
 	 *
 	 * @param messages list of messages to post
-	 * @param messageSubject the value that will be used as "subject" in the SNS envelope
+	 * @param eventName the value that will be used as "subject" in the SNS envelope
 	 * @throws MessagingException Failed to post messages.
 	 */
-	public void postBatchAsSNSMessages(Collection<M> messages, String messageSubject) throws MessagingException {
+	@Override
+	public <T> void postBatch(Collection<T> messages, String eventName) throws MessagingException {
+		if (empty(eventName)) {
+			throw new MessagingException("Cannot publish message with empty eventName!");
+		}
 		try {
 			Collection<SendMessageBatchRequestEntry> allEntries = new ArrayList<>(messages.size());
 			int messageIdInBatch = 0;
-			for (M message : messages) {
+			for (T message : messages) {
 				++messageIdInBatch;
-				String messageBody = wrapInSNSMessage(message, messageSubject);
+				String messageBody = wrapInSNSMessage(message, eventName);
 				allEntries.add(new SendMessageBatchRequestEntry(String.valueOf(messageIdInBatch), messageBody));
 			}
 			sendMessageBatch(allEntries);
@@ -218,7 +223,7 @@ public class QueueService<M> implements MessageQueueProducer<M>, MessageQueueCon
 		}
 	}
 
-	private String wrapInSNSMessage(M message, String subject) throws JsonProcessingException, CryptographyException {
+	private String wrapInSNSMessage(Object message, String subject) throws JsonProcessingException, CryptographyException {
 		String messageBody = messageSerializer.encrypt(messageSerializer.serialize(message));
 		AmazonSNSMessage snsMessage = new AmazonSNSMessage(subject, messageBody);
 		return jsonMapper.writeValueAsString(snsMessage);

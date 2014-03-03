@@ -130,13 +130,13 @@ public class QueueServiceTest {
 	}
 
 	@Test
-	public void postBatchAsSNSMessagesShouldSendMessagesWithSNSEnvelope() throws Exception {
+	public void postBatchShouldSendMessagesWithSNSEnvelope() throws Exception {
 
 		// Arrange
 		ArgumentCaptor<SendMessageBatchRequest> captor = ArgumentCaptor.forClass(SendMessageBatchRequest.class);
 
 		// Act
-		queueService.postBatchAsSNSMessages(
+		queueService.postBatch(
 				Arrays.asList(
 						new TestMessage("Hello"), new TestMessage("world")
 				), "subject"
@@ -165,7 +165,7 @@ public class QueueServiceTest {
 	public void postAsSNSMessageShouldSendMessagesWithSNSEnvelope() throws Exception {
 
 		// Act
-		queueService.postAsSNSMessage(new TestMessage("Hello"), "subject");
+		queueService.post(new TestMessage("Hello"), "subject");
 
 		// Assert
 		verify(mockAmazonSQS).sendMessageBatch(any(SendMessageBatchRequest.class));
