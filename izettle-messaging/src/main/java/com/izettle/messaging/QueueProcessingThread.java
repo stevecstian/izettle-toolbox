@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 public class QueueProcessingThread extends Thread {
 	private static final Logger LOG = LoggerFactory.getLogger(QueueProcessingThread.class);
 	private final String name;
-	private final QueueProcessor queueProcessor;
+	private final MessageQueueProcessor queueProcessor;
 	
-	public QueueProcessingThread(QueueProcessor queueProcessor) {
+	public QueueProcessingThread(MessageQueueProcessor queueProcessor) {
 		super(queueProcessor.getName());
 		this.name = queueProcessor.getName();
 		this.queueProcessor = queueProcessor;
