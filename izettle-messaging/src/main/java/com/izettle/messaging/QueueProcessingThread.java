@@ -38,4 +38,15 @@ public class QueueProcessingThread extends Thread {
 
 		LOG.info(String.format("Message queue processor %s stopped.", name));
 	}
+
+	/**
+	 * Stops the polling thread and waits for last message completion before returning to caller
+	 */
+	public void shutdown() {
+		interrupt();
+		try {
+			join();
+		} catch (InterruptedException ignored) {
+		}
+	}
 }
