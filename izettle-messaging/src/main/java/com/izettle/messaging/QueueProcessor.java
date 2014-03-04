@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * exceptions, the message will also be deleted from the queue. Otherwise (if an exception is
  * thrown), the message will remain on the queue, and will most likely be processed again.
  */
-public class QueueProcessor {
+public class QueueProcessor implements MessageQueueProcessor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(QueueProcessor.class);
 	private final String name;
@@ -30,7 +30,7 @@ public class QueueProcessor {
 	private final AmazonSQS amazonSQS;
 	private final MessageHandler<Message> messageHandler;
 
-	public static QueueProcessor createQueueProcessor(
+	public static MessageQueueProcessor createQueueProcessor(
 			AmazonSQS amazonSQS,
 			String name,
 			String queueUrl,
@@ -41,19 +41,21 @@ public class QueueProcessor {
 				messageHandler);
 	}
 
-	public static <M> QueueProcessor createQueueProcessor(
+	public static <M> MessageQueueProcessor createQueueProcessor(
 			AmazonSQS amazonSQS,
 			Class<M> classType,
 			String name,
 			String queueUrl,
 			MessageHandler<M> messageHandler) {
-		return new QueueProcessor(name,
+		return new QueueProcessor(
+				name,
 				queueUrl,
 				amazonSQS,
-				new MessageHandlerForSingleMessageType<>(messageHandler, classType));
+				new MessageHandlerForSingleMessageType<>(messageHandler, classType)
+		);
 	}
 
-	QueueProcessor(
+	private QueueProcessor(
 			String name,
 			String queueUrl,
 			AmazonSQS amazonSQS,
@@ -64,10 +66,12 @@ public class QueueProcessor {
 		this.messageHandler = messageHandler;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public void poll() throws MessagingException {
 		ReceiveMessageRequest messageRequest = new ReceiveMessageRequest(queueUrl);
 		messageRequest.setMaxNumberOfMessages(MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE);

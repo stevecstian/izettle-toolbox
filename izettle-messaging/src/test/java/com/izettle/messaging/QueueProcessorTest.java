@@ -22,24 +22,25 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 public class QueueProcessorTest {
-	private QueueProcessor queueProcessor;
+	private MessageQueueProcessor queueProcessor;
 	private final AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
 	private final MessageHandler<Message> mockHandler = mock(MessageHandler.class);
 	private final List<Message> receivedMessages = new ArrayList<>();
 
 	@Before
 	public final void before() throws Exception {
-		queueProcessor = new QueueProcessor(
+		queueProcessor = QueueProcessor.createQueueProcessor(
+				mockAmazonSQS,
 				"UnitTestProcessor",
 				"testurl",
-				mockAmazonSQS,
-				mockHandler);
-		
+				mockHandler
+		);
+
 		ReceiveMessageResult messageResult = mock(ReceiveMessageResult.class);
 		when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(messageResult);
 		when(messageResult.getMessages()).thenReturn(receivedMessages);
 	}
-	
+
 	private Message createMessage(String messageId) {
 		Message msg = new Message();
 		msg.setMessageId(messageId);
