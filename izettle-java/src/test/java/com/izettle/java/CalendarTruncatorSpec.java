@@ -7,6 +7,7 @@ import static com.izettle.java.CalendarTruncator.CalendarField.MONTH;
 import static com.izettle.java.CalendarTruncator.CalendarField.SECOND;
 import static com.izettle.java.CalendarTruncator.CalendarField.WEEK;
 import static com.izettle.java.CalendarTruncator.CalendarField.YEAR;
+import static com.izettle.java.CalendarTruncator.forwardInstant;
 import static com.izettle.java.CalendarTruncator.getFirstInstantOfDay;
 import static com.izettle.java.CalendarTruncator.getFirstInstantOfMonth;
 import static com.izettle.java.CalendarTruncator.getFirstInstantOfWeek;
@@ -115,5 +116,41 @@ public class CalendarTruncatorSpec {
 		assertEquals("2013-06-14 00:00:00.000", utc.format(truncateInstant(UTC, DAY, sthlm.parse("2013-06-15 00:30:00.000"))));
 		assertEquals("2013-06-15 00:00:00.000", utc.format(truncateInstant(UTC, DAY, sthlm.parse("2013-06-15 14:30:00.000"))));
 		assertEquals("2013-06-14 00:00:00.000", utc.format(truncateInstant(UTC, DAY, sthlm.parse("2013-06-14 11:30:00.000"))));
+	}
+
+	@Test
+	public void shouldForwardAsExpected() throws Exception {
+		DateFormat utc = DateFormatCreator.createDateAndTimeMillisFormatter(UTC);
+		Date instant = utc.parse("2013-03-05 14:15:16.789");
+		//trivial cases
+		assertEquals("2014-03-05 14:15:16.789", utc.format(forwardInstant(UTC, YEAR, instant, 1)));
+		assertEquals("2013-04-05 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant, 1)));
+		assertEquals("2013-03-12 14:15:16.789", utc.format(forwardInstant(UTC, WEEK, instant, 1)));
+		assertEquals("2013-03-06 14:15:16.789", utc.format(forwardInstant(UTC, DAY, instant, 1)));
+		assertEquals("2013-03-05 15:15:16.789", utc.format(forwardInstant(UTC, HOUR, instant, 1)));
+		assertEquals("2013-03-05 14:16:16.789", utc.format(forwardInstant(UTC, MINUTE, instant, 1)));
+		assertEquals("2013-03-05 14:15:17.789", utc.format(forwardInstant(UTC, SECOND, instant, 1)));
+
+		assertEquals("2015-03-05 14:15:16.789", utc.format(forwardInstant(UTC, YEAR, instant, 2)));
+		assertEquals("2013-05-05 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant, 2)));
+		assertEquals("2013-03-19 14:15:16.789", utc.format(forwardInstant(UTC, WEEK, instant, 2)));
+		assertEquals("2013-03-07 14:15:16.789", utc.format(forwardInstant(UTC, DAY, instant, 2)));
+		assertEquals("2013-03-05 16:15:16.789", utc.format(forwardInstant(UTC, HOUR, instant, 2)));
+		assertEquals("2013-03-05 14:17:16.789", utc.format(forwardInstant(UTC, MINUTE, instant, 2)));
+		assertEquals("2013-03-05 14:15:18.789", utc.format(forwardInstant(UTC, SECOND, instant, 2)));
+
+		assertEquals("2012-03-05 14:15:16.789", utc.format(forwardInstant(UTC, YEAR, instant, -1)));
+		assertEquals("2013-02-05 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant, -1)));
+		assertEquals("2013-02-26 14:15:16.789", utc.format(forwardInstant(UTC, WEEK, instant, -1)));
+		assertEquals("2013-03-04 14:15:16.789", utc.format(forwardInstant(UTC, DAY, instant, -1)));
+		assertEquals("2013-03-05 13:15:16.789", utc.format(forwardInstant(UTC, HOUR, instant, -1)));
+		assertEquals("2013-03-05 14:14:16.789", utc.format(forwardInstant(UTC, MINUTE, instant, -1)));
+		assertEquals("2013-03-05 14:15:15.789", utc.format(forwardInstant(UTC, SECOND, instant, -1)));
+		//edge cases when months have different nr of days
+		instant = utc.parse("2013-01-29 14:15:16.789");
+		//jumping one month, will only take us as many days there are in Feb
+		assertEquals("2013-02-28 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant, 1)));
+		//while jumping two months will take us directly to the same day of month as the original
+		assertEquals("2013-03-29 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant, 2)));
 	}
 }
