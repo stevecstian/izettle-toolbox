@@ -90,6 +90,53 @@ public class CalendarTruncator {
 	}
 
 	/**
+	 * Forwards the instant the specified amount of the provided field. This method takes the time zone into
+	 * consideration. Note that other fields than the specified will often be affected by this operation, as some
+	 * forwards will spill over to larger fields, alternatively edge cases affecting lesser fields.
+	 *
+	 * Example:
+	 * given the instant '2001-01-01 05:30:12.345', forwardInstant 1 HOUR will give '2001-01-01 06:30:12.345'
+	 * given the instant '2013-01-29 14:15:16.789', forwardInstant 1 MONTH will give '2013-02-28 14:15:16.789'
+	 *
+	 *
+	 * @param timeZoneId The time zone of the spectator
+	 * @param field the type of field to forward
+	 * @param instant the instant
+	 * @param amount the amount to forward the calendar field, may be negative for going back in time
+	 * @return The first instant of the day of the provided instant
+	 */
+	public static Date forwardInstant(TimeZoneId timeZoneId, CalendarField field, Date instant, int amount) {
+		Calendar calendar = CalendarCreator.create(timeZoneId);
+		calendar.setTime(instant);
+		switch (field) {
+			case YEAR:
+				calendar.add(Calendar.YEAR, amount);
+				break;
+			case MONTH:
+				calendar.add(Calendar.MONTH, amount);
+				break;
+			case WEEK:
+				calendar.setMinimalDaysInFirstWeek(4);
+				calendar.setFirstDayOfWeek(Calendar.MONDAY);
+				calendar.add(Calendar.WEEK_OF_YEAR, amount);
+				break;
+			case DAY:
+				calendar.add(Calendar.DAY_OF_YEAR, amount);
+				break;
+			case HOUR:
+				calendar.add(Calendar.HOUR_OF_DAY, amount);
+				break;
+			case MINUTE:
+				calendar.add(Calendar.MINUTE, amount);
+				break;
+			case SECOND:
+				calendar.add(Calendar.SECOND, amount);
+				break;
+		}
+		return calendar.getTime();
+	}
+
+	/**
 	 * Truncates the instant from all fields lesser than the provided field. This method takes the time zone into
 	 * consideration. Intended to behave in the same way as date_trunc('field', timestamp) in PGSQL:
 	 *
