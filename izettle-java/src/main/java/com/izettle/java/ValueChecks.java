@@ -72,8 +72,8 @@ public class ValueChecks {
 		if (o == null) {
 			return true;
 		}
-		if (o instanceof String) {
-			return ((String) o).length() == 0;
+		if (o instanceof CharSequence) {
+			return onlyWhitespace((CharSequence) o);
 		}
 		if (o.getClass().isArray()) {
 			return Array.getLength(o) == 0;
@@ -85,6 +85,20 @@ public class ValueChecks {
 			return ((Map<?, ?>) o).isEmpty();
 		}
 		return false;
+	}
+
+	public static boolean onlyWhitespace(CharSequence cs) {
+		int strLen;
+		if (cs == null || (strLen = cs.length()) == 0) {
+			return true;
+		}
+		for (int i = 0; i < strLen; i++) {
+			int codePoint = Character.codePointAt(cs, i);
+			if (!Character.isWhitespace(codePoint) && !Character.isSpaceChar(codePoint)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
