@@ -30,6 +30,10 @@ public class ValueChecksSpec {
 	@Test
 	public void isEmpty_emptyValues() {
 		assertTrue("null", empty(null));
+		assertTrue("single space", empty(" "));
+		assertTrue("double whitespace", empty(" \n"));
+		assertTrue("different types of whitespace", empty("\t\f \r\n"));
+		assertTrue("unicode whitespace", empty(" \u2000 \u2001 \u2002 \u2003 \u2004 \u2005 \u2006 \u2007 \u2008 \u2009 \u200a \u202f \u205f \u3000 "));
 		assertTrue("empty string", empty(""));
 		assertTrue("empty array", empty(new Object[0]));
 		assertTrue("empty array", empty(new byte[0]));
@@ -39,7 +43,8 @@ public class ValueChecksSpec {
 
 	@Test
 	public void isEmpty_nonEmptyValues() {
-		assertFalse("single space", empty(" "));
+		assertFalse("single character", empty("a"));
+		assertFalse("funky utf8 character (snowman)", empty("☃"));
 		assertFalse("one element array", empty(new Object[1]));
 		assertFalse("single element list", empty(Arrays.asList("foo")));
 		assertFalse("single key map", empty(Collections.singletonMap("foo", "bar")));
@@ -78,7 +83,7 @@ public class ValueChecksSpec {
 	@Test
 	public void anyEmpty_nonEmptyValues() {
 		assertFalse(anyEmpty(new Object()));
-		assertFalse(anyEmpty(" ", 9));
+		assertFalse(anyEmpty("a", 9));
 		assertFalse(anyEmpty(99, 98));
 	}
 
