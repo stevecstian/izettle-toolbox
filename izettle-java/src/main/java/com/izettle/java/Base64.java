@@ -2,15 +2,10 @@ package com.izettle.java;
 
 public class Base64 {
 
-	final static char[] BASE_16_DIGITS = "0123456789ABCDEF".toCharArray();
 	final static char[] BASE_64_DIGITS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
-	final static int[] BASE_16_VALUES = new int['F' + 1];
 	final static int[] BASE_64_VALUES = new int['z' + 1];
 
 	static {
-		for (int i = 0; i < BASE_16_DIGITS.length; i++) {
-			BASE_16_VALUES[BASE_16_DIGITS[i]] = i;
-		}
 		for (int i = 0; i < BASE_64_DIGITS.length; i++) {
 			BASE_64_VALUES[BASE_64_DIGITS[i]] = i;
 		}
