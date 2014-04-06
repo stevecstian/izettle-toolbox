@@ -67,6 +67,7 @@
 		<module>izettle-messaging</module>
 		<module>izettle-cryptography</module>
 		<module>izettle-cassandra</module>
+		<module>izettle-cart</module>
 	</modules>
 
 	<properties>
