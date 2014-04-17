@@ -1,8 +1,12 @@
 package com.izettle.cart;
 
+import java.math.BigDecimal;
+
 public interface Item {
 
-	Long getPricePerQuantity();
+	BigDecimal getQuantity();
+
+	long getUnitPrice();
 
 	Double getVatPercentage();
 

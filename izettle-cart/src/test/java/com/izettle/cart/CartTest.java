@@ -4,29 +4,30 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 
 public class CartTest {
 
-	public CartTest() {
-	}
-
 	private static class TestItem implements Item {
 
-		private final Long pricePerQuantity;
+		private final long unitPrice;
 		private final Double vatPercentage;
+		private final BigDecimal quantity;
 
-		TestItem(Long pricePerQuantity, Double vatPercentage) {
-			this.pricePerQuantity = pricePerQuantity;
+		TestItem(long unitPrice, Double vatPercentage, BigDecimal quantity) {
+			this.unitPrice = unitPrice;
 			this.vatPercentage = vatPercentage;
+			this.quantity = quantity;
 		}
 
 		@Override
-		public Long getPricePerQuantity() {
-			return pricePerQuantity;
+		public long getUnitPrice() {
+			return unitPrice;
 		}
 
 		@Override
@@ -36,7 +37,12 @@ public class CartTest {
 
 		@Override
 		public String toString() {
-			return "TestItem{" + ", pricePerQuantity=" + pricePerQuantity + ", vatPercentage=" + vatPercentage + '}';
+			return "TestItem{" + ", unitPrice=" + unitPrice + ", vatPercentage=" + vatPercentage + '}';
+		}
+
+		@Override
+		public BigDecimal getQuantity() {
+			return this.quantity;
 		}
 	}
 
@@ -68,8 +74,8 @@ public class CartTest {
 
 	@Test
 	public void itShouldCalculateCorrectVatAndEffectivePrice() {
-		Map<TestItem, BigDecimal> items = new LinkedHashMap<TestItem, BigDecimal>();
-		items.put(new TestItem(1299L, 25D), new BigDecimal("1.0"));
+		List<TestItem> items = new LinkedList<TestItem>();
+		items.add(new TestItem(1299L, 25D, new BigDecimal("1.0")));
 		Map<TestDiscount, BigDecimal> discounts = new LinkedHashMap<TestDiscount, BigDecimal>();
 		discounts.put(new TestDiscount(0L, 0D), BigDecimal.ONE);
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
@@ -80,8 +86,8 @@ public class CartTest {
 
 	@Test
 	public void itShouldHandleNullVatProperly() {
-		Map<TestItem, BigDecimal> items = new LinkedHashMap<TestItem, BigDecimal>();
-		items.put(new TestItem(1299L, null), new BigDecimal("1.0"));
+		List<TestItem> items = new LinkedList<TestItem>();
+		items.add(new TestItem(1299L, null, new BigDecimal("1.0")));
 		Map<TestDiscount, BigDecimal> discounts = null;
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
 		assertEquals(1299L, cart.getTotalEffectivePrice());
@@ -91,8 +97,8 @@ public class CartTest {
 
 	@Test
 	public void itShouldHandleFixedDiscounts() {
-		Map<TestItem, BigDecimal> items = new LinkedHashMap<TestItem, BigDecimal>();
-		items.put(new TestItem(1299L, 25d), new BigDecimal("1.0"));
+		List<TestItem> items = new LinkedList<TestItem>();
+		items.add(new TestItem(1299L, 25d, new BigDecimal("1.0")));
 		Map<TestDiscount, BigDecimal> discounts = new LinkedHashMap<TestDiscount, BigDecimal>();
 		discounts.put(new TestDiscount(10L, 0D), BigDecimal.ONE);
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
@@ -103,20 +109,20 @@ public class CartTest {
 
 	@Test
 	public void itShouldDistributeVats() {
-		Map<TestItem, BigDecimal> items = new LinkedHashMap<TestItem, BigDecimal>();
-		items.put(new TestItem(500L, 10d), new BigDecimal("2.0"));
-		items.put(new TestItem(100L, 50d), new BigDecimal("1.0"));
+		List<TestItem> items = new LinkedList<TestItem>();
+		items.add(new TestItem(500L, 10d, new BigDecimal("2.0")));
+		items.add(new TestItem(100L, 50d, new BigDecimal("1.0")));
 		Map<TestDiscount, BigDecimal> discounts = new LinkedHashMap<TestDiscount, BigDecimal>();
 
 		Cart<TestItem, TestDiscount> cart1 = new Cart<TestItem, TestDiscount>(items, discounts);
 		assertEquals(1100L, cart1.getTotalEffectivePrice());
-		assertEquals(1100L, cart1.getTotalGrossPrice());
+		assertEquals(1100L, cart1.getTotalGrossAmount());
 
 		discounts.put(new TestDiscount(110L, 0D), BigDecimal.ONE);
 		Cart<TestItem, TestDiscount> cart2 = new Cart<TestItem, TestDiscount>(items, discounts);
 		assertEquals(10d, cart2.getTotalEffectiveDiscountPercentage().doubleValue(), 0.01d);
 		assertEquals(990L, cart2.getTotalEffectivePrice());
-		assertEquals(1100L, cart2.getTotalGrossPrice());
+		assertEquals(1100L, cart2.getTotalGrossAmount());
 
 		List<ItemLine<TestItem>> lineItems = cart2.getItemLines();
 		assertEquals(2, lineItems.size());
@@ -129,34 +135,30 @@ public class CartTest {
 	}
 
 	@Test
-	public void itShouldDistributeDiscounts() {
-		Map<TestItem, BigDecimal> items = new LinkedHashMap<TestItem, BigDecimal>();
-		items.put(new TestItem(500L, 10d), new BigDecimal("2.0"));
-		items.put(new TestItem(100L, 50d), new BigDecimal("1.0"));
+	public void itShouldReclaimDiscountsAfterRoundingError() {
+		List<TestItem> items = new ArrayList<CartTest.TestItem>();
+		items.add(new TestItem(33L, 10d, new BigDecimal("1.0")));
+		items.add(new TestItem(33L, 10d, new BigDecimal("1.0")));
+		items.add(new TestItem(32L, 50d, new BigDecimal("1.0")));
 		Map<TestDiscount, BigDecimal> discounts = new LinkedHashMap<TestDiscount, BigDecimal>();
+		//one fixed discount of 8
+		discounts.put(new TestDiscount(8L, 0D), BigDecimal.ONE);
 
-		Cart<TestItem, TestDiscount> cart1 = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(1100L, cart1.getTotalEffectivePrice());
-		assertEquals(1100L, cart1.getTotalGrossPrice());
+		System.out.println("Reclaiming");
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+	}
 
-		discounts.put(new TestDiscount(110L, 0D), BigDecimal.ONE);
-		Cart<TestItem, TestDiscount> cart2 = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(10d, cart2.getTotalEffectiveDiscountPercentage().doubleValue(), 0.01d);
-		assertEquals(990L, cart2.getTotalEffectivePrice());
-		assertEquals(1100L, cart2.getTotalGrossPrice());
+	@Test
+	public void itShouldDistributeMoreAfterRoundingError() {
+		List<TestItem> items = new ArrayList<CartTest.TestItem>();
+		items.add(new TestItem(33L, 10d, new BigDecimal("1.0")));
+		items.add(new TestItem(33L, 10d, new BigDecimal("1.0")));
+		items.add(new TestItem(32L, 50d, new BigDecimal("1.0")));
+		Map<TestDiscount, BigDecimal> discounts = new LinkedHashMap<TestDiscount, BigDecimal>();
+		//one fixed discount of 10
+		discounts.put(new TestDiscount(10L, 0D), BigDecimal.ONE);
 
-		//Verify that 10% is deducted for each line item
-		List<ItemLine<TestItem>> lineItems = cart2.getItemLines();
-		assertEquals(2, lineItems.size());
-		ItemLine<TestItem> lineItem = lineItems.get(0);
-		assertEquals(1000L, lineItem.getGrossPrice());
-		assertEquals(900L, lineItem.getEffectivePrice());
-		lineItem = lineItems.get(1);
-		assertEquals(100L, lineItem.getGrossPrice());
-		assertEquals(90L, lineItem.getEffectivePrice());
-
-		//Verify that the actual total price reduction is equal to the fixed discount
-		assertEquals(110L, cart2.getTotalGrossPrice() - cart2.getTotalEffectivePrice());
-
+		System.out.println("Disctribute more");
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
 	}
 }
