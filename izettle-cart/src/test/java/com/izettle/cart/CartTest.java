@@ -144,8 +144,9 @@ public class CartTest {
 		//one fixed discount of 8
 		discounts.put(new TestDiscount(8L, 0D), BigDecimal.ONE);
 
-		System.out.println("Reclaiming");
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(8L, cart.getTotalDiscountAmount().longValue());
+		assertEquals(33L + 33L + 32L - 8L, cart.getTotalEffectivePrice());
 	}
 
 	@Test
@@ -158,7 +159,8 @@ public class CartTest {
 		//one fixed discount of 10
 		discounts.put(new TestDiscount(10L, 0D), BigDecimal.ONE);
 
-		System.out.println("Disctribute more");
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(10L, cart.getTotalDiscountAmount().longValue());
+		assertEquals(33L + 33L + 32L - 10L, cart.getTotalEffectivePrice());
 	}
 }
