@@ -14,10 +14,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Routes messages to other MessageHandler<>:s based on message type. All handlers added with the
+ * Routes messages to other MessageHandler&lt;&gt;:s based on message type. All handlers added with the
  * addHandler() method will be called whenever a message of the supplied type is received by this class.
- * 
- * Note that the current mechanism for routing messages assumes that the received messages have gone 
+ *
+ * Note that the current mechanism for routing messages assumes that the received messages have gone
  * through Amazon SNS and that they have the message type supplied in the "Subject" field of the
  * SQS message.
  */
@@ -84,7 +84,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
 		addHandler(classType, classType.getName(), handler);
 	}
 
-	/**
+	/*
 	 * Adds a message handler that should be called if none of the other message handlers match the incoming message.
 	 */
 	public void addDefaultHandler(MessageHandler<AmazonSNSMessage> handler) {
