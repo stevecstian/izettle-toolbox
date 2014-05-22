@@ -2,7 +2,7 @@ package com.izettle.cart;
 
 import java.math.BigDecimal;
 
-public class DiscountLine<K extends Discount> {
+public class DiscountLine<K extends Discount<K>> {
 
 	private final K discount;
 	private final BigDecimal quantity;

@@ -2,7 +2,7 @@ package com.izettle.cart;
 
 import java.math.BigDecimal;
 
-public interface Item {
+public interface Item<T> {
 
 	BigDecimal getQuantity();
 
@@ -10,4 +10,5 @@ public interface Item {
 
 	Double getVatPercentage();
 
+	T inverse();
 }

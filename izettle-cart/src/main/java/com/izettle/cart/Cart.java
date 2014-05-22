@@ -4,12 +4,12 @@ import static com.izettle.cart.CartUtils.distributeDiscount;
 import static com.izettle.java.ValueChecks.empty;
 
 import com.izettle.java.ValueChecks;
-import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class Cart<T extends Item, K extends Discount> {
+public class Cart<T extends Item<T>, K extends Discount<K>> {
 
 	private final List<ItemLine<T>> itemLines;
 	private final List<DiscountLine<K>> discountLines;
@@ -18,7 +18,7 @@ public class Cart<T extends Item, K extends Discount> {
 	private final Long totalEffectiveVat;
 	private final Double totalEffectiveDiscountPercentage;
 
-	public Cart(List<T> items, Map<K, BigDecimal> discounts) {
+	public Cart(List<T> items, List<K> discounts) {
 		if (empty(items)) {
 			throw new IllegalArgumentException("Cannot create a cart with no items");
 		}
@@ -35,7 +35,29 @@ public class Cart<T extends Item, K extends Discount> {
 		}
 		this.itemLines = CartUtils.buildItemLines(items, discountAmountByItemIdx);
 		this.totalEffectiveVat = CartUtils.summarizeEffectiveVat(itemLines);
+	}
 
+	public Cart<T, K> inverse() {
+		//Copy all items and discounts, but negate the quantities:
+		List<T> inverseItems;
+		List<K> inverseDiscounts;
+		if (empty(itemLines)) {
+			inverseItems = Collections.EMPTY_LIST;
+		} else {
+			inverseItems = new ArrayList<T>(itemLines.size());
+			for (ItemLine<T> itemLine : itemLines) {
+				inverseItems.add(itemLine.getItem().inverse());
+			}
+		}
+		if (empty(discountLines)) {
+			inverseDiscounts = Collections.EMPTY_LIST;
+		} else {
+			inverseDiscounts = new ArrayList<K>(discountLines.size());
+			for (DiscountLine<K> discountLine : discountLines) {
+				inverseDiscounts.add(discountLine.getDiscount().inverse());
+			}
+		}
+		return new Cart(inverseItems, inverseDiscounts);
 	}
 
 	public long getTotalEffectivePrice() {

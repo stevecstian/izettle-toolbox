@@ -1,6 +1,6 @@
 package com.izettle.cart;
 
-public class ItemLine<T extends Item> {
+public class ItemLine<T extends Item<T>> {
 
 	private final T item;
 	private final long grossPrice;

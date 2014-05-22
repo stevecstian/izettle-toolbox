@@ -1,8 +1,14 @@
 package com.izettle.cart;
 
-public interface Discount {
+import java.math.BigDecimal;
+
+public interface Discount<T> {
+
+	BigDecimal getQuantity();
 
 	Long getAmount();
 
 	Double getPercentage();
+
+	T inverse();
 }

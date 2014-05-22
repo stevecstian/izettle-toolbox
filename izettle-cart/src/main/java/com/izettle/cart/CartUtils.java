@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Queue;
 import java.util.TreeMap;
@@ -46,16 +45,19 @@ class CartUtils {
 		return grossPrice;
 	}
 
-	static <K extends Discount> Long getTotalDiscountAmount(Map<K, BigDecimal> discounts, long totalGrossAmount) {
+	static <K extends Discount<K>> Long getTotalDiscountAmount(List<K> discounts, long totalGrossAmount) {
 		Double summarizedPercentages = null;
 		Long summarizedAmounts = null;
 		if (!empty(discounts)) {
-			for (Entry<K, BigDecimal> entry : discounts.entrySet()) {
-				K discount = entry.getKey();
-				BigDecimal quantity = entry.getValue();
+			for (K discount : discounts) {
+				BigDecimal quantity = discount.getQuantity();
 				//The amount on each discount needs to be representable as a valid amount of money, hence rounding here
-				summarizedAmounts = coalesce(summarizedAmounts, 0L) + round(quantity.multiply(new BigDecimal(discount.getAmount())));
-				summarizedPercentages = coalesce(summarizedPercentages, 0d) + quantity.multiply(new BigDecimal(discount.getPercentage())).doubleValue();
+				summarizedAmounts
+						= coalesce(summarizedAmounts, 0L)
+						+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
+				summarizedPercentages
+						= coalesce(summarizedPercentages, 0d)
+						+ quantity.multiply(new BigDecimal(discount.getPercentage())).doubleValue();
 			}
 		}
 		if (anyNull(summarizedAmounts, summarizedPercentages)) {
@@ -64,7 +66,11 @@ class CartUtils {
 		return coalesce(summarizedAmounts, 0L) + round(totalGrossAmount * coalesce(summarizedPercentages, 0d) / 100);
 	}
 
-	static <T extends Item> Map<Integer, Long> distributeDiscount(final List<T> items, final long totalDiscountAmount, final long grossAmount) {
+	static <T extends Item> Map<Integer, Long> distributeDiscount(
+			final List<T> items,
+			final long totalDiscountAmount,
+			final long grossAmount
+	) {
 		final double totalDiscountFraction = ((double) totalDiscountAmount) / grossAmount;
 		long remainingDiscountAmountToDistribute = totalDiscountAmount;
 		Map<Integer, Long> discountAmountByItemIdx = new HashMap<Integer, Long>();
@@ -113,15 +119,23 @@ class CartUtils {
 		return discountAmountByItemIdx;
 	}
 
-	static Double getDiscountLinePercentage(Discount discount, BigDecimal quantity, long totalGrossPrice) {
+	static Double getDiscountLinePercentage(
+			final Discount discount,
+			final BigDecimal quantity,
+			final long totalGrossPrice
+	) {
 		Double discountPercentage = null;
 		Long discountAmount = null;
 
 		if (discount.getAmount() != null) {
-			discountAmount = coalesce(discountAmount, 0L) + round(quantity.multiply(new BigDecimal(discount.getAmount())));
+			discountAmount
+					= coalesce(discountAmount, 0L)
+					+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
 		}
 		if (discount.getPercentage() != null) {
-			discountPercentage = coalesce(discountPercentage, 0D) + round(quantity.multiply(new BigDecimal(discount.getPercentage())));
+			discountPercentage
+					= coalesce(discountPercentage, 0D)
+					+ round(quantity.multiply(new BigDecimal(discount.getPercentage())));
 		}
 
 		if (allNull(discountPercentage, discountAmount)) {
@@ -130,12 +144,14 @@ class CartUtils {
 		return coalesce(discountPercentage, 0d) + 100d * (((double) coalesce(discountAmount, 0L)) / totalGrossPrice);
 	}
 
-	static <K extends Discount> List<DiscountLine<K>> buildDiscountLines(Map<K, BigDecimal> discounts, long totalGrossPrice) {
+	static <K extends Discount<K>> List<DiscountLine<K>> buildDiscountLines(
+			final List<K> discounts,
+			final long totalGrossPrice
+	) {
 		List<DiscountLine<K>> retList = new ArrayList<DiscountLine<K>>();
 		if (!empty(discounts)) {
-			for (Entry<K, BigDecimal> entry : discounts.entrySet()) {
-				K discount = entry.getKey();
-				BigDecimal quantity = entry.getValue();
+			for (K discount : discounts) {
+				BigDecimal quantity = discount.getQuantity();
 				Double linePercentage = getDiscountLinePercentage(discount, quantity, totalGrossPrice);
 				DiscountLine<K> discountLine = new DiscountLine<K>(discount, quantity, linePercentage);
 				retList.add(discountLine);
@@ -144,7 +160,7 @@ class CartUtils {
 		return retList;
 	}
 
-	static <T extends Item> Long summarizeEffectiveVat(List<ItemLine<T>> itemLines) {
+	static <T extends Item<T>> Long summarizeEffectiveVat(final List<ItemLine<T>> itemLines) {
 		Long effectiveVat = null;
 		for (ItemLine<?> itemLine : itemLines) {
 			Long itemEffectiveVat = itemLine.getEffectiveVat();
@@ -155,7 +171,10 @@ class CartUtils {
 		return effectiveVat;
 	}
 
-	static <T extends Item> List<ItemLine<T>> buildItemLines(List<T> items, Map<Integer, Long> discountAmountByItemIdx) {
+	static <T extends Item<T>> List<ItemLine<T>> buildItemLines(
+			final List<T> items,
+			final Map<Integer, Long> discountAmountByItemIdx
+	) {
 		List<ItemLine<T>> retList = new ArrayList<ItemLine<T>>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
@@ -174,11 +193,10 @@ class CartUtils {
 		return retList;
 	}
 
-	static Long calculateVatFromGrossAmount(Long amountIncVat, Double vatPercent) {
+	static Long calculateVatFromGrossAmount(final Long amountIncVat, final Double vatPercent) {
 		if (amountIncVat == null || vatPercent == null) {
 			return null;
 		}
 		return amountIncVat - round((amountIncVat * 100) / (100 + vatPercent));
 	}
-
 }
