@@ -1,25 +1,17 @@
 package com.izettle.cart;
 
-import java.math.BigDecimal;
-
 public class DiscountLine<K extends Discount<K>> {
 
 	private final K discount;
-	private final BigDecimal quantity;
 	private final Double effectivePercentage;
 
-	public DiscountLine(K discount, BigDecimal quantity, Double effectivePercentage) {
+	DiscountLine(K discount, Double effectivePercentage) {
 		this.discount = discount;
-		this.quantity = quantity;
 		this.effectivePercentage = effectivePercentage;
 	}
 
 	public K getDiscount() {
 		return discount;
-	}
-
-	public BigDecimal getQuantity() {
-		return quantity;
 	}
 
 	/**
@@ -36,7 +28,6 @@ public class DiscountLine<K extends Discount<K>> {
 		return ""
 				+ "DiscountLine{"
 				+ "discount=" + discount
-				+ ", quantity=" + quantity
 				+ ", effectivePercentage=" + effectivePercentage
 				+ '}';
 	}

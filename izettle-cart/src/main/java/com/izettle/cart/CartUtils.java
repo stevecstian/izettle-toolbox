@@ -153,7 +153,7 @@ class CartUtils {
 			for (K discount : discounts) {
 				BigDecimal quantity = discount.getQuantity();
 				Double linePercentage = getDiscountLinePercentage(discount, quantity, totalGrossPrice);
-				DiscountLine<K> discountLine = new DiscountLine<K>(discount, quantity, linePercentage);
+				DiscountLine<K> discountLine = new DiscountLine<K>(discount, linePercentage);
 				retList.add(discountLine);
 			}
 		}
