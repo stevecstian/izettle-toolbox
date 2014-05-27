@@ -33,6 +33,7 @@ public class QueueProcessorTest {
 				mockAmazonSQS,
 				"UnitTestProcessor",
 				"testurl",
+				"deadLetterQueueUrl",
 				mockHandler
 		);
 
