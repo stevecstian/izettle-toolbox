@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of a poller on a single queue. All messages that get received on the queue
- * will be passed on to the supplied messagehandler. If the messagehandler does not throw any
+ * will be passed on to the supplied message handler. If the message handler does not throw any
  * exceptions, the message will also be deleted from the queue. Otherwise (if an exception is
  * thrown), the message will remain on the queue, and will most likely be processed again.
  */
@@ -26,17 +26,22 @@ public class QueueProcessor implements MessageQueueProcessor {
 
 	private static final int MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE = 10;
 	private static final int MESSAGE_WAIT_SECONDS = 20;
+	private static final int DEAD_LETTER_QUEUE_POLL_FREQUENCY = 10;
 	private final String queueUrl;
+	private final String deadLetterQueueUrl;
 	private final AmazonSQS amazonSQS;
 	private final MessageHandler<Message> messageHandler;
+	private int deadLetterQueuePollSequence = 0;
 
 	public static MessageQueueProcessor createQueueProcessor(
 			AmazonSQS amazonSQS,
 			String name,
 			String queueUrl,
+			String deadLetterQueueUrl,
 			MessageHandler<Message> messageHandler) {
 		return new QueueProcessor(name,
 				queueUrl,
+				deadLetterQueueUrl,
 				amazonSQS,
 				messageHandler);
 	}
@@ -46,10 +51,12 @@ public class QueueProcessor implements MessageQueueProcessor {
 			Class<M> classType,
 			String name,
 			String queueUrl,
+			String deadLetterQueueUrl,
 			MessageHandler<M> messageHandler) {
 		return new QueueProcessor(
 				name,
 				queueUrl,
+				deadLetterQueueUrl,
 				amazonSQS,
 				new MessageHandlerForSingleMessageType<>(messageHandler, classType)
 		);
@@ -58,10 +65,12 @@ public class QueueProcessor implements MessageQueueProcessor {
 	private QueueProcessor(
 			String name,
 			String queueUrl,
+			String deadLetterQueueUrl,
 			AmazonSQS amazonSQS,
 			MessageHandler<Message> messageHandler) {
 		this.name = name;
 		this.queueUrl = queueUrl;
+		this.deadLetterQueueUrl = deadLetterQueueUrl;
 		this.amazonSQS = amazonSQS;
 		this.messageHandler = messageHandler;
 	}
@@ -73,9 +82,25 @@ public class QueueProcessor implements MessageQueueProcessor {
 
 	@Override
 	public void poll() throws MessagingException {
-		ReceiveMessageRequest messageRequest = new ReceiveMessageRequest(queueUrl);
+		pollMessageQueue(queueUrl, true);
+
+		/*
+			Poll the dead letter queue (if specified) every DEAD_LETTER_QUEUE_POLL_FREQUENCY:th poll attempt.
+		 */
+		if (!empty(deadLetterQueueUrl)) {
+			deadLetterQueuePollSequence = (deadLetterQueuePollSequence + 1) % DEAD_LETTER_QUEUE_POLL_FREQUENCY;
+			if (deadLetterQueuePollSequence == 0) {
+				pollMessageQueue(deadLetterQueueUrl, false);
+			}
+		}
+	}
+
+	private void pollMessageQueue(String messageQueueUrl, boolean useLongPolling) throws MessagingException {
+		ReceiveMessageRequest messageRequest = new ReceiveMessageRequest(messageQueueUrl);
 		messageRequest.setMaxNumberOfMessages(MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE);
-		messageRequest.setWaitTimeSeconds(MESSAGE_WAIT_SECONDS);
+		if (useLongPolling) {
+			messageRequest.setWaitTimeSeconds(MESSAGE_WAIT_SECONDS);
+		}
 		List<Message> messages;
 
 		try {
@@ -85,17 +110,17 @@ public class QueueProcessor implements MessageQueueProcessor {
 		}
 
 		if (!empty(messages)) {
-			handleMessages(messages);
+			handleMessages(messages, messageQueueUrl);
 		}
 	}
 
-	private void handleMessages(List<Message> messages) {
+	private void handleMessages(List<Message> messages, String messageQueueUrl) {
 		LOG.debug("Message queue processor {} fetched {} message(s) from queue.", name, messages.size());
 
 		for (Message message : messages) {
 			try {
 				messageHandler.handle(message);
-				delete(message.getReceiptHandle());
+				deleteMessageFromQueue(message.getReceiptHandle(), messageQueueUrl);
 			} catch (RetryableMessageHandlerException ignored) {
 				/*
 				 If the message handler throws this exception, we should retry handling the message some time later.
@@ -113,16 +138,16 @@ public class QueueProcessor implements MessageQueueProcessor {
 				 not.
 				 Please note that in Amazon SQS, the message will be retried after some time (default 30s).
 				 */
-				LOG.warn("Failed to handle message {} from queue. Will retry later, until the message has passed its retention duration.", message.getMessageId(), e);
+				LOG.warn("Failed to handle message {} from queue {}. Will leave it on queue.", message.getMessageId(), messageQueueUrl, e);
 			}
 		}
 	}
 
-	private void delete(String messageReceiptHandle) throws MessagingException {
+	private void deleteMessageFromQueue(String messageReceiptHandle, String messageQueueUrl) throws MessagingException {
 		try {
-			amazonSQS.deleteMessage(new DeleteMessageRequest(queueUrl, messageReceiptHandle));
+			amazonSQS.deleteMessage(new DeleteMessageRequest(messageQueueUrl, messageReceiptHandle));
 		} catch (AmazonClientException ase) {
-			throw new MessagingException("Failed to delete message with receipt handle " + messageReceiptHandle, ase);
+			throw new MessagingException("Failed to delete message with receipt handle " + messageReceiptHandle + " from queue " + messageQueueUrl, ase);
 		}
 	}
 }
