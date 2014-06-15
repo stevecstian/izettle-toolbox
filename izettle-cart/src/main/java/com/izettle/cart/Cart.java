@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 public class Cart<T extends Item<T>, K extends Discount<K>> {
 
@@ -86,6 +87,10 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 
 	public Double getTotalEffectiveDiscountPercentage() {
 		return totalEffectiveDiscountPercentage;
+	}
+
+	public SortedMap<Float, Long> groupEffectiveVatAmounts() {
+		return CartUtils.groupEffectiveVatAmounts(this);
 	}
 
 	@Override

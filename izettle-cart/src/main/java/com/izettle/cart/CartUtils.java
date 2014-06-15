@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Queue;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 class CartUtils {
@@ -202,4 +203,18 @@ class CartUtils {
 		}
 		return amountIncVat - round((amountIncVat * 100) / (100 + (double) vatPercent));
 	}
+
+	static <T extends Item<T>, K extends Discount<K>> SortedMap<Float, Long> groupEffectiveVatAmounts(Cart<T, K> cart) {
+		SortedMap<Float, Long> vatAmountPerGroup = new TreeMap<Float, Long>();
+		for (ItemLine<T> itemLine : cart.getItemLines()) {
+			Long effectiveVat = itemLine.getEffectiveVat();
+			Float vatPercentage = itemLine.getItem().getVatPercentage();
+			if (effectiveVat != null) {
+				Long accVatAmountForGroup = vatAmountPerGroup.get(vatPercentage);
+				vatAmountPerGroup.put(vatPercentage, coalesce(accVatAmountForGroup, 0L) + effectiveVat);
+			}
+		}
+		return vatAmountPerGroup;
+	}
+
 }

@@ -7,7 +7,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.SortedMap;
 import org.junit.Test;
 
 public class CartTest {
@@ -195,6 +197,93 @@ public class CartTest {
 		assEq(-1 * cart.getTotalDiscountAmount(), inversedCart.getTotalDiscountAmount());
 		assEq(-1 * cart.getTotalEffectiveVat(), inversedCart.getTotalEffectiveVat());
 		assertEquals(cart.getItemLines().size(), inversedCart.getItemLines().size());
+	}
+
+	public void itShouldGroupVatsProperly() {
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem(2000l, 10f, new BigDecimal(3d)));
+		items.add(new TestItem(3500l, 12f, new BigDecimal(4d)));
+		items.add(new TestItem(1200l, 25f, BigDecimal.ONE));
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, null);
+		SortedMap<Float, Long> groupedVatAmounts = cart.groupEffectiveVatAmounts();
+		assEq(545L, groupedVatAmounts.get(10f));
+		assEq(1500L, groupedVatAmounts.get(12f));
+		assEq(240L, groupedVatAmounts.get(25f));
+	}
+
+	@Test
+	public void itShouldGroupVatWithDiscount() {
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem(2000l, 10f, new BigDecimal(3d)));
+		items.add(new TestItem(3500l, 12f, new BigDecimal(4d)));
+		items.add(new TestItem(1200l, 25f, BigDecimal.ONE));
+		items.add(new TestItem(999999l, 98f, new BigDecimal(3d)));
+		Cart<TestItem, TestDiscount> cart1 = new Cart<TestItem, TestDiscount>(items, null);
+		Long totVatWithoutDiscount = cart1.getTotalEffectiveVat();
+		long totAmountWithoutDiscount = cart1.getTotalEffectivePrice();
+		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		discounts.add(new TestDiscount(null, 1d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(999999l, null, BigDecimal.ONE));
+
+		Cart<TestItem, TestDiscount> cart2 = new Cart<TestItem, TestDiscount>(items, discounts);
+		Long totVatWithDiscount = cart2.getTotalEffectiveVat();
+		long totAmountWithDiscount = cart2.getTotalEffectivePrice();
+		long discountAmount = totAmountWithoutDiscount - totAmountWithDiscount;
+		double discountFrac = ((double) discountAmount) / totAmountWithoutDiscount;
+		long totAmountVatWithDiscount = 0;
+		SortedMap<Float, Long> groupedVatAmounts = cart2.groupEffectiveVatAmounts();
+		for (Map.Entry<Float, Long> entry : groupedVatAmounts.entrySet()) {
+			totAmountVatWithDiscount += entry.getValue();
+		}
+		assEq(totVatWithDiscount, totAmountVatWithDiscount);
+		//Verify that the sum of the discounted vats has about the same relation to the original vat
+		assertEquals(
+			(double) totVatWithoutDiscount - totAmountVatWithDiscount,
+			discountFrac * totVatWithoutDiscount,
+			0.5d
+		);
+	}
+
+	/**
+	 * Verifies that, when grouping vats, the sum of the groups is the same as the total. Wrote this check to control
+	 * rounding errors, so it iterates multiple times, each time with a new "cart"
+	 */
+	@Test
+	public void itShouldSumUpAfterDiscount() {
+		int nrIterations = 1000;
+		for (int iterIdx = 0; iterIdx < nrIterations; iterIdx++) {
+			Random rnd = new Random();
+			int nrProducts = rnd.nextInt(10) + 1;
+			int nrDiscounts = rnd.nextInt(3);
+			float[] vatGroups = {3 + rnd.nextInt(3), 6 + rnd.nextInt(3), 9 + rnd.nextInt(3), 12 + rnd.nextInt(3)};
+			/*
+			 * Create products
+			 */
+			List<TestItem> products = new ArrayList<TestItem>();
+			for (int i = 0; i < nrProducts; i++) {
+				int nrItems = rnd.nextInt(3) + 1;
+				products.add(new TestItem(
+					rnd.nextInt(10000) + 100L,
+					vatGroups[rnd.nextInt(vatGroups.length)],
+					new BigDecimal(nrItems)
+				));
+			}
+			/*
+			 * Create discounts. As they are randomly generated, they might actually create negative total amounts but
+			 * this doesn't matter for this check
+			 */
+			List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+			for (int i = 0; i < nrDiscounts; i++) {
+				discounts.add(new TestDiscount((long) rnd.nextInt(4000), (double) rnd.nextInt(40), BigDecimal.ONE));
+			}
+			Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(products, discounts);
+			SortedMap<Float, Long> groupedVatAmounts = cart.groupEffectiveVatAmounts();
+			long totVat = 0;
+			for (Float key : groupedVatAmounts.keySet()) {
+				totVat += groupedVatAmounts.get(key);
+			}
+			assEq(cart.getTotalEffectiveVat(), totVat);
+		}
 	}
 
 	@Test
