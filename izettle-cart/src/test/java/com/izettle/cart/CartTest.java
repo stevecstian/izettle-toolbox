@@ -15,10 +15,10 @@ public class CartTest {
 	private static class TestItem implements Item<TestItem> {
 
 		private final long unitPrice;
-		private final Double vatPercentage;
+		private final Float vatPercentage;
 		private final BigDecimal quantity;
 
-		TestItem(long unitPrice, Double vatPercentage, BigDecimal quantity) {
+		TestItem(long unitPrice, Float vatPercentage, BigDecimal quantity) {
 			this.unitPrice = unitPrice;
 			this.vatPercentage = vatPercentage;
 			this.quantity = quantity;
@@ -30,7 +30,7 @@ public class CartTest {
 		}
 
 		@Override
-		public Double getVatPercentage() {
+		public Float getVatPercentage() {
 			return vatPercentage;
 		}
 
@@ -91,7 +91,7 @@ public class CartTest {
 	@Test
 	public void itShouldCalculateCorrectVatAndEffectivePrice() {
 		List<TestItem> items = new LinkedList<TestItem>();
-		items.add(new TestItem(1299L, 25D, new BigDecimal("1.0")));
+		items.add(new TestItem(1299L, 25f, new BigDecimal("1.0")));
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 		discounts.add(new TestDiscount(0L, 0D, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
@@ -114,7 +114,7 @@ public class CartTest {
 	@Test
 	public void itShouldHandleFixedDiscounts() {
 		List<TestItem> items = new LinkedList<TestItem>();
-		items.add(new TestItem(1299L, 25d, new BigDecimal("1.0")));
+		items.add(new TestItem(1299L, 25f, new BigDecimal("1.0")));
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 		discounts.add(new TestDiscount(10L, 0D, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
@@ -126,8 +126,8 @@ public class CartTest {
 	@Test
 	public void itShouldDistributeVats() {
 		List<TestItem> items = new LinkedList<TestItem>();
-		items.add(new TestItem(500L, 10d, new BigDecimal("2.0")));
-		items.add(new TestItem(100L, 50d, new BigDecimal("1.0")));
+		items.add(new TestItem(500L, 10f, new BigDecimal("2.0")));
+		items.add(new TestItem(100L, 50f, new BigDecimal("1.0")));
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 
 		Cart<TestItem, TestDiscount> cart1 = new Cart<TestItem, TestDiscount>(items, discounts);
@@ -152,9 +152,9 @@ public class CartTest {
 	@Test
 	public void itShouldReclaimDiscountsAfterRoundingError() {
 		List<TestItem> items = new ArrayList<TestItem>();
-		items.add(new TestItem(33L, 10d, new BigDecimal("1.0")));
-		items.add(new TestItem(33L, 10d, new BigDecimal("1.0")));
-		items.add(new TestItem(32L, 50d, new BigDecimal("1.0")));
+		items.add(new TestItem(33L, 10f, new BigDecimal("1.0")));
+		items.add(new TestItem(33L, 10f, new BigDecimal("1.0")));
+		items.add(new TestItem(32L, 50f, new BigDecimal("1.0")));
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 		//one fixed discount of 8
 		discounts.add(new TestDiscount(8L, 0D, BigDecimal.ONE));
@@ -167,9 +167,9 @@ public class CartTest {
 	@Test
 	public void itShouldDistributeMoreAfterRoundingError() {
 		List<TestItem> items = new ArrayList<TestItem>();
-		items.add(new TestItem(33L, 10d, new BigDecimal("1.0")));
-		items.add(new TestItem(33L, 10d, new BigDecimal("1.0")));
-		items.add(new TestItem(32L, 50d, new BigDecimal("1.0")));
+		items.add(new TestItem(33L, 10f, new BigDecimal("1.0")));
+		items.add(new TestItem(33L, 10f, new BigDecimal("1.0")));
+		items.add(new TestItem(32L, 50f, new BigDecimal("1.0")));
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 		//one fixed discount of 10
 		discounts.add(new TestDiscount(10L, 0D, BigDecimal.ONE));
@@ -185,7 +185,7 @@ public class CartTest {
 		Random rnd = new Random();
 		int iter = rnd.nextInt(100);
 		for (int i = 0; i < iter; i++) {
-			items.add(new TestItem(rnd.nextInt(10000), rnd.nextDouble() * 30d, new BigDecimal("" + rnd.nextFloat())));
+			items.add(new TestItem(rnd.nextInt(10000), rnd.nextFloat() * 30f, new BigDecimal("" + rnd.nextFloat())));
 		}
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 		discounts.add(new TestDiscount(2L, 0D, BigDecimal.TEN));

@@ -193,10 +193,10 @@ class CartUtils {
 		return retList;
 	}
 
-	static Long calculateVatFromGrossAmount(final Long amountIncVat, final Double vatPercent) {
+	static Long calculateVatFromGrossAmount(final Long amountIncVat, final Float vatPercent) {
 		if (amountIncVat == null || vatPercent == null) {
 			return null;
 		}
-		return amountIncVat - round((amountIncVat * 100) / (100 + vatPercent));
+		return amountIncVat - round((amountIncVat * 100) / (100 + (double) vatPercent));
 	}
 }

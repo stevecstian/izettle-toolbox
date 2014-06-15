@@ -8,7 +8,7 @@ public interface Item<T> {
 
 	long getUnitPrice();
 
-	Double getVatPercentage();
+	Float getVatPercentage();
 
 	T inverse();
 }
