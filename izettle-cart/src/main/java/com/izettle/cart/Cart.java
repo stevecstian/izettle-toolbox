@@ -88,4 +88,24 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 		return totalEffectiveDiscountPercentage;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Items:\n");
+		for (ItemLine<T> itemLine : itemLines) {
+			sb.append("\t").append(itemLine).append("\n");
+		}
+		sb.append("Discounts:\n");
+		for (DiscountLine<K> discountLine : discountLines) {
+			sb.append("\t").append(discountLine).append("\n");
+		}
+		sb.append("Gross Amounts:\n");
+		sb.append("\tTotal Amount: ").append(this.getTotalGrossAmount()).append("\n");
+		sb.append("\tTotal Discount Amount:").append(this.getTotalDiscountAmount()).append("\n");
+		sb.append("Effective amounts:\n");
+		sb.append("\tPrice:").append(this.getTotalEffectivePrice()).append("\n");
+		sb.append("\tDiscount Percentage:").append(this.getTotalEffectiveDiscountPercentage()).append("\n");
+		sb.append("\tVat: ").append(this.getTotalEffectiveVat()).append("\n");
+		return sb.toString();
+	}
 }
