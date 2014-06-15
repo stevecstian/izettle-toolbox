@@ -197,6 +197,29 @@ public class CartTest {
 		assertEquals(cart.getItemLines().size(), inversedCart.getItemLines().size());
 	}
 
+	@Test
+	public void totalAmountShouldBeCorrectForAmountDiscounts() {
+		Random rnd = new Random();
+		long itemPrice = rnd.nextInt(Integer.MAX_VALUE);
+		long discountAmount = rnd.nextInt((int) itemPrice);
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem(itemPrice, null, BigDecimal.ONE));
+		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		discounts.add(new TestDiscount(discountAmount, null, BigDecimal.ONE));
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(itemPrice - discountAmount, cart.getTotalEffectivePrice());
+	}
+
+	@Test
+	public void totalAmountShouldBeCorrectForPercentageDiscounts() {
+		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		discounts.add(new TestDiscount(null, 99d, BigDecimal.ONE));
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem(10736439L, null, BigDecimal.ONE));
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(107364, cart.getTotalEffectivePrice());
+	}
+
 	//Dummy method for bypassing ambiguity against two similar Assert.assertEqual methods
 	private void assEq(Long one, Long two) {
 		assertEquals(one, two);

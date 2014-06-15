@@ -1,7 +1,6 @@
 package com.izettle.cart;
 
 import static com.izettle.java.ValueChecks.allNull;
-import static com.izettle.java.ValueChecks.anyNull;
 import static com.izettle.java.ValueChecks.coalesce;
 import static com.izettle.java.ValueChecks.empty;
 
@@ -52,15 +51,19 @@ class CartUtils {
 			for (K discount : discounts) {
 				BigDecimal quantity = discount.getQuantity();
 				//The amount on each discount needs to be representable as a valid amount of money, hence rounding here
-				summarizedAmounts
-					= coalesce(summarizedAmounts, 0L)
-					+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
-				summarizedPercentages
-					= coalesce(summarizedPercentages, 0d)
-					+ quantity.multiply(new BigDecimal(discount.getPercentage())).doubleValue();
+				if (discount.getAmount() != null) {
+					summarizedAmounts
+						= coalesce(summarizedAmounts, 0L)
+						+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
+				}
+				if (discount.getPercentage() != null) {
+					summarizedPercentages
+						= coalesce(summarizedPercentages, 0d)
+						+ quantity.multiply(new BigDecimal(discount.getPercentage())).doubleValue();
+				}
 			}
 		}
-		if (anyNull(summarizedAmounts, summarizedPercentages)) {
+		if (allNull(summarizedAmounts, summarizedPercentages)) {
 			return null;
 		}
 		return coalesce(summarizedAmounts, 0L) + round(totalGrossAmount * coalesce(summarizedPercentages, 0d) / 100);
