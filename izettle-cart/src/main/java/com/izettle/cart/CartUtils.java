@@ -53,11 +53,11 @@ class CartUtils {
 				BigDecimal quantity = discount.getQuantity();
 				//The amount on each discount needs to be representable as a valid amount of money, hence rounding here
 				summarizedAmounts
-						= coalesce(summarizedAmounts, 0L)
-						+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
+					= coalesce(summarizedAmounts, 0L)
+					+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
 				summarizedPercentages
-						= coalesce(summarizedPercentages, 0d)
-						+ quantity.multiply(new BigDecimal(discount.getPercentage())).doubleValue();
+					= coalesce(summarizedPercentages, 0d)
+					+ quantity.multiply(new BigDecimal(discount.getPercentage())).doubleValue();
 			}
 		}
 		if (anyNull(summarizedAmounts, summarizedPercentages)) {
@@ -67,9 +67,9 @@ class CartUtils {
 	}
 
 	static <T extends Item> Map<Integer, Long> distributeDiscount(
-			final List<T> items,
-			final long totalDiscountAmount,
-			final long grossAmount
+		final List<T> items,
+		final long totalDiscountAmount,
+		final long grossAmount
 	) {
 		final double totalDiscountFraction = ((double) totalDiscountAmount) / grossAmount;
 		long remainingDiscountAmountToDistribute = totalDiscountAmount;
@@ -120,22 +120,22 @@ class CartUtils {
 	}
 
 	static Double getDiscountLinePercentage(
-			final Discount discount,
-			final BigDecimal quantity,
-			final long totalGrossPrice
+		final Discount discount,
+		final BigDecimal quantity,
+		final long totalGrossPrice
 	) {
 		Double discountPercentage = null;
 		Long discountAmount = null;
 
 		if (discount.getAmount() != null) {
 			discountAmount
-					= coalesce(discountAmount, 0L)
-					+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
+				= coalesce(discountAmount, 0L)
+				+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
 		}
 		if (discount.getPercentage() != null) {
 			discountPercentage
-					= coalesce(discountPercentage, 0D)
-					+ round(quantity.multiply(new BigDecimal(discount.getPercentage())));
+				= coalesce(discountPercentage, 0D)
+				+ round(quantity.multiply(new BigDecimal(discount.getPercentage())));
 		}
 
 		if (allNull(discountPercentage, discountAmount)) {
@@ -145,8 +145,8 @@ class CartUtils {
 	}
 
 	static <K extends Discount<K>> List<DiscountLine<K>> buildDiscountLines(
-			final List<K> discounts,
-			final long totalGrossPrice
+		final List<K> discounts,
+		final long totalGrossPrice
 	) {
 		List<DiscountLine<K>> retList = new ArrayList<DiscountLine<K>>();
 		if (!empty(discounts)) {
@@ -172,8 +172,8 @@ class CartUtils {
 	}
 
 	static <T extends Item<T>> List<ItemLine<T>> buildItemLines(
-			final List<T> items,
-			final Map<Integer, Long> discountAmountByItemIdx
+		final List<T> items,
+		final Map<Integer, Long> discountAmountByItemIdx
 	) {
 		List<ItemLine<T>> retList = new ArrayList<ItemLine<T>>();
 		for (int i = 0; i < items.size(); i++) {

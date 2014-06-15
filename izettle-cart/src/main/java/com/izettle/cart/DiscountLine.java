@@ -26,10 +26,10 @@ public class DiscountLine<K extends Discount<K>> {
 	@Override
 	public String toString() {
 		return ""
-				+ "DiscountLine{"
-				+ "discount=" + discount
-				+ ", effectivePercentage=" + effectivePercentage
-				+ '}';
+			+ "DiscountLine{"
+			+ "discount=" + discount
+			+ ", effectivePercentage=" + effectivePercentage
+			+ '}';
 	}
 
 }
