@@ -32,7 +32,13 @@ public class ItemLine<T extends Item<T>> {
 
 	@Override
 	public String toString() {
-		return "LineItem{" + "item=" + item + ", grossPrice=" + grossPrice + ", effectivePrice=" + effectivePrice + ", effectiveVat=" + effectiveVat + '}';
+		return ""
+			+ "LineItem{"
+			+ "item=" + item
+			+ ", grossPrice=" + grossPrice
+			+ ", effectivePrice=" + effectivePrice
+			+ ", effectiveVat=" + effectiveVat
+			+ '}';
 	}
 
 }
