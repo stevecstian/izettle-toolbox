@@ -197,6 +197,17 @@ class CartUtils {
 		return retList;
 	}
 
+	static <T extends Item<T>> Long summarizeGrossVat(final List<ItemLine<T>> itemLines) {
+		Long totalGrossVat = null;
+		for (ItemLine<?> itemLine : itemLines) {
+			Long itemGrossVat = itemLine.getGrossVat();
+			if (itemGrossVat != null) {
+				totalGrossVat = coalesce(totalGrossVat, 0L) + itemGrossVat;
+			}
+		}
+		return totalGrossVat;
+	}
+
 	static <T extends Item<T>> Long summarizeEffectiveVat(final List<ItemLine<T>> itemLines) {
 		Long effectiveVat = null;
 		for (ItemLine<?> itemLine : itemLines) {
@@ -223,8 +234,9 @@ class CartUtils {
 			} else {
 				effectivePrice = linePrice;
 			}
+			Long grossVat = calculateVatFromGrossAmount(linePrice, item.getVatPercentage());
 			Long effectiveVat = calculateVatFromGrossAmount(effectivePrice, item.getVatPercentage());
-			ItemLine<T> itemLine = new ItemLine<T>(item, linePrice, effectivePrice, effectiveVat);
+			ItemLine<T> itemLine = new ItemLine<T>(item, linePrice, grossVat, effectivePrice, effectiveVat);
 			retList.add(itemLine);
 		}
 		return retList;
