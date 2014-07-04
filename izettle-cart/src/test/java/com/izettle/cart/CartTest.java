@@ -182,6 +182,38 @@ public class CartTest {
 	}
 
 	@Test
+	public void itShouldDistributeDiscountAmountOverDiscounts() {
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem(95L, null, BigDecimal.ONE));
+		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+		/*
+		 Adding 9 discounts with 10% each will give a rounding error on each discount line (10% of 95 is 9.5 ->  9L)
+		 A naive implementation would then take these 9 for each discount, summarizing up to 81 in total discount, which
+		 would be suprising result, given that you'd expect ~90% discount
+		 */
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		//Verify that totals add up, and that we're as close as possible to a total discount of 90%
+		assEq(9L, cart.getTotalEffectivePrice());
+		assEq(86L, cart.getTotalDiscountAmount());
+		assertEquals(90d, cart.getTotalEffectiveDiscountPercentage(), 1d);
+		//Verify that the sum of all discount items discount amount equals the total discount:
+		long totDiscountAmnt = 0L;
+		for (DiscountLine<TestDiscount> discountLine : cart.getDiscountLines()) {
+			totDiscountAmnt += discountLine.getEffectiveDiscountAmount();
+		}
+		assEq(cart.getTotalDiscountAmount(), totDiscountAmnt);
+	}
+
+	@Test
 	public void itShouldCreateAProperInverse() {
 		List<TestItem> items = new ArrayList<TestItem>();
 		Random rnd = new Random();

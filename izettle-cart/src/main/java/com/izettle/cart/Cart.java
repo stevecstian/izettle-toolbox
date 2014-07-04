@@ -1,6 +1,8 @@
 package com.izettle.cart;
 
-import static com.izettle.cart.CartUtils.distributeDiscount;
+import static com.izettle.cart.CartUtils.distributeDiscountedAmountOverDiscounts;
+import static com.izettle.cart.CartUtils.distributeDiscountedAmountOverItems;
+import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
 
 import com.izettle.java.ValueChecks;
@@ -18,23 +20,32 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 	private final Long totalDiscountAmount;
 	private final Long totalEffectiveVat;
 	private final Double totalEffectiveDiscountPercentage;
+	private final Long totalGrossVatAmount;
 
 	public Cart(List<T> items, List<K> discounts) {
 		if (empty(items)) {
 			throw new IllegalArgumentException("Cannot create a cart with no items");
 		}
 		this.totalGrossAmount = CartUtils.getTotalGrossAmount(items);
-		this.discountLines = CartUtils.buildDiscountLines(discounts, totalGrossAmount);
-
 		this.totalDiscountAmount = CartUtils.getTotalDiscountAmount(discounts, totalGrossAmount);
-		Map<Integer, Long> discountAmountByItemIdx = null;
+		final Map<Integer, Long> discountAmountByDiscountIdx;
+		final Map<Integer, Long> discountAmountByItemIdx;
 		if (totalDiscountAmount != null) {
-			discountAmountByItemIdx = distributeDiscount(items, totalDiscountAmount, totalGrossAmount);
 			this.totalEffectiveDiscountPercentage = 100d * totalDiscountAmount / totalGrossAmount;
+			discountAmountByItemIdx = distributeDiscountedAmountOverItems(items, totalDiscountAmount, totalGrossAmount);
+			discountAmountByDiscountIdx = distributeDiscountedAmountOverDiscounts(
+				discounts,
+				totalDiscountAmount,
+				totalGrossAmount
+			);
 		} else {
 			this.totalEffectiveDiscountPercentage = null;
+			discountAmountByItemIdx = null;
+			discountAmountByDiscountIdx = null;
 		}
+		this.discountLines = CartUtils.buildDiscountLines(discounts, totalGrossAmount, discountAmountByDiscountIdx);
 		this.itemLines = CartUtils.buildItemLines(items, discountAmountByItemIdx);
+		this.totalGrossVatAmount = CartUtils.summarizeGrossVat(itemLines);
 		this.totalEffectiveVat = CartUtils.summarizeEffectiveVat(itemLines);
 	}
 
@@ -83,6 +94,17 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 
 	public Long getTotalEffectiveVat() {
 		return totalEffectiveVat;
+	}
+
+	public Long getTotalGrossVatAmount() {
+		return totalGrossVatAmount;
+	}
+
+	public Long getTotalDiscountVatAmount() {
+		if (anyEmpty(totalGrossVatAmount, totalEffectiveVat, totalDiscountAmount)) {
+			return null;
+		}
+		return totalGrossVatAmount - totalEffectiveVat;
 	}
 
 	public Double getTotalEffectiveDiscountPercentage() {

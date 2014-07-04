@@ -4,10 +4,12 @@ public class DiscountLine<K extends Discount<K>> {
 
 	private final K discount;
 	private final Double effectivePercentage;
+	private final Long effectiveDiscountAmount;
 
-	DiscountLine(K discount, Double effectivePercentage) {
+	DiscountLine(K discount, Double effectivePercentage, Long effectiveDiscountAmount) {
 		this.discount = discount;
 		this.effectivePercentage = effectivePercentage;
+		this.effectiveDiscountAmount = effectiveDiscountAmount;
 	}
 
 	public K getDiscount() {
@@ -23,13 +25,17 @@ public class DiscountLine<K extends Discount<K>> {
 		return effectivePercentage;
 	}
 
+	public Long getEffectiveDiscountAmount() {
+		return effectiveDiscountAmount;
+	}
+
 	@Override
 	public String toString() {
 		return ""
 			+ "DiscountLine{"
 			+ "discount=" + discount
 			+ ", effectivePercentage=" + effectivePercentage
+			+ ", effectiveDiscountAmount=" + effectiveDiscountAmount
 			+ '}';
 	}
-
 }
