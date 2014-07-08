@@ -16,37 +16,37 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 
 	private final List<ItemLine<T>> itemLines;
 	private final List<DiscountLine<K>> discountLines;
-	private final long totalGrossAmount;
-	private final Long totalDiscountAmount;
-	private final Long totalEffectiveVat;
-	private final Double totalEffectiveDiscountPercentage;
-	private final Long totalGrossVatAmount;
+	private final long grossAmount;
+	private final Long discountAmount;
+	private final Long effectiveVat;
+	private final Double effectiveDiscountPercentage;
+	private final Long grossVatAmount;
 
 	public Cart(List<T> items, List<K> discounts) {
 		if (empty(items)) {
 			throw new IllegalArgumentException("Cannot create a cart with no items");
 		}
-		this.totalGrossAmount = CartUtils.getTotalGrossAmount(items);
-		this.totalDiscountAmount = CartUtils.getTotalDiscountAmount(discounts, totalGrossAmount);
+		this.grossAmount = CartUtils.getGrossAmount(items);
+		this.discountAmount = CartUtils.getDiscountAmount(discounts, grossAmount);
 		final Map<Integer, Long> discountAmountByDiscountIdx;
 		final Map<Integer, Long> discountAmountByItemIdx;
-		if (totalDiscountAmount != null) {
-			this.totalEffectiveDiscountPercentage = 100d * totalDiscountAmount / totalGrossAmount;
-			discountAmountByItemIdx = distributeDiscountedAmountOverItems(items, totalDiscountAmount, totalGrossAmount);
+		if (discountAmount != null) {
+			this.effectiveDiscountPercentage = 100d * discountAmount / grossAmount;
+			discountAmountByItemIdx = distributeDiscountedAmountOverItems(items, discountAmount, grossAmount);
 			discountAmountByDiscountIdx = distributeDiscountedAmountOverDiscounts(
 				discounts,
-				totalDiscountAmount,
-				totalGrossAmount
+				discountAmount,
+				grossAmount
 			);
 		} else {
-			this.totalEffectiveDiscountPercentage = null;
+			this.effectiveDiscountPercentage = null;
 			discountAmountByItemIdx = null;
 			discountAmountByDiscountIdx = null;
 		}
-		this.discountLines = CartUtils.buildDiscountLines(discounts, totalGrossAmount, discountAmountByDiscountIdx);
+		this.discountLines = CartUtils.buildDiscountLines(discounts, grossAmount, discountAmountByDiscountIdx);
 		this.itemLines = CartUtils.buildItemLines(items, discountAmountByItemIdx);
-		this.totalGrossVatAmount = CartUtils.summarizeGrossVat(itemLines);
-		this.totalEffectiveVat = CartUtils.summarizeEffectiveVat(itemLines);
+		this.grossVatAmount = CartUtils.summarizeGrossVat(itemLines);
+		this.effectiveVat = CartUtils.summarizeEffectiveVat(itemLines);
 	}
 
 	public Cart<T, K> inverse() {
@@ -72,8 +72,8 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 		return new Cart(inverseItems, inverseDiscounts);
 	}
 
-	public long getTotalEffectivePrice() {
-		return totalGrossAmount - ValueChecks.coalesce(totalDiscountAmount, 0L);
+	public long getEffectivePrice() {
+		return grossAmount - ValueChecks.coalesce(discountAmount, 0L);
 	}
 
 	public List<ItemLine<T>> getItemLines() {
@@ -84,31 +84,31 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 		return Collections.unmodifiableList(discountLines);
 	}
 
-	public long getTotalGrossAmount() {
-		return totalGrossAmount;
+	public long getGrossAmount() {
+		return grossAmount;
 	}
 
-	public Long getTotalDiscountAmount() {
-		return totalDiscountAmount;
+	public Long getDiscountAmount() {
+		return discountAmount;
 	}
 
-	public Long getTotalEffectiveVat() {
-		return totalEffectiveVat;
+	public Long getEffectiveVat() {
+		return effectiveVat;
 	}
 
-	public Long getTotalGrossVatAmount() {
-		return totalGrossVatAmount;
+	public Long getGrossVatAmount() {
+		return grossVatAmount;
 	}
 
-	public Long getTotalDiscountVatAmount() {
-		if (anyEmpty(totalGrossVatAmount, totalEffectiveVat, totalDiscountAmount)) {
+	public Long getDiscountVatAmount() {
+		if (anyEmpty(grossVatAmount, effectiveVat, discountAmount)) {
 			return null;
 		}
-		return totalGrossVatAmount - totalEffectiveVat;
+		return grossVatAmount - effectiveVat;
 	}
 
-	public Double getTotalEffectiveDiscountPercentage() {
-		return totalEffectiveDiscountPercentage;
+	public Double getEffectiveDiscountPercentage() {
+		return effectiveDiscountPercentage;
 	}
 
 	public SortedMap<Float, Long> groupEffectiveVatAmounts() {
@@ -127,12 +127,12 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 			sb.append("\t").append(discountLine).append("\n");
 		}
 		sb.append("Gross Amounts:\n");
-		sb.append("\tTotal Amount: ").append(this.getTotalGrossAmount()).append("\n");
-		sb.append("\tTotal Discount Amount:").append(this.getTotalDiscountAmount()).append("\n");
-		sb.append("Effective amounts:\n");
-		sb.append("\tPrice:").append(this.getTotalEffectivePrice()).append("\n");
-		sb.append("\tDiscount Percentage:").append(this.getTotalEffectiveDiscountPercentage()).append("\n");
-		sb.append("\tVat: ").append(this.getTotalEffectiveVat()).append("\n");
+		sb.append("\tGross Amount: ").append(this.getGrossAmount()).append("\n");
+		sb.append("\tDiscount Amount:").append(this.getDiscountAmount()).append("\n");
+		sb.append("Amounts:\n");
+		sb.append("\tPrice:").append(this.getEffectivePrice()).append("\n");
+		sb.append("\tDiscount Percentage:").append(this.getEffectiveDiscountPercentage()).append("\n");
+		sb.append("\tVat: ").append(this.getEffectiveVat()).append("\n");
 		return sb.toString();
 	}
 }

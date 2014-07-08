@@ -35,7 +35,7 @@ class CartUtils {
 		return round(item.getQuantity().multiply(new BigDecimal(item.getUnitPrice())));
 	}
 
-	static <T extends Item> long getTotalGrossAmount(List<T> items) {
+	static <T extends Item> long getGrossAmount(List<T> items) {
 		long grossPrice = 0;
 		if (!empty(items)) {
 			for (T item : items) {
@@ -45,7 +45,7 @@ class CartUtils {
 		return grossPrice;
 	}
 
-	static <K extends Discount<K>> Long getTotalDiscountAmount(List<K> discounts, long totalGrossAmount) {
+	static <K extends Discount<K>> Long getDiscountAmount(List<K> discounts, long grossAmount) {
 		Double summarizedPercentages = null;
 		Long summarizedAmounts = null;
 		if (!empty(discounts)) {
@@ -67,25 +67,24 @@ class CartUtils {
 		if (allNull(summarizedAmounts, summarizedPercentages)) {
 			return null;
 		}
-		return coalesce(summarizedAmounts, 0L) + round(totalGrossAmount * coalesce(summarizedPercentages, 0d) / 100);
+		return coalesce(summarizedAmounts, 0L) + round(grossAmount * coalesce(summarizedPercentages, 0d) / 100);
 	}
 
 	/*
-	 * Distributes the total discounted amount amongst the different line items so that the total rounding error is
-	 * minimized
+	 * Distributes the discounted amount amongst the different line items so that the total rounding error is minimized
 	 */
 	static <T extends Item> Map<Integer, Long> distributeDiscountedAmountOverItems(
 		final List<T> items,
-		final long totalDiscountAmount,
+		final long discountAmount,
 		final long grossAmount
 	) {
-		final double totalDiscountFraction = ((double) totalDiscountAmount) / grossAmount;
-		long remainingDiscountAmountToDistribute = totalDiscountAmount;
+		final double discountFraction = ((double) discountAmount) / grossAmount;
+		long remainingDiscountAmountToDistribute = discountAmount;
 		Map<Integer, Long> discountAmountByItemIdx = new HashMap<Integer, Long>();
 		NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
 		for (int itemIdx = 0; itemIdx < items.size(); itemIdx++) {
 			Item item = items.get(itemIdx);
-			final double nonRoundedDiscount = CartUtils.getPrice(item) * totalDiscountFraction;
+			final double nonRoundedDiscount = CartUtils.getPrice(item) * discountFraction;
 			final long roundedDiscount = CartUtils.round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> itemIdxs = itemIdxByRoundingLoss.get(roundingLoss);
@@ -109,7 +108,7 @@ class CartUtils {
 			}
 			Long roundedDiscount = discountAmountByItemIdx.get(itemIdxToChange);
 			Item item = items.get(itemIdxToChange);
-			Double nonRoundedDiscount = CartUtils.getPrice(item) * totalDiscountFraction;
+			Double nonRoundedDiscount = CartUtils.getPrice(item) * discountFraction;
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
@@ -129,15 +128,16 @@ class CartUtils {
 
 	static <T extends Discount> Map<Integer, Long> distributeDiscountedAmountOverDiscounts(
 		final List<T> discounts,
-		final long totalDiscountAmount,
+		final long discountAmount,
 		final long grossAmount
 	) {
-		long remainingDiscountAmountToDistribute = totalDiscountAmount;
+		long remainingDiscountAmountToDistribute = discountAmount;
 		Map<Integer, Long> discountAmountByDiscountIdx = new HashMap<Integer, Long>();
 		NavigableMap<Double, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
 		for (int discountIdx = 0; discountIdx < discounts.size(); discountIdx++) {
 			Discount discount = discounts.get(discountIdx);
-			final double nonRoundedDiscount = coalesce(discount.getAmount(), 0L) + grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
+			final double nonRoundedDiscount = coalesce(discount.getAmount(), 0L)
+				+ grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
 			final long roundedDiscount = CartUtils.round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> discountIdxs = discountIdxByRoundingLoss.get(roundingLoss);
@@ -161,7 +161,8 @@ class CartUtils {
 			}
 			Long roundedDiscount = discountAmountByDiscountIdx.get(discountIdxToChange);
 			Discount discount = discounts.get(discountIdxToChange);
-			final double nonRoundedDiscount = coalesce(discount.getAmount(), 0L) + grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
+			final double nonRoundedDiscount = coalesce(discount.getAmount(), 0L)
+				+ grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;

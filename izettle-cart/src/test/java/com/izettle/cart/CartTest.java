@@ -97,9 +97,9 @@ public class CartTest {
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 		discounts.add(new TestDiscount(0L, 0D, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(1299L, cart.getTotalEffectivePrice());
-		assertEquals(0D, cart.getTotalEffectiveDiscountPercentage(), 0D);
-		assEq(260L, cart.getTotalEffectiveVat());
+		assertEquals(1299L, cart.getEffectivePrice());
+		assertEquals(0D, cart.getEffectiveDiscountPercentage(), 0D);
+		assEq(260L, cart.getEffectiveVat());
 	}
 
 	@Test
@@ -108,9 +108,9 @@ public class CartTest {
 		items.add(new TestItem(1299L, null, new BigDecimal("1.0")));
 		List<TestDiscount> discounts = null;
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(1299L, cart.getTotalEffectivePrice());
-		assertNull(cart.getTotalEffectiveDiscountPercentage());
-		assertNull(cart.getTotalEffectiveVat());
+		assertEquals(1299L, cart.getEffectivePrice());
+		assertNull(cart.getEffectiveDiscountPercentage());
+		assertNull(cart.getEffectiveVat());
 	}
 
 	@Test
@@ -120,9 +120,9 @@ public class CartTest {
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 		discounts.add(new TestDiscount(10L, 0D, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(1289L, cart.getTotalEffectivePrice());
-		assEq(258L, cart.getTotalEffectiveVat());
-		assertEquals(0.77d, cart.getTotalEffectiveDiscountPercentage(), 0.001d);
+		assertEquals(1289L, cart.getEffectivePrice());
+		assEq(258L, cart.getEffectiveVat());
+		assertEquals(0.77d, cart.getEffectiveDiscountPercentage(), 0.001d);
 	}
 
 	@Test
@@ -133,14 +133,14 @@ public class CartTest {
 		List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 
 		Cart<TestItem, TestDiscount> cart1 = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(1100L, cart1.getTotalEffectivePrice());
-		assertEquals(1100L, cart1.getTotalGrossAmount());
+		assertEquals(1100L, cart1.getEffectivePrice());
+		assertEquals(1100L, cart1.getGrossAmount());
 
 		discounts.add(new TestDiscount(110L, 0D, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart2 = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(10d, cart2.getTotalEffectiveDiscountPercentage(), 0.01d);
-		assEq(990L, cart2.getTotalEffectivePrice());
-		assEq(1100L, cart2.getTotalGrossAmount());
+		assertEquals(10d, cart2.getEffectiveDiscountPercentage(), 0.01d);
+		assEq(990L, cart2.getEffectivePrice());
+		assEq(1100L, cart2.getGrossAmount());
 
 		List<ItemLine<TestItem>> lineItems = cart2.getItemLines();
 		assertEquals(2, lineItems.size());
@@ -148,7 +148,7 @@ public class CartTest {
 		assEq(82L, lineItem.getEffectiveVat());
 		lineItem = lineItems.get(1);
 		assEq(30L, lineItem.getEffectiveVat());
-		assEq(112L, cart2.getTotalEffectiveVat());
+		assEq(112L, cart2.getEffectiveVat());
 	}
 
 	@Test
@@ -162,8 +162,8 @@ public class CartTest {
 		discounts.add(new TestDiscount(8L, 0D, BigDecimal.ONE));
 
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
-		assEq(8L, cart.getTotalDiscountAmount());
-		assEq(33L + 33L + 32L - 8L, cart.getTotalEffectivePrice());
+		assEq(8L, cart.getDiscountAmount());
+		assEq(33L + 33L + 32L - 8L, cart.getEffectivePrice());
 	}
 
 	@Test
@@ -177,8 +177,8 @@ public class CartTest {
 		discounts.add(new TestDiscount(10L, 0D, BigDecimal.ONE));
 
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
-		assEq(10L, cart.getTotalDiscountAmount());
-		assEq(33L + 33L + 32L - 10L, cart.getTotalEffectivePrice());
+		assEq(10L, cart.getDiscountAmount());
+		assEq(33L + 33L + 32L - 10L, cart.getEffectivePrice());
 	}
 
 	@Test
@@ -202,15 +202,15 @@ public class CartTest {
 		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
 		//Verify that totals add up, and that we're as close as possible to a total discount of 90%
-		assEq(9L, cart.getTotalEffectivePrice());
-		assEq(86L, cart.getTotalDiscountAmount());
-		assertEquals(90d, cart.getTotalEffectiveDiscountPercentage(), 1d);
+		assEq(9L, cart.getEffectivePrice());
+		assEq(86L, cart.getDiscountAmount());
+		assertEquals(90d, cart.getEffectiveDiscountPercentage(), 1d);
 		//Verify that the sum of all discount items discount amount equals the total discount:
 		long totDiscountAmnt = 0L;
 		for (DiscountLine<TestDiscount> discountLine : cart.getDiscountLines()) {
 			totDiscountAmnt += discountLine.getEffectiveDiscountAmount();
 		}
-		assEq(cart.getTotalDiscountAmount(), totDiscountAmnt);
+		assEq(cart.getDiscountAmount(), totDiscountAmnt);
 	}
 
 	@Test
@@ -225,9 +225,9 @@ public class CartTest {
 		discounts.add(new TestDiscount(2L, 0D, BigDecimal.TEN));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
 		Cart<TestItem, TestDiscount> inversedCart = cart.inverse();
-		assEq(-1 * cart.getTotalEffectivePrice(), inversedCart.getTotalEffectivePrice());
-		assEq(-1 * cart.getTotalDiscountAmount(), inversedCart.getTotalDiscountAmount());
-		assEq(-1 * cart.getTotalEffectiveVat(), inversedCart.getTotalEffectiveVat());
+		assEq(-1 * cart.getEffectivePrice(), inversedCart.getEffectivePrice());
+		assEq(-1 * cart.getDiscountAmount(), inversedCart.getDiscountAmount());
+		assEq(-1 * cart.getEffectiveVat(), inversedCart.getEffectiveVat());
 		assertEquals(cart.getItemLines().size(), inversedCart.getItemLines().size());
 	}
 
@@ -251,15 +251,15 @@ public class CartTest {
 		items.add(new TestItem(1200l, 25f, BigDecimal.ONE));
 		items.add(new TestItem(999999l, 98f, new BigDecimal(3d)));
 		Cart<TestItem, TestDiscount> cart1 = new Cart<TestItem, TestDiscount>(items, null);
-		Long totVatWithoutDiscount = cart1.getTotalEffectiveVat();
-		long totAmountWithoutDiscount = cart1.getTotalEffectivePrice();
+		Long totVatWithoutDiscount = cart1.getEffectiveVat();
+		long totAmountWithoutDiscount = cart1.getEffectivePrice();
 		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
 		discounts.add(new TestDiscount(null, 1d, BigDecimal.ONE));
 		discounts.add(new TestDiscount(999999l, null, BigDecimal.ONE));
 
 		Cart<TestItem, TestDiscount> cart2 = new Cart<TestItem, TestDiscount>(items, discounts);
-		Long totVatWithDiscount = cart2.getTotalEffectiveVat();
-		long totAmountWithDiscount = cart2.getTotalEffectivePrice();
+		Long totVatWithDiscount = cart2.getEffectiveVat();
+		long totAmountWithDiscount = cart2.getEffectivePrice();
 		long discountAmount = totAmountWithoutDiscount - totAmountWithDiscount;
 		double discountFrac = ((double) discountAmount) / totAmountWithoutDiscount;
 		long totAmountVatWithDiscount = 0;
@@ -314,7 +314,7 @@ public class CartTest {
 			for (Float key : groupedVatAmounts.keySet()) {
 				totVat += groupedVatAmounts.get(key);
 			}
-			assEq(cart.getTotalEffectiveVat(), totVat);
+			assEq(cart.getEffectiveVat(), totVat);
 		}
 	}
 
@@ -328,7 +328,7 @@ public class CartTest {
 		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
 		discounts.add(new TestDiscount(discountAmount, null, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(itemPrice - discountAmount, cart.getTotalEffectivePrice());
+		assertEquals(itemPrice - discountAmount, cart.getEffectivePrice());
 	}
 
 	@Test
@@ -338,7 +338,7 @@ public class CartTest {
 		List<TestItem> items = new ArrayList<TestItem>();
 		items.add(new TestItem(10736439L, null, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
-		assertEquals(107364, cart.getTotalEffectivePrice());
+		assertEquals(107364, cart.getEffectivePrice());
 	}
 
 	//Dummy method for bypassing ambiguity against two similar Assert.assertEqual methods
