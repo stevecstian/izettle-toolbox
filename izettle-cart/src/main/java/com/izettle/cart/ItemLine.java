@@ -3,33 +3,33 @@ package com.izettle.cart;
 public class ItemLine<T extends Item<T>> {
 
 	private final T item;
-	private final long grossPrice;
+	private final long grossValue;
 	private final Long grossVat;
-	private final long effectivePrice;
-	private final Long effectiveVat;
+	private final long actualValue;
+	private final Long actualVat;
 
-	ItemLine(T item, long grossPrice, Long grossVat, long effectivePrice, Long effectiveVat) {
+	ItemLine(T item, long grossValue, Long grossVat, long actualValue, Long actualVat) {
 		this.item = item;
-		this.grossPrice = grossPrice;
+		this.grossValue = grossValue;
 		this.grossVat = grossVat;
-		this.effectivePrice = effectivePrice;
-		this.effectiveVat = effectiveVat;
+		this.actualValue = actualValue;
+		this.actualVat = actualVat;
 	}
 
 	public T getItem() {
 		return item;
 	}
 
-	public long getEffectivePrice() {
-		return effectivePrice;
+	public long getActualValue() {
+		return actualValue;
 	}
 
-	public Long getEffectiveVat() {
-		return effectiveVat;
+	public Long getActualVat() {
+		return actualVat;
 	}
 
-	public long getGrossPrice() {
-		return grossPrice;
+	public long getGrossValue() {
+		return grossValue;
 	}
 
 	public Long getGrossVat() {
@@ -39,12 +39,12 @@ public class ItemLine<T extends Item<T>> {
 	@Override
 	public String toString() {
 		return ""
-			+ "LineItem{"
-			+ "item=" + item
-			+ ", grossPrice=" + grossPrice
-			+ ", grossVat=" + grossVat
-			+ ", effectivePrice=" + effectivePrice
-			+ ", effectiveVat=" + effectiveVat
+			+ "LineItem {"
+			+ " item = " + item
+			+ ", grossValue = " + grossValue
+			+ ", grossVat = " + grossVat
+			+ ", actualValue = " + actualValue
+			+ ", actualVat = " + actualVat
 			+ '}';
 	}
 

@@ -6,15 +6,7 @@ import static com.izettle.java.ValueChecks.empty;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Queue;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 class CartUtils {
 
@@ -35,7 +27,7 @@ class CartUtils {
 		return round(item.getQuantity().multiply(new BigDecimal(item.getUnitPrice())));
 	}
 
-	static <T extends Item> long getGrossAmount(List<T> items) {
+	static <T extends Item> long getGrossValue(List<T> items) {
 		long grossPrice = 0;
 		if (!empty(items)) {
 			for (T item : items) {
@@ -45,7 +37,7 @@ class CartUtils {
 		return grossPrice;
 	}
 
-	static <K extends Discount<K>> Long getDiscountAmount(List<K> discounts, long grossAmount) {
+	static <K extends Discount<K>> Long getDiscountValue(List<K> discounts, long grossAmount) {
 		Double summarizedPercentages = null;
 		Long summarizedAmounts = null;
 		if (!empty(discounts)) {
@@ -70,14 +62,25 @@ class CartUtils {
 		return coalesce(summarizedAmounts, 0L) + round(grossAmount * coalesce(summarizedPercentages, 0d) / 100);
 	}
 
+	static Double getDiscountPercentage(long grossValue, Long discountValue) {
+		if (discountValue == null) {
+			return null;
+		} else {
+			return 100d * discountValue / grossValue;
+		}
+	}
+
 	/*
 	 * Distributes the discounted amount amongst the different line items so that the total rounding error is minimized
 	 */
 	static <T extends Item> Map<Integer, Long> distributeDiscountedAmountOverItems(
 		final List<T> items,
-		final long discountAmount,
+		final Long discountAmount,
 		final long grossAmount
 	) {
+		if (discountAmount == null) {
+			return null;
+		}
 		final double discountFraction = ((double) discountAmount) / grossAmount;
 		long remainingDiscountAmountToDistribute = discountAmount;
 		Map<Integer, Long> discountAmountByItemIdx = new HashMap<Integer, Long>();
@@ -128,9 +131,12 @@ class CartUtils {
 
 	static <T extends Discount> Map<Integer, Long> distributeDiscountedAmountOverDiscounts(
 		final List<T> discounts,
-		final long discountAmount,
+		final Long discountAmount,
 		final long grossAmount
 	) {
+		if (discountAmount == null) {
+			return null;
+		}
 		long remainingDiscountAmountToDistribute = discountAmount;
 		Map<Integer, Long> discountAmountByDiscountIdx = new HashMap<Integer, Long>();
 		NavigableMap<Double, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
@@ -182,15 +188,20 @@ class CartUtils {
 
 	static <K extends Discount<K>> List<DiscountLine<K>> buildDiscountLines(
 		final List<K> discounts,
-		final long totalGrossPrice,
-		final Map<Integer, Long> discountAmountByDiscountIdx
+		final long grossValue,
+		final Long totalDiscountValue
 	) {
-		List<DiscountLine<K>> retList = new ArrayList<DiscountLine<K>>();
+		final Map<Integer, Long> discountAmountByDiscountIdx = distributeDiscountedAmountOverDiscounts(
+			discounts,
+			totalDiscountValue,
+			grossValue
+		);
+		final List<DiscountLine<K>> retList = new ArrayList<DiscountLine<K>>();
 		if (!empty(discounts)) {
 			for (int i = 0; i < discounts.size(); i++) {
 				K discount = discounts.get(i);
 				Long discountAmount = discountAmountByDiscountIdx.get(i);
-				Double linePercentage = 100d * discountAmount / totalGrossPrice;
+				Double linePercentage = 100d * discountAmount / grossValue;
 				DiscountLine<K> discountLine = new DiscountLine<K>(discount, linePercentage, discountAmount);
 				retList.add(discountLine);
 			}
@@ -212,7 +223,7 @@ class CartUtils {
 	static <T extends Item<T>> Long summarizeEffectiveVat(final List<ItemLine<T>> itemLines) {
 		Long effectiveVat = null;
 		for (ItemLine<?> itemLine : itemLines) {
-			Long itemEffectiveVat = itemLine.getEffectiveVat();
+			Long itemEffectiveVat = itemLine.getActualVat();
 			if (itemEffectiveVat != null) {
 				effectiveVat = coalesce(effectiveVat, 0L) + itemEffectiveVat;
 			}
@@ -222,9 +233,15 @@ class CartUtils {
 
 	static <T extends Item<T>> List<ItemLine<T>> buildItemLines(
 		final List<T> items,
-		final Map<Integer, Long> discountAmountByItemIdx
+		final Long grossValue,
+		final Long totalDiscountValue
 	) {
-		List<ItemLine<T>> retList = new ArrayList<ItemLine<T>>();
+		final Map<Integer, Long> discountAmountByItemIdx = distributeDiscountedAmountOverItems(
+			items,
+			totalDiscountValue,
+			grossValue
+		);
+		final List<ItemLine<T>> retList = new ArrayList<ItemLine<T>>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
 			long linePrice = getPrice(item);
@@ -250,10 +267,10 @@ class CartUtils {
 		return amountIncVat - round((amountIncVat * 100) / (100 + (double) vatPercent));
 	}
 
-	static <T extends Item<T>, K extends Discount<K>> SortedMap<Float, Long> groupEffectiveVatAmounts(Cart<T, K> cart) {
+	static <T extends Item<T>> SortedMap<Float, Long> groupEffectiveVatAmounts(Collection<ItemLine<T>> itemLines) {
 		SortedMap<Float, Long> vatAmountPerGroup = new TreeMap<Float, Long>();
-		for (ItemLine<T> itemLine : cart.getItemLines()) {
-			Long effectiveVat = itemLine.getEffectiveVat();
+		for (ItemLine<T> itemLine : itemLines) {
+			Long effectiveVat = itemLine.getActualVat();
 			Float vatPercentage = itemLine.getItem().getVatPercentage();
 			if (effectiveVat != null) {
 				Long accVatAmountForGroup = vatAmountPerGroup.get(vatPercentage);
