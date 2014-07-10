@@ -94,8 +94,8 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 		return actualDiscountPercentage;
 	}
 
-	public SortedMap<Float, Long> groupActualVatAmounts() {
-		return CartUtils.groupEffectiveVatAmounts(getItemLines());
+	public SortedMap<Float, VatGroupValues> groupValuesPerVatGroup() {
+		return CartUtils.groupValuesPerVatGroup(getItemLines());
 	}
 
 	@Override
