@@ -242,16 +242,22 @@ public class CartTest {
 		assertEquals(cart.getItemLines().size(), inversedCart.getItemLines().size());
 	}
 
+	@Test
 	public void itShouldGroupVatsProperly() {
 		List<TestItem> items = new ArrayList<TestItem>();
 		items.add(new TestItem(2000l, 10f, new BigDecimal(3d)));
 		items.add(new TestItem(3500l, 12f, new BigDecimal(4d)));
 		items.add(new TestItem(1200l, 25f, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, null);
-		SortedMap<Float, Long> groupedVatAmounts = cart.groupActualVatAmounts();
-		assEq(545L, groupedVatAmounts.get(10f));
-		assEq(1500L, groupedVatAmounts.get(12f));
-		assEq(240L, groupedVatAmounts.get(25f));
+		SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart.groupValuesByVatPercentage();
+		assEq(545L, valuesGroupedByVatPercentage.get(10f).getActualVatValue());
+		assEq(1500L, valuesGroupedByVatPercentage.get(12f).getActualVatValue());
+		assEq(240L, valuesGroupedByVatPercentage.get(25f).getActualVatValue());
+
+		assEq(6000L, valuesGroupedByVatPercentage.get(10f).getActualValue());
+		assEq(14000L, valuesGroupedByVatPercentage.get(12f).getActualValue());
+		assEq(1200L, valuesGroupedByVatPercentage.get(25f).getActualValue());
+
 	}
 
 	@Test
@@ -274,9 +280,9 @@ public class CartTest {
 		long discountAmount = totAmountWithoutDiscount - totAmountWithDiscount;
 		double discountFrac = ((double) discountAmount) / totAmountWithoutDiscount;
 		long totAmountVatWithDiscount = 0;
-		SortedMap<Float, Long> groupedVatAmounts = cart2.groupActualVatAmounts();
-		for (Map.Entry<Float, Long> entry : groupedVatAmounts.entrySet()) {
-			totAmountVatWithDiscount += entry.getValue();
+		SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart2.groupValuesByVatPercentage();
+		for (Map.Entry<Float, VatGroupValues> entry : valuesGroupedByVatPercentage.entrySet()) {
+			totAmountVatWithDiscount += entry.getValue().getActualVatValue();
 		}
 		assEq(totVatWithDiscount, totAmountVatWithDiscount);
 		//Verify that the sum of the discounted vats has about the same relation to the original vat
@@ -320,10 +326,10 @@ public class CartTest {
 				discounts.add(new TestDiscount((long) rnd.nextInt(4000), (double) rnd.nextInt(40), BigDecimal.ONE));
 			}
 			Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(products, discounts);
-			SortedMap<Float, Long> groupedVatAmounts = cart.groupActualVatAmounts();
+			SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart.groupValuesByVatPercentage();
 			long totVat = 0;
-			for (Float key : groupedVatAmounts.keySet()) {
-				totVat += groupedVatAmounts.get(key);
+			for (Float key : valuesGroupedByVatPercentage.keySet()) {
+				totVat += valuesGroupedByVatPercentage.get(key).getActualVatValue();
 			}
 			assEq(cart.getActualVat(), totVat);
 		}

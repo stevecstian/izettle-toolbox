@@ -267,17 +267,25 @@ class CartUtils {
 		return amountIncVat - round((amountIncVat * 100) / (100 + (double) vatPercent));
 	}
 
-	static <T extends Item<T>> SortedMap<Float, Long> groupEffectiveVatAmounts(Collection<ItemLine<T>> itemLines) {
-		SortedMap<Float, Long> vatAmountPerGroup = new TreeMap<Float, Long>();
+	static <T extends Item<T>> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(Collection<ItemLine<T>> itemLines) {
+		SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<Float, Long>();
+		SortedMap<Float, Long> actualValuePerVatGroup = new TreeMap<Float, Long>();
+		SortedMap<Float, VatGroupValues> vatGroupValues = new TreeMap<Float, VatGroupValues>();
 		for (ItemLine<T> itemLine : itemLines) {
-			Long effectiveVat = itemLine.getActualVat();
+			Long actualVat = itemLine.getActualVat();
+			Long actualValue = itemLine.getActualValue();
 			Float vatPercentage = itemLine.getItem().getVatPercentage();
-			if (effectiveVat != null) {
-				Long accVatAmountForGroup = vatAmountPerGroup.get(vatPercentage);
-				vatAmountPerGroup.put(vatPercentage, coalesce(accVatAmountForGroup, 0L) + effectiveVat);
+			if (actualVat != null) {
+				Long accVatAmountForGroup = actualVatValuePerGroup.get(vatPercentage);
+				Long accValueForGroup = actualValuePerVatGroup.get(vatPercentage);
+				actualVatValuePerGroup.put(vatPercentage, coalesce(accVatAmountForGroup, 0L) + actualVat);
+				actualValuePerVatGroup.put(vatPercentage, coalesce(accValueForGroup, 0L) + actualValue);
 			}
 		}
-		return vatAmountPerGroup;
+		for (Float vatPerc : actualVatValuePerGroup.keySet()) {
+			vatGroupValues.put(vatPerc, new VatGroupValues(vatPerc, actualVatValuePerGroup.get(vatPerc), actualValuePerVatGroup.get(vatPerc)));
+		}
+		return vatGroupValues;
 	}
 
 }
