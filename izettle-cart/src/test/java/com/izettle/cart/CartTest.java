@@ -249,14 +249,14 @@ public class CartTest {
 		items.add(new TestItem(3500l, 12f, new BigDecimal(4d)));
 		items.add(new TestItem(1200l, 25f, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, null);
-		SortedMap<Float, VatGroupValues> groupedVatAmounts = cart.groupValuesPerVatGroup();
-		assEq(545L, groupedVatAmounts.get(10f).getActualVatValue());
-		assEq(1500L, groupedVatAmounts.get(12f).getActualVatValue());
-		assEq(240L, groupedVatAmounts.get(25f).getActualVatValue());
+		SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart.groupValuesByVatPercentage();
+		assEq(545L, valuesGroupedByVatPercentage.get(10f).getActualVatValue());
+		assEq(1500L, valuesGroupedByVatPercentage.get(12f).getActualVatValue());
+		assEq(240L, valuesGroupedByVatPercentage.get(25f).getActualVatValue());
 
-		assEq(6000L, groupedVatAmounts.get(10f).getActualValue());
-		assEq(14000L, groupedVatAmounts.get(12f).getActualValue());
-		assEq(1200L, groupedVatAmounts.get(25f).getActualValue());
+		assEq(6000L, valuesGroupedByVatPercentage.get(10f).getActualValue());
+		assEq(14000L, valuesGroupedByVatPercentage.get(12f).getActualValue());
+		assEq(1200L, valuesGroupedByVatPercentage.get(25f).getActualValue());
 
 	}
 
@@ -280,8 +280,8 @@ public class CartTest {
 		long discountAmount = totAmountWithoutDiscount - totAmountWithDiscount;
 		double discountFrac = ((double) discountAmount) / totAmountWithoutDiscount;
 		long totAmountVatWithDiscount = 0;
-		SortedMap<Float, VatGroupValues> groupedVatAmounts = cart2.groupValuesPerVatGroup();
-		for (Map.Entry<Float, VatGroupValues> entry : groupedVatAmounts.entrySet()) {
+		SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart2.groupValuesByVatPercentage();
+		for (Map.Entry<Float, VatGroupValues> entry : valuesGroupedByVatPercentage.entrySet()) {
 			totAmountVatWithDiscount += entry.getValue().getActualVatValue();
 		}
 		assEq(totVatWithDiscount, totAmountVatWithDiscount);
@@ -326,10 +326,10 @@ public class CartTest {
 				discounts.add(new TestDiscount((long) rnd.nextInt(4000), (double) rnd.nextInt(40), BigDecimal.ONE));
 			}
 			Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(products, discounts);
-			SortedMap<Float, VatGroupValues> groupedVatAmounts = cart.groupValuesPerVatGroup();
+			SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart.groupValuesByVatPercentage();
 			long totVat = 0;
-			for (Float key : groupedVatAmounts.keySet()) {
-				totVat += groupedVatAmounts.get(key).getActualVatValue();
+			for (Float key : valuesGroupedByVatPercentage.keySet()) {
+				totVat += valuesGroupedByVatPercentage.get(key).getActualVatValue();
 			}
 			assEq(cart.getActualVat(), totVat);
 		}

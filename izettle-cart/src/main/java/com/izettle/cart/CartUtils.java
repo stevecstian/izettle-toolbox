@@ -45,14 +45,14 @@ class CartUtils {
 				BigDecimal quantity = discount.getQuantity();
 				//The amount on each discount needs to be representable as a valid amount of money, hence rounding here
 				if (discount.getAmount() != null) {
-					summarizedAmounts =
-									coalesce(summarizedAmounts, 0L)
-									+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
+					summarizedAmounts
+						= coalesce(summarizedAmounts, 0L)
+						+ round(quantity.multiply(new BigDecimal(discount.getAmount())));
 				}
 				if (discount.getPercentage() != null) {
-					summarizedPercentages =
-									coalesce(summarizedPercentages, 0d)
-									+ quantity.multiply(new BigDecimal(discount.getPercentage())).doubleValue();
+					summarizedPercentages
+						= coalesce(summarizedPercentages, 0d)
+						+ quantity.multiply(new BigDecimal(discount.getPercentage())).doubleValue();
 				}
 			}
 		}
@@ -74,9 +74,9 @@ class CartUtils {
 	 * Distributes the discounted amount amongst the different line items so that the total rounding error is minimized
 	 */
 	static <T extends Item> Map<Integer, Long> distributeDiscountedAmountOverItems(
-			final List<T> items,
-			final Long discountAmount,
-			final long grossAmount
+		final List<T> items,
+		final Long discountAmount,
+		final long grossAmount
 	) {
 		if (discountAmount == null) {
 			return null;
@@ -130,9 +130,9 @@ class CartUtils {
 	}
 
 	static <T extends Discount> Map<Integer, Long> distributeDiscountedAmountOverDiscounts(
-			final List<T> discounts,
-			final Long discountAmount,
-			final long grossAmount
+		final List<T> discounts,
+		final Long discountAmount,
+		final long grossAmount
 	) {
 		if (discountAmount == null) {
 			return null;
@@ -143,7 +143,7 @@ class CartUtils {
 		for (int discountIdx = 0; discountIdx < discounts.size(); discountIdx++) {
 			Discount discount = discounts.get(discountIdx);
 			final double nonRoundedDiscount = coalesce(discount.getAmount(), 0L)
-					+ grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
+				+ grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
 			final long roundedDiscount = CartUtils.round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> discountIdxs = discountIdxByRoundingLoss.get(roundingLoss);
@@ -168,7 +168,7 @@ class CartUtils {
 			Long roundedDiscount = discountAmountByDiscountIdx.get(discountIdxToChange);
 			Discount discount = discounts.get(discountIdxToChange);
 			final double nonRoundedDiscount = coalesce(discount.getAmount(), 0L)
-					+ grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
+				+ grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
@@ -187,14 +187,14 @@ class CartUtils {
 	}
 
 	static <K extends Discount<K>> List<DiscountLine<K>> buildDiscountLines(
-			final List<K> discounts,
-			final long grossValue,
-			final Long totalDiscountValue
+		final List<K> discounts,
+		final long grossValue,
+		final Long totalDiscountValue
 	) {
 		final Map<Integer, Long> discountAmountByDiscountIdx = distributeDiscountedAmountOverDiscounts(
-				discounts,
-				totalDiscountValue,
-				grossValue
+			discounts,
+			totalDiscountValue,
+			grossValue
 		);
 		final List<DiscountLine<K>> retList = new ArrayList<DiscountLine<K>>();
 		if (!empty(discounts)) {
@@ -232,14 +232,14 @@ class CartUtils {
 	}
 
 	static <T extends Item<T>> List<ItemLine<T>> buildItemLines(
-			final List<T> items,
-			final Long grossValue,
-			final Long totalDiscountValue
+		final List<T> items,
+		final Long grossValue,
+		final Long totalDiscountValue
 	) {
 		final Map<Integer, Long> discountAmountByItemIdx = distributeDiscountedAmountOverItems(
-				items,
-				totalDiscountValue,
-				grossValue
+			items,
+			totalDiscountValue,
+			grossValue
 		);
 		final List<ItemLine<T>> retList = new ArrayList<ItemLine<T>>();
 		for (int i = 0; i < items.size(); i++) {
@@ -267,7 +267,7 @@ class CartUtils {
 		return amountIncVat - round((amountIncVat * 100) / (100 + (double) vatPercent));
 	}
 
-	static <T extends Item<T>> SortedMap<Float, VatGroupValues> groupValuesPerVatGroup(Collection<ItemLine<T>> itemLines) {
+	static <T extends Item<T>> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(Collection<ItemLine<T>> itemLines) {
 		SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<Float, Long>();
 		SortedMap<Float, Long> actualValuePerVatGroup = new TreeMap<Float, Long>();
 		SortedMap<Float, VatGroupValues> vatGroupValues = new TreeMap<Float, VatGroupValues>();
