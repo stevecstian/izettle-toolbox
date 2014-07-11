@@ -24,7 +24,7 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 			throw new IllegalArgumentException("Cannot create a cart with no items");
 		}
 		this.grossValue = CartUtils.getGrossValue(items);
-		this.discountValue = CartUtils.getDiscountValue(discounts, grossValue);
+		this.discountValue = CartUtils.getTotalDiscountValue(discounts, grossValue);
 		this.actualDiscountPercentage = CartUtils.getDiscountPercentage(grossValue, discountValue);
 		this.discountLines = CartUtils.buildDiscountLines(discounts, grossValue, discountValue);
 		this.itemLines = CartUtils.buildItemLines(items, grossValue, discountValue);

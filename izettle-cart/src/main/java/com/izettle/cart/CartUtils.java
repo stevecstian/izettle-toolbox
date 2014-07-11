@@ -23,7 +23,7 @@ class CartUtils {
 		return round(new BigDecimal(decimal));
 	}
 
-	static long getPrice(Item item) {
+	static long getGrossValue(Item item) {
 		return round(item.getQuantity().multiply(new BigDecimal(item.getUnitPrice())));
 	}
 
@@ -31,13 +31,27 @@ class CartUtils {
 		long grossPrice = 0;
 		if (!empty(items)) {
 			for (T item : items) {
-				grossPrice += getPrice(item);
+				grossPrice += getGrossValue(item);
 			}
 		}
 		return grossPrice;
 	}
 
-	static <K extends Discount<K>> Long getDiscountValue(List<K> discounts, long grossAmount) {
+	static Double getNonRoundedDiscountValue(Discount discount, long totalGrossAmount) {
+		Double retVal = null;
+		if (discount.getAmount() != null) {
+			retVal = discount.getAmount().doubleValue();
+		}
+		if (discount.getPercentage() != null) {
+			retVal = coalesce(retVal, 0d) + (Math.abs(totalGrossAmount) * discount.getPercentage() / 100d);
+		}
+		if (retVal != null) {
+			return discount.getQuantity().multiply(new BigDecimal(retVal)).doubleValue();
+		}
+		return null;
+	}
+
+	static <K extends Discount<K>> Long getTotalDiscountValue(List<K> discounts, long totalGrossAmount) {
 		Double summarizedPercentages = null;
 		Long summarizedAmounts = null;
 		if (!empty(discounts)) {
@@ -59,7 +73,7 @@ class CartUtils {
 		if (allNull(summarizedAmounts, summarizedPercentages)) {
 			return null;
 		}
-		return coalesce(summarizedAmounts, 0L) + round(grossAmount * coalesce(summarizedPercentages, 0d) / 100);
+		return coalesce(summarizedAmounts, 0L) + round(Math.abs(totalGrossAmount) * coalesce(summarizedPercentages, 0d) / 100);
 	}
 
 	static Double getDiscountPercentage(long grossValue, Long discountValue) {
@@ -87,7 +101,7 @@ class CartUtils {
 		NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
 		for (int itemIdx = 0; itemIdx < items.size(); itemIdx++) {
 			Item item = items.get(itemIdx);
-			final double nonRoundedDiscount = CartUtils.getPrice(item) * discountFraction;
+			final double nonRoundedDiscount = CartUtils.getGrossValue(item) * discountFraction;
 			final long roundedDiscount = CartUtils.round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> itemIdxs = itemIdxByRoundingLoss.get(roundingLoss);
@@ -111,7 +125,7 @@ class CartUtils {
 			}
 			Long roundedDiscount = discountAmountByItemIdx.get(itemIdxToChange);
 			Item item = items.get(itemIdxToChange);
-			Double nonRoundedDiscount = CartUtils.getPrice(item) * discountFraction;
+			Double nonRoundedDiscount = CartUtils.getGrossValue(item) * discountFraction;
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
@@ -132,7 +146,7 @@ class CartUtils {
 	static <T extends Discount> Map<Integer, Long> distributeDiscountedAmountOverDiscounts(
 		final List<T> discounts,
 		final Long discountAmount,
-		final long grossAmount
+		final long totalGrossAmount
 	) {
 		if (discountAmount == null) {
 			return null;
@@ -142,9 +156,8 @@ class CartUtils {
 		NavigableMap<Double, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
 		for (int discountIdx = 0; discountIdx < discounts.size(); discountIdx++) {
 			Discount discount = discounts.get(discountIdx);
-			final double nonRoundedDiscount = coalesce(discount.getAmount(), 0L)
-				+ grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
-			final long roundedDiscount = CartUtils.round(nonRoundedDiscount);
+			final double nonRoundedDiscount = getNonRoundedDiscountValue(discount, totalGrossAmount);
+			final long roundedDiscount = round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> discountIdxs = discountIdxByRoundingLoss.get(roundingLoss);
 			if (discountIdxs == null) {
@@ -167,8 +180,7 @@ class CartUtils {
 			}
 			Long roundedDiscount = discountAmountByDiscountIdx.get(discountIdxToChange);
 			Discount discount = discounts.get(discountIdxToChange);
-			final double nonRoundedDiscount = coalesce(discount.getAmount(), 0L)
-				+ grossAmount * coalesce(discount.getPercentage(), 0d) / 100d;
+			final double nonRoundedDiscount = getNonRoundedDiscountValue(discount, totalGrossAmount);
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
@@ -244,7 +256,7 @@ class CartUtils {
 		final List<ItemLine<T>> retList = new ArrayList<ItemLine<T>>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
-			long linePrice = getPrice(item);
+			long linePrice = getGrossValue(item);
 			final long effectivePrice;
 			if (discountAmountByItemIdx != null) {
 				Long discountAmount = discountAmountByItemIdx.get(i);

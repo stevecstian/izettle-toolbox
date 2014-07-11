@@ -243,6 +243,49 @@ public class CartTest {
 	}
 
 	@Test
+	public void itShouldTreatDiscountSignAndInversesCorrectly() {
+		List<TestItem> items;
+		List<TestDiscount> discounts;
+		Cart<TestItem, TestDiscount> cart;
+
+		//Normal discount and it's inversed cart
+		items = new ArrayList<TestItem>();
+		items.add(new TestItem(100L, null, new BigDecimal(1d)));
+		discounts = new LinkedList<TestDiscount>();
+		discounts.add(new TestDiscount(5L, 10d, BigDecimal.ONE));
+		cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assEq(85L, cart.getValue());
+		assEq(-85L, cart.inverse().getValue());
+
+		//A negative discount, eg a "topup"
+		items = new ArrayList<TestItem>();
+		items.add(new TestItem(100L, null, new BigDecimal(1d)));
+		discounts = new LinkedList<TestDiscount>();
+		discounts.add(new TestDiscount(-5L, -10d, BigDecimal.ONE));
+		cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assEq(115L, cart.getValue());
+		assEq(-115L, cart.inverse().getValue());
+
+		//A discount where amount and percentage has different signs
+		items = new ArrayList<TestItem>();
+		items.add(new TestItem(100L, null, new BigDecimal(1d)));
+		discounts = new LinkedList<TestDiscount>();
+		discounts.add(new TestDiscount(-5L, 10d, BigDecimal.ONE));
+		cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assEq(95L, cart.getValue());
+		assEq(-95L, cart.inverse().getValue());
+
+		//A discount where all (including the quantity) is negative should be identical to a all positive one
+		items = new ArrayList<TestItem>();
+		items.add(new TestItem(100L, null, new BigDecimal(1d)));
+		discounts = new LinkedList<TestDiscount>();
+		discounts.add(new TestDiscount(-5L, -10d, BigDecimal.ONE.negate()));
+		cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assEq(85L, cart.getValue());
+		assEq(-85L, cart.inverse().getValue());
+	}
+
+	@Test
 	public void itShouldGroupVatsProperly() {
 		List<TestItem> items = new ArrayList<TestItem>();
 		items.add(new TestItem(2000l, 10f, new BigDecimal(3d)));
