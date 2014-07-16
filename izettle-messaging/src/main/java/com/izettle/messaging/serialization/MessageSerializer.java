@@ -5,7 +5,6 @@ import com.izettle.cryptography.CryptographyException;
 
 /**
  * Serialize a message to be published.
- * <p/>
  * User: andreas
  * Date: 2014-07-16
  */
@@ -16,7 +15,7 @@ public interface MessageSerializer {
 	 *
 	 * @param message to be encrypted
 	 * @return encrypted message
-	 * @throws CryptographyException
+	 * @throws CryptographyException if encryption of message fail
 	 */
 	public String encrypt(String message) throws CryptographyException;
 
