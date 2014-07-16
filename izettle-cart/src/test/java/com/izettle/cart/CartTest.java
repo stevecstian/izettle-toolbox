@@ -401,6 +401,16 @@ public class CartTest {
 		assertEquals(107364, cart.getValue());
 	}
 
+	@Test
+	public void shouldNotBlowUpIfGrosValueIsZeroAndHaveDiscount() {
+		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		discounts.add(new TestDiscount(null, 15d, BigDecimal.ONE));
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem(0L, null, BigDecimal.ONE));
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(0l, cart.getValue());
+	}
+
 	//Dummy method for bypassing ambiguity against two similar Assert.assertEqual methods
 	private void assEq(Long one, Long two) {
 		assertEquals(one, two);

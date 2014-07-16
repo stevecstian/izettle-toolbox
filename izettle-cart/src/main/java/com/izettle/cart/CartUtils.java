@@ -92,7 +92,7 @@ class CartUtils {
 		final Long discountAmount,
 		final long grossAmount
 	) {
-		if (discountAmount == null) {
+		if (discountAmount == null || grossAmount == 0L) {
 			return null;
 		}
 		final double discountFraction = ((double) discountAmount) / grossAmount;
