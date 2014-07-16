@@ -17,22 +17,22 @@ import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 
-public class MessageSerializerTest {
+public class DefaultMessageSerializerTest {
 
-	private MessageSerializer plaintextSerializer;
-	private MessageSerializer pgpSerializer;
+	private DefaultMessageSerializer plaintextSerializer;
+	private DefaultMessageSerializer pgpSerializer;
 	private MessageDeserializer<TestMessage> pgpDeserializer;
 	private String plaintextMessage;
 
 	@Before
 	public void setup() throws IOException, CryptographyException {
-		plaintextSerializer = new MessageSerializer();
+		plaintextSerializer = new DefaultMessageSerializer();
 		plaintextMessage = new String(ResourceUtils.getResourceAsBytes("example-message.json")).trim();
 
 		// key produced by:                  gpg --gen-key
 		// public key exported to file by:   gpg --export --armor >pgp-example-public.key
 		// private key exported to file by:  gpg --export-secret-keys --armor >pgp-example-private.key
-		pgpSerializer = new MessageSerializer(ResourceUtils.getResourceAsBytes("pgp-example-public.key"));
+		pgpSerializer = new DefaultMessageSerializer(ResourceUtils.getResourceAsBytes("pgp-example-public.key"));
 		pgpDeserializer = new MessageDeserializer<>(TestMessage.class, ResourceUtils.getResourceAsBytes("pgp-example-private.key"), "example");
 	}
 

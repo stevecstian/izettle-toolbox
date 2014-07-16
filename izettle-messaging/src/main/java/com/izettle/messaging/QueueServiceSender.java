@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
+import com.izettle.messaging.serialization.DefaultMessageSerializer;
 import com.izettle.messaging.serialization.JsonSerializer;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
@@ -72,7 +73,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 			this.queueUrl = queueUrl;
 			this.amazonSQS = amazonSQS;
 		try {
-			this.messageSerializer = new MessageSerializer(publicPgpKey);
+			this.messageSerializer = new DefaultMessageSerializer(publicPgpKey);
 		} catch (CryptographyException e) {
 			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
 		}
@@ -84,7 +85,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 	) {
 		this.queueUrl = queueUrl;
 		this.amazonSQS = amazonSQS;
-		this.messageSerializer = new MessageSerializer();
+		this.messageSerializer = new DefaultMessageSerializer();
 	}
 
 	/**

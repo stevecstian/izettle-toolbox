@@ -5,6 +5,7 @@ import static com.izettle.java.ValueChecks.empty;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.izettle.cryptography.CryptographyException;
+import com.izettle.messaging.serialization.DefaultMessageSerializer;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
 import java.util.Collection;
@@ -22,7 +23,15 @@ public class PublisherService implements MessagePublisher {
 		return new PublisherService(client, topicArn);
 	}
 
-	public static <T> MessagePublisher encryptedPublisherService(AmazonSNS client, final String topicArn, final byte[] publicPgpKey) throws MessagingException {
+	public static MessagePublisher nonEncryptedPublisherService(
+			final AmazonSNS client,
+			final String topicArn,
+			final MessageSerializer messageSerializer
+	) {
+		return new PublisherService(client, topicArn, messageSerializer);
+	}
+
+	public static MessagePublisher encryptedPublisherService(AmazonSNS client, final String topicArn, final byte[] publicPgpKey) throws MessagingException {
 		if (empty(publicPgpKey)) {
 			throw new MessagingException("Can't create encryptedPublisherService with null as public PGP key");
 		}
@@ -32,14 +41,20 @@ public class PublisherService implements MessagePublisher {
 	private PublisherService(AmazonSNS client, String topicArn) {
 		this.amazonSNS = client;
 		this.topicArn = topicArn;
-		this.messageSerializer = new MessageSerializer();
+		this.messageSerializer = new DefaultMessageSerializer();
+	}
+
+	private PublisherService(AmazonSNS client, String topicArn, MessageSerializer messageSerializer) {
+		this.amazonSNS = client;
+		this.topicArn = topicArn;
+		this.messageSerializer = messageSerializer;
 	}
 
 	private PublisherService(AmazonSNS client, String topicArn, byte[] publicPgpKey) throws MessagingException {
 		this.amazonSNS = client;
 		this.topicArn = topicArn;
 		try {
-			this.messageSerializer = new MessageSerializer(publicPgpKey);
+			this.messageSerializer = new DefaultMessageSerializer(publicPgpKey);
 		} catch (CryptographyException e) {
 			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
 		}
