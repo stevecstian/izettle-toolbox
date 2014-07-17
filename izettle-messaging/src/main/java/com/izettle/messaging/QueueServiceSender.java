@@ -37,18 +37,30 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 			final String queueUrl,
 			final AmazonSQS amazonSQSClient
 	) {
-		return new QueueServiceSender<>(
-				queueUrl,
-				amazonSQSClient);
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, new DefaultMessageSerializer());
 	}
 
 	public static <T> MessageQueueProducer<T> nonEncryptedMessageQueueProducer(
 			final String queueUrl,
 			final AmazonSQS amazonSQSClient
 	) {
-		return new QueueServiceSender<>(
-				queueUrl,
-				amazonSQSClient);
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, new DefaultMessageSerializer());
+	}
+
+	public static MessagePublisher nonEncryptedMessagePublisher(
+			final String queueUrl,
+			final AmazonSQS amazonSQSClient,
+			final MessageSerializer messageSerializer
+	) {
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
+	}
+
+	public static <T> MessageQueueProducer<T> nonEncryptedMessageQueueProducer(
+			final String queueUrl,
+			final AmazonSQS amazonSQSClient,
+			final MessageSerializer messageSerializer
+	) {
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
 	}
 
 	public static <T> MessageQueueProducer<T> encryptedMessageQueueProducer(
@@ -59,10 +71,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 		if (empty(publicPgpKey)) {
 			throw new MessagingException("Can't create encryptedQueueServicePoster with null as public PGP key");
 		}
-		return new QueueServiceSender<>(
-				queueUrl,
-				amazonSQSClient,
-				publicPgpKey);
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, publicPgpKey);
 	}
 
 	private QueueServiceSender(
@@ -70,8 +79,8 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 			AmazonSQS amazonSQS,
 			byte[] publicPgpKey
 	) throws MessagingException {
-			this.queueUrl = queueUrl;
-			this.amazonSQS = amazonSQS;
+		this.queueUrl = queueUrl;
+		this.amazonSQS = amazonSQS;
 		try {
 			this.messageSerializer = new DefaultMessageSerializer(publicPgpKey);
 		} catch (CryptographyException e) {
@@ -81,11 +90,12 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 
 	private QueueServiceSender(
 			String queueUrl,
-			AmazonSQS amazonSQS
+			AmazonSQS amazonSQS,
+			MessageSerializer messageSerializer
 	) {
 		this.queueUrl = queueUrl;
 		this.amazonSQS = amazonSQS;
-		this.messageSerializer = new DefaultMessageSerializer();
+		this.messageSerializer = messageSerializer;
 	}
 
 	/**
@@ -100,7 +110,9 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 		try {
 			String jsonBody = messageSerializer.serialize(message);
 			String encryptedBody = messageSerializer.encrypt(jsonBody);
-			SendMessageResult sendMessageResult = amazonSQS.sendMessage(new SendMessageRequest(queueUrl, encryptedBody));
+			SendMessageResult sendMessageResult = amazonSQS.sendMessage(
+					new SendMessageRequest(queueUrl, encryptedBody)
+			);
 			return new MessageReceipt(sendMessageResult.getMessageId(), jsonBody);
 		} catch (IOException | CryptographyException e) {
 			throw new MessagingException("Failed to post message: " + message.getClass().toString(), e);
@@ -111,7 +123,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 	 * Posts a single messages to queue, with a message envelope that makes it look like it
 	 * was sent through Amazon SNS.
 	 *
-	 * @param message message to post
+	 * @param message   message to post
 	 * @param eventName the value that will be used as "subject" in the SNS envelope
 	 * @throws com.izettle.messaging.MessagingException Failed to post message.
 	 */
@@ -124,7 +136,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 	 * Posts many messages to queue, with a message envelope that makes them look like they
 	 * were sent through Amazon SNS.
 	 *
-	 * @param messages list of messages to post
+	 * @param messages  list of messages to post
 	 * @param eventName the value that will be used as "subject" in the SNS envelope
 	 * @throws com.izettle.messaging.MessagingException Failed to post messages.
 	 */
@@ -147,7 +159,10 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 		}
 	}
 
-	private String wrapInSNSMessage(Object message, String subject) throws JsonProcessingException, CryptographyException {
+	private String wrapInSNSMessage(
+			Object message,
+			String subject
+	) throws JsonProcessingException, CryptographyException {
 		String messageBody = messageSerializer.encrypt(messageSerializer.serialize(message));
 		AmazonSNSMessage snsMessage = new AmazonSNSMessage(subject, messageBody);
 		return jsonMapper.writeValueAsString(snsMessage);
