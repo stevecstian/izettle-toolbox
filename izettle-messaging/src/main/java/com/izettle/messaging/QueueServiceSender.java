@@ -1,6 +1,7 @@
 package com.izettle.messaging;
 
 import static com.izettle.java.CollectionUtils.partition;
+import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
 
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -68,24 +69,18 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 			final AmazonSQS amazonSQSClient,
 			final byte[] publicPgpKey
 	) throws MessagingException {
+
 		if (empty(publicPgpKey)) {
 			throw new MessagingException("Can't create encryptedQueueServicePoster with null as public PGP key");
 		}
-		return new QueueServiceSender<>(queueUrl, amazonSQSClient, publicPgpKey);
-	}
 
-	private QueueServiceSender(
-			String queueUrl,
-			AmazonSQS amazonSQS,
-			byte[] publicPgpKey
-	) throws MessagingException {
-		this.queueUrl = queueUrl;
-		this.amazonSQS = amazonSQS;
+		MessageSerializer messageSerializer;
 		try {
-			this.messageSerializer = new DefaultMessageSerializer(publicPgpKey);
+			messageSerializer = new DefaultMessageSerializer(publicPgpKey);
 		} catch (CryptographyException e) {
 			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
 		}
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
 	}
 
 	private QueueServiceSender(
@@ -93,6 +88,14 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 			AmazonSQS amazonSQS,
 			MessageSerializer messageSerializer
 	) {
+		if (anyEmpty(queueUrl, amazonSQS, messageSerializer)) {
+			throw new IllegalArgumentException(
+					"None of queueUrl, amazonSQS or messageSerializer can be empty!\n"
+							+ "queueUrl = " + queueUrl + "\n"
+							+ "amazonSQS = " + amazonSQS + "\n"
+							+ "messageSerializer = " + messageSerializer
+			);
+		}
 		this.queueUrl = queueUrl;
 		this.amazonSQS = amazonSQS;
 		this.messageSerializer = messageSerializer;
@@ -123,7 +126,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 	 * Posts a single messages to queue, with a message envelope that makes it look like it
 	 * was sent through Amazon SNS.
 	 *
-	 * @param message   message to post
+	 * @param message message to post
 	 * @param eventName the value that will be used as "subject" in the SNS envelope
 	 * @throws com.izettle.messaging.MessagingException Failed to post message.
 	 */
@@ -136,7 +139,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 	 * Posts many messages to queue, with a message envelope that makes them look like they
 	 * were sent through Amazon SNS.
 	 *
-	 * @param messages  list of messages to post
+	 * @param messages list of messages to post
 	 * @param eventName the value that will be used as "subject" in the SNS envelope
 	 * @throws com.izettle.messaging.MessagingException Failed to post messages.
 	 */

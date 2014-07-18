@@ -87,4 +87,19 @@ public class PublisherServiceTest {
 		assertEquals("TestName", argumentCaptor.getValue().getSubject());
 		assertEquals(encryptedMessage, argumentCaptor.getValue().getMessage());
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptySNSClient() throws Exception {
+		PublisherService.nonEncryptedPublisherService(null, "topicArn");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptyTopicArn() throws Exception {
+		PublisherService.nonEncryptedPublisherService(snsClient, "");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptyMessageSerializer() throws Exception {
+		PublisherService.nonEncryptedPublisherService(snsClient, "topicArn", null);
+	}
 }

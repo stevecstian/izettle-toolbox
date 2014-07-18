@@ -1,5 +1,6 @@
 package com.izettle.messaging;
 
+import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
 
 import com.amazonaws.services.sns.AmazonSNS;
@@ -51,6 +52,14 @@ public class PublisherService implements MessagePublisher {
 	}
 
 	private PublisherService(AmazonSNS client, String topicArn, MessageSerializer messageSerializer) {
+		if (anyEmpty(client, topicArn, messageSerializer)) {
+			throw new IllegalArgumentException(
+					"None of client, topicArn or messageSerializer can be empty!\n"
+							+ "client = " + client + "\n"
+							+ "topicArn = " + topicArn + "\n"
+							+ "messageSerializer = " + messageSerializer
+			);
+		}
 		this.amazonSNS = client;
 		this.topicArn = topicArn;
 		this.messageSerializer = messageSerializer;
@@ -59,7 +68,7 @@ public class PublisherService implements MessagePublisher {
 	/**
 	 * Posts message to queue.
 	 *
-	 * @param message   Message to post.
+	 * @param message Message to post.
 	 * @param eventName Message subject (type of message).
 	 * @throws MessagingException Failed to post message.
 	 */
@@ -82,7 +91,7 @@ public class PublisherService implements MessagePublisher {
 	/**
 	 * Posts several messages to topic.
 	 *
-	 * @param messages  Messages to post.
+	 * @param messages Messages to post.
 	 * @param eventName Message subject (type of message).
 	 * @throws MessagingException Failed to post at least one of the messages.
 	 */

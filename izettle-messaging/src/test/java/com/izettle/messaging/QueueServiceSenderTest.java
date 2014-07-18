@@ -138,4 +138,19 @@ public class QueueServiceSenderTest {
 		verify(serializer).serialize(testMessage);
 		verify(serializer).encrypt(serializedMessage);
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptyQueueUrl() throws Exception {
+		QueueServiceSender.nonEncryptedMessageQueueProducer(null, mockAmazonSQS);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptySQSClient() throws Exception {
+		QueueServiceSender.nonEncryptedMessageQueueProducer("test.url", null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptyMessageSerializer() throws Exception {
+		QueueServiceSender.nonEncryptedMessageQueueProducer("test.url", mockAmazonSQS, null);
+	}
 }
