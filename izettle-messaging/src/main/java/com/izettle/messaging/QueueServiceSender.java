@@ -1,6 +1,7 @@
 package com.izettle.messaging;
 
 import static com.izettle.java.CollectionUtils.partition;
+import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
 
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
+import com.izettle.messaging.serialization.DefaultMessageSerializer;
 import com.izettle.messaging.serialization.JsonSerializer;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
@@ -36,18 +38,30 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 			final String queueUrl,
 			final AmazonSQS amazonSQSClient
 	) {
-		return new QueueServiceSender<>(
-				queueUrl,
-				amazonSQSClient);
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, new DefaultMessageSerializer());
 	}
 
 	public static <T> MessageQueueProducer<T> nonEncryptedMessageQueueProducer(
 			final String queueUrl,
 			final AmazonSQS amazonSQSClient
 	) {
-		return new QueueServiceSender<>(
-				queueUrl,
-				amazonSQSClient);
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, new DefaultMessageSerializer());
+	}
+
+	public static MessagePublisher nonEncryptedMessagePublisher(
+			final String queueUrl,
+			final AmazonSQS amazonSQSClient,
+			final MessageSerializer messageSerializer
+	) {
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
+	}
+
+	public static <T> MessageQueueProducer<T> nonEncryptedMessageQueueProducer(
+			final String queueUrl,
+			final AmazonSQS amazonSQSClient,
+			final MessageSerializer messageSerializer
+	) {
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
 	}
 
 	public static <T> MessageQueueProducer<T> encryptedMessageQueueProducer(
@@ -55,36 +69,36 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 			final AmazonSQS amazonSQSClient,
 			final byte[] publicPgpKey
 	) throws MessagingException {
+
 		if (empty(publicPgpKey)) {
 			throw new MessagingException("Can't create encryptedQueueServicePoster with null as public PGP key");
 		}
-		return new QueueServiceSender<>(
-				queueUrl,
-				amazonSQSClient,
-				publicPgpKey);
+
+		MessageSerializer messageSerializer;
+		try {
+			messageSerializer = new DefaultMessageSerializer(publicPgpKey);
+		} catch (CryptographyException e) {
+			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
+		}
+		return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
 	}
 
 	private QueueServiceSender(
 			String queueUrl,
 			AmazonSQS amazonSQS,
-			byte[] publicPgpKey
-	) throws MessagingException {
-			this.queueUrl = queueUrl;
-			this.amazonSQS = amazonSQS;
-		try {
-			this.messageSerializer = new MessageSerializer(publicPgpKey);
-		} catch (CryptographyException e) {
-			throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
-		}
-	}
-
-	private QueueServiceSender(
-			String queueUrl,
-			AmazonSQS amazonSQS
+			MessageSerializer messageSerializer
 	) {
+		if (anyEmpty(queueUrl, amazonSQS, messageSerializer)) {
+			throw new IllegalArgumentException(
+					"None of queueUrl, amazonSQS or messageSerializer can be empty!\n"
+							+ "queueUrl = " + queueUrl + "\n"
+							+ "amazonSQS = " + amazonSQS + "\n"
+							+ "messageSerializer = " + messageSerializer
+			);
+		}
 		this.queueUrl = queueUrl;
 		this.amazonSQS = amazonSQS;
-		this.messageSerializer = new MessageSerializer();
+		this.messageSerializer = messageSerializer;
 	}
 
 	/**
@@ -99,7 +113,9 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 		try {
 			String jsonBody = messageSerializer.serialize(message);
 			String encryptedBody = messageSerializer.encrypt(jsonBody);
-			SendMessageResult sendMessageResult = amazonSQS.sendMessage(new SendMessageRequest(queueUrl, encryptedBody));
+			SendMessageResult sendMessageResult = amazonSQS.sendMessage(
+					new SendMessageRequest(queueUrl, encryptedBody)
+			);
 			return new MessageReceipt(sendMessageResult.getMessageId(), jsonBody);
 		} catch (IOException | CryptographyException e) {
 			throw new MessagingException("Failed to post message: " + message.getClass().toString(), e);
@@ -146,7 +162,10 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 		}
 	}
 
-	private String wrapInSNSMessage(Object message, String subject) throws JsonProcessingException, CryptographyException {
+	private String wrapInSNSMessage(
+			Object message,
+			String subject
+	) throws JsonProcessingException, CryptographyException {
 		String messageBody = messageSerializer.encrypt(messageSerializer.serialize(message));
 		AmazonSNSMessage snsMessage = new AmazonSNSMessage(subject, messageBody);
 		return jsonMapper.writeValueAsString(snsMessage);

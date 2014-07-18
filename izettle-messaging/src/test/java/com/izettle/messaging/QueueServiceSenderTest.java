@@ -15,6 +15,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
+import com.izettle.messaging.serialization.MessageSerializer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -114,5 +115,42 @@ public class QueueServiceSenderTest {
 
 		// Assert
 		verify(mockAmazonSQS).sendMessageBatch(any(SendMessageBatchRequest.class));
+	}
+
+	@Test
+	public void itShouldUseCallerSpecifiedMessageSerializer() throws Exception {
+		// Arrange
+		final TestMessage testMessage = new TestMessage("Hello");
+		final String serializedMessage = "{\"msg\":\"world\"}";
+		final MessageSerializer serializer = mock(MessageSerializer.class);
+		when(serializer.serialize(testMessage)).thenReturn(serializedMessage);
+		final MessagePublisher publisher = QueueServiceSender.nonEncryptedMessagePublisher(
+				"test",
+				mockAmazonSQS,
+				serializer
+		);
+
+		// Act
+		publisher.post(testMessage, "subject");
+
+		// Assert
+		verify(mockAmazonSQS).sendMessageBatch(any(SendMessageBatchRequest.class));
+		verify(serializer).serialize(testMessage);
+		verify(serializer).encrypt(serializedMessage);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptyQueueUrl() throws Exception {
+		QueueServiceSender.nonEncryptedMessageQueueProducer(null, mockAmazonSQS);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptySQSClient() throws Exception {
+		QueueServiceSender.nonEncryptedMessageQueueProducer("test.url", null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void itShouldFailToConstructWithEmptyMessageSerializer() throws Exception {
+		QueueServiceSender.nonEncryptedMessageQueueProducer("test.url", mockAmazonSQS, null);
 	}
 }
