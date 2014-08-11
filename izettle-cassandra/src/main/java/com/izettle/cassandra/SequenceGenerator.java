@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class SequenceGenerator<K> {
 
 	private final static String COLUMN_NAME = "sequence";
-	private final static BoundedExponentialBackoff RETRY_POLICY = new BoundedExponentialBackoff(10, 1000, 10);
+	private final static BoundedExponentialBackoff RETRY_POLICY = new BoundedExponentialBackoff(100, 3000, 10);
 	private final static long INITIAL_SEQUENCE_VALUE = 0L;
 
 	private final Keyspace keyspace;
