@@ -2,7 +2,7 @@ package com.izettle.cart;
 
 import java.math.BigDecimal;
 
-public interface Item<T> {
+public interface Item<T, K extends Discount<?>> {
 
 	BigDecimal getQuantity();
 
@@ -11,4 +11,10 @@ public interface Item<T> {
 	Float getVatPercentage();
 
 	T inverse();
+
+	/**
+	 * Returns the discount applied to this item
+	 * @return
+	 */
+	K getDiscount();
 }

@@ -37,7 +37,7 @@ class CartUtils {
 		return getNonRoundedDiscountValue(discount, new BigDecimal(totalGrossAmount));
 	}
 
-	private static BigDecimal getNonRoundedDiscountValue(Discount discount, BigDecimal totalGrossAmount) {
+	static BigDecimal getNonRoundedDiscountValue(Discount discount, BigDecimal totalGrossAmount) {
 		BigDecimal retVal = null;
 		if (discount.getAmount() != null) {
 			retVal = new BigDecimal(discount.getAmount());
@@ -225,9 +225,9 @@ class CartUtils {
 		return retList;
 	}
 
-	static <T extends Item<T>> Long summarizeGrossVat(final List<ItemLine<T>> itemLines) {
+	static <T extends Item<T, K>, K extends Discount<K>> Long summarizeGrossVat(final List<ItemLine<T, K>> itemLines) {
 		Long totalGrossVat = null;
-		for (ItemLine<?> itemLine : itemLines) {
+		for (ItemLine<T, K> itemLine : itemLines) {
 			Long itemGrossVat = itemLine.getGrossVat();
 			if (itemGrossVat != null) {
 				totalGrossVat = coalesce(totalGrossVat, 0L) + itemGrossVat;
@@ -236,9 +236,9 @@ class CartUtils {
 		return totalGrossVat;
 	}
 
-	static <T extends Item<T>> Long summarizeEffectiveVat(final List<ItemLine<T>> itemLines) {
+	static <T extends Item<T, K>, K extends Discount<K>> Long summarizeEffectiveVat(final List<ItemLine<T, K>> itemLines) {
 		Long effectiveVat = null;
-		for (ItemLine<?> itemLine : itemLines) {
+		for (ItemLine<T, K> itemLine : itemLines) {
 			Long itemEffectiveVat = itemLine.getActualVat();
 			if (itemEffectiveVat != null) {
 				effectiveVat = coalesce(effectiveVat, 0L) + itemEffectiveVat;
@@ -247,7 +247,7 @@ class CartUtils {
 		return effectiveVat;
 	}
 
-	static <T extends Item<T>> List<ItemLine<T>> buildItemLines(
+	static <T extends Item<T, K>, K extends Discount<K>> List<ItemLine<T, K>> buildItemLines(
 		final List<T> items,
 		final Long grossValue,
 		final Long totalDiscountValue
@@ -257,7 +257,7 @@ class CartUtils {
 			totalDiscountValue,
 			grossValue
 		);
-		final List<ItemLine<T>> retList = new ArrayList<ItemLine<T>>();
+		final List<ItemLine<T, K>> retList = new ArrayList<ItemLine<T, K>>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
 			long linePrice = ItemUtils.getGrossValue(item);
@@ -270,7 +270,7 @@ class CartUtils {
 			}
 			Long grossVat = calculateVatFromGrossAmount(linePrice, item.getVatPercentage());
 			Long effectiveVat = calculateVatFromGrossAmount(effectivePrice, item.getVatPercentage());
-			ItemLine<T> itemLine = new ItemLine<T>(item, linePrice, grossVat, effectivePrice, effectiveVat);
+			ItemLine<T, K> itemLine = new ItemLine<T, K>(item, linePrice, grossVat, effectivePrice, effectiveVat);
 			retList.add(itemLine);
 		}
 		return retList;
@@ -283,11 +283,11 @@ class CartUtils {
 		return amountIncVat - round((amountIncVat * 100) / (100 + (double) vatPercent));
 	}
 
-	static <T extends Item<T>> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(Collection<ItemLine<T>> itemLines) {
+	static <T extends Item<T, K>, K extends Discount<K>> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(Collection<ItemLine<T, K>> itemLines) {
 		SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<Float, Long>();
 		SortedMap<Float, Long> actualValuePerVatGroup = new TreeMap<Float, Long>();
 		SortedMap<Float, VatGroupValues> vatGroupValues = new TreeMap<Float, VatGroupValues>();
-		for (ItemLine<T> itemLine : itemLines) {
+		for (ItemLine<T, K> itemLine : itemLines) {
 			Long actualVat = itemLine.getActualVat();
 			Long actualValue = itemLine.getActualValue();
 			Float vatPercentage = itemLine.getItem().getVatPercentage();

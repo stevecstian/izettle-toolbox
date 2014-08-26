@@ -16,22 +16,24 @@ import org.junit.Test;
 
 public class CartTest {
 
-	private static class TestItem implements Item<TestItem> {
+	private static class TestItem implements Item<TestItem, TestDiscount> {
 
 		private final long unitPrice;
 		private final Float vatPercentage;
 		private final BigDecimal quantity;
 		private final String name;
+		private final TestDiscount discount;
 
-		TestItem(long unitPrice, Float vatPercentage, BigDecimal quantity) {
-			this(null, unitPrice, vatPercentage, quantity);
-		}
-
-		TestItem(String name, long unitPrice, Float vatPercentage, BigDecimal quantity) {
+		TestItem(String name, long unitPrice, Float vatPercentage, BigDecimal quantity, TestDiscount discount) {
 			this.name = name;
 			this.unitPrice = unitPrice;
 			this.vatPercentage = vatPercentage;
 			this.quantity = quantity;
+			this.discount = discount;
+		}
+
+		TestItem(long unitPrice, Float vatPercentage, BigDecimal quantity) {
+			this(null, unitPrice, vatPercentage, quantity, null);
 		}
 
 		@Override
@@ -51,6 +53,7 @@ public class CartTest {
 				+ ", vatPercentage = " + vatPercentage
 				+ ", quantity = " + quantity
 				+ ", name = " + name
+				+ ", discount = " + discount
 				+ '}';
 		}
 
@@ -62,6 +65,11 @@ public class CartTest {
 		@Override
 		public TestItem inverse() {
 			return new TestItem(unitPrice, vatPercentage, quantity.negate());
+		}
+
+		@Override
+		public TestDiscount getDiscount() {
+			return discount;
 		}
 	}
 
@@ -155,9 +163,9 @@ public class CartTest {
 		assEq(990L, cart2.getValue());
 		assEq(1100L, cart2.getGrossValue());
 
-		List<ItemLine<TestItem>> lineItems = cart2.getItemLines();
+		List<ItemLine<TestItem, TestDiscount>> lineItems = cart2.getItemLines();
 		assertEquals(2, lineItems.size());
-		ItemLine<TestItem> lineItem = lineItems.get(0);
+		ItemLine<TestItem, TestDiscount> lineItem = lineItems.get(0);
 		assEq(82L, lineItem.getActualVat());
 		lineItem = lineItems.get(1);
 		assEq(30L, lineItem.getActualVat());
@@ -419,6 +427,64 @@ public class CartTest {
 		assertThat(cart.getValue()).isEqualTo(0);
 		assertThat(cart.getActualVat()).isEqualTo(null);
 		assertThat(cart.getGrossValue()).isEqualTo(0);
+	}
+
+	@Test
+	public void itShouldHandleDiscountsPerItemFixed() {
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem("First", 100L, 25f, BigDecimal.ONE, new TestDiscount(10L, null, BigDecimal.ONE)));
+		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(90L, cart.getValue());
+		assEq(18L, cart.getActualVat());
+	}
+
+	@Test
+	public void itShouldHandleDiscountsPerItemPercentage() {
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem("First", 100L, 25f, BigDecimal.ONE, new TestDiscount(null, 50d, BigDecimal.ONE)));
+		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(50L, cart.getValue());
+		assEq(10L, cart.getActualVat());
+	}
+
+	@Test
+	public void itShouldHandleDiscountsPerItemPercentageAndFixed() {
+		List<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem("First", 100L, 25f, BigDecimal.ONE, new TestDiscount(10L, 50d, BigDecimal.ONE)));
+		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(40L, cart.getValue());
+		assEq(8L, cart.getActualVat());
+	}
+
+	@Test
+	public void isShouldHandleBothGlobalAndPerItemDiscount() {
+		List<TestItem> items = new ArrayList<TestItem>();
+		//Gives $100 - $1 - 10% -> 100 - 11% = 89, with 1% vat -> $1 VAT
+		items.add(new TestItem("First", 100L, 1f, BigDecimal.ONE, new TestDiscount(1L, 10d, BigDecimal.ONE)));
+		//Gives $400 - $4 - 40% -> 400 - 41% = 236, with 50% VAT -> $79 VAT
+		items.add(new TestItem(
+			"Second", 200L, 50f, BigDecimal.valueOf(2),
+			new TestDiscount(2L, 20d, BigDecimal.valueOf(2))
+		));
+		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		//First verify the non-global discount scenario, as it's already quite complex:
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(325L, cart.getValue());
+		assEq(80L, cart.getActualVat());
+		//Then verify with a global discount of $10 added:
+		discounts.add(new TestDiscount(10L, null, BigDecimal.ONE));
+		cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(315L, cart.getValue());
+		assEq(77L, cart.getActualVat());
+		////Then verify with a global discount of 10% added:
+		discounts.clear();
+		discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
+		cart = new Cart<TestItem, TestDiscount>(items, discounts);
+		assertEquals(292L, cart.getValue());
+		assEq(72L, cart.getActualVat());
 	}
 
 	//Dummy method for bypassing ambiguity against two similar Assert.assertEqual methods
