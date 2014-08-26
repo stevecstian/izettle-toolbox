@@ -33,16 +33,24 @@ class CartUtils {
 		return grossPrice;
 	}
 
-	static Double getNonRoundedDiscountValue(Discount discount, long totalGrossAmount) {
-		Double retVal = null;
+	private static BigDecimal getNonRoundedDiscountValue(Discount discount, Long totalGrossAmount) {
+		return getNonRoundedDiscountValue(discount, new BigDecimal(totalGrossAmount));
+	}
+
+	private static BigDecimal getNonRoundedDiscountValue(Discount discount, BigDecimal totalGrossAmount) {
+		BigDecimal retVal = null;
 		if (discount.getAmount() != null) {
-			retVal = discount.getAmount().doubleValue();
+			retVal = new BigDecimal(discount.getAmount());
 		}
 		if (discount.getPercentage() != null) {
-			retVal = coalesce(retVal, 0d) + (Math.abs(totalGrossAmount) * discount.getPercentage() / 100d);
+			retVal = coalesce(retVal, BigDecimal.ZERO).add(
+				totalGrossAmount.
+				abs().
+				multiply(new BigDecimal(discount.getPercentage()).
+					divide(new BigDecimal(100L))));
 		}
 		if (retVal != null) {
-			return discount.getQuantity().multiply(new BigDecimal(retVal)).doubleValue();
+			return discount.getQuantity().multiply(retVal);
 		}
 		return null;
 	}
@@ -149,12 +157,12 @@ class CartUtils {
 		}
 		long remainingDiscountAmountToDistribute = discountAmount;
 		Map<Integer, Long> discountAmountByDiscountIdx = new HashMap<Integer, Long>();
-		NavigableMap<Double, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
+		NavigableMap<BigDecimal, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<BigDecimal, Queue<Integer>>();
 		for (int discountIdx = 0; discountIdx < discounts.size(); discountIdx++) {
 			Discount discount = discounts.get(discountIdx);
-			final double nonRoundedDiscount = getNonRoundedDiscountValue(discount, totalGrossAmount);
+			final BigDecimal nonRoundedDiscount = getNonRoundedDiscountValue(discount, totalGrossAmount);
 			final long roundedDiscount = round(nonRoundedDiscount);
-			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
+			final BigDecimal roundingLoss = nonRoundedDiscount.subtract(new BigDecimal(roundedDiscount));
 			Queue<Integer> discountIdxs = discountIdxByRoundingLoss.get(roundingLoss);
 			if (discountIdxs == null) {
 				discountIdxs = new LinkedList<Integer>();
@@ -167,7 +175,7 @@ class CartUtils {
 		while (remainingDiscountAmountToDistribute != 0) {
 			boolean reclaiming = remainingDiscountAmountToDistribute < 0;
 			//We've distributed too much. reclaiming one at a time from the discounts with lowest roundingLoss
-			Double oldRoundingLoss = reclaiming ? discountIdxByRoundingLoss.firstKey() : discountIdxByRoundingLoss.lastKey();
+			BigDecimal oldRoundingLoss = reclaiming ? discountIdxByRoundingLoss.firstKey() : discountIdxByRoundingLoss.lastKey();
 			Queue<Integer> discountIdxs = discountIdxByRoundingLoss.remove(oldRoundingLoss);
 			Integer discountIdxToChange = discountIdxs.poll();
 			//Reinsert remains to queue until next time:
@@ -176,12 +184,12 @@ class CartUtils {
 			}
 			Long roundedDiscount = discountAmountByDiscountIdx.get(discountIdxToChange);
 			Discount discount = discounts.get(discountIdxToChange);
-			final double nonRoundedDiscount = getNonRoundedDiscountValue(discount, totalGrossAmount);
+			final BigDecimal nonRoundedDiscount = getNonRoundedDiscountValue(discount, totalGrossAmount);
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
 			//reinsert into collections for next round
-			double newRoundingLoss = nonRoundedDiscount - roundedDiscount;
+			final BigDecimal newRoundingLoss = nonRoundedDiscount.subtract(new BigDecimal(roundedDiscount));
 			Queue<Integer> newDiscountIdxs = discountIdxByRoundingLoss.get(newRoundingLoss);
 			if (newDiscountIdxs == null) {
 				newDiscountIdxs = new LinkedList<Integer>();
