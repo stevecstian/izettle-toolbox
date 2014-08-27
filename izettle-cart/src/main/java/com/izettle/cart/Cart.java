@@ -9,9 +9,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 
-public class Cart<T extends Item<T, K>, K extends Discount<K>> {
+public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>> {
 
-	private final List<ItemLine<T, K>> itemLines;
+	private final List<ItemLine<T, D>> itemLines;
 	private final List<DiscountLine<K>> discountLines;
 	private final long grossValue;
 	private final Long discountValue;
@@ -32,7 +32,7 @@ public class Cart<T extends Item<T, K>, K extends Discount<K>> {
 		this.actualVat = CartUtils.summarizeEffectiveVat(itemLines);
 	}
 
-	public Cart<T, K> inverse() {
+	public Cart<T, D, K> inverse() {
 		//Copy all items and discounts, but negate the quantities:
 		List<T> inverseItems;
 		List<K> inverseDiscounts;
@@ -40,7 +40,7 @@ public class Cart<T extends Item<T, K>, K extends Discount<K>> {
 			inverseItems = Collections.emptyList();
 		} else {
 			inverseItems = new ArrayList<T>(itemLines.size());
-			for (ItemLine<T, K> itemLine : itemLines) {
+			for (ItemLine<T, D> itemLine : itemLines) {
 				inverseItems.add(itemLine.getItem().inverse());
 			}
 		}
@@ -59,7 +59,7 @@ public class Cart<T extends Item<T, K>, K extends Discount<K>> {
 		return grossValue - coalesce(discountValue, 0L);
 	}
 
-	public List<ItemLine<T, K>> getItemLines() {
+	public List<ItemLine<T, D>> getItemLines() {
 		return Collections.unmodifiableList(itemLines);
 	}
 
@@ -103,7 +103,7 @@ public class Cart<T extends Item<T, K>, K extends Discount<K>> {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Cart {\n");
 		sb.append("\tLineItems:\n");
-		for (ItemLine<T, K> itemLine : itemLines) {
+		for (ItemLine<T, D> itemLine : itemLines) {
 			sb.append("\t\t").append(itemLine).append("\n");
 		}
 		sb.append("\tDiscounts:\n");
