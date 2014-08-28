@@ -6,7 +6,7 @@ This set of utility classes aims at helping out doing generic calculations on a 
 At a point we started having lot's of different implementation for doing this logic in different places. While not very complicated, it's easy to go wrong, and introduce small differences between implementations. Problems such as rounding and distribution of vat amounts when applying discounts have been seen.
 
 ## What is this?
-This set of classes intends to help out only in doing calculations on the cart itself as an abstract concept. It handles no other business properties such as shipment, fees etc. As the calculations are purely numerical, there is no need to include information about actual currency in this scope.
+This set of classes intends to help out only in doing calculations on the cart itself as an abstract concept. It handles no other business properties such as shipment, fees etc. As the calculations are purely numerical, there is no need to include information about actual currency in this scope. The general concept is that a Cart is cheap to build, and should be built (and directly thrown away) whenever one needs financial data from a collection of items and discounts. For example a complex entity containing lots of other stull needn't necessaruly itself represent a Cart, but could for example in a hypothetical method `getPrice()` just temporarily build a Cart and as that object for it's value.
 
 ## Basic types used:
 ### Money
@@ -20,17 +20,58 @@ The distinction between `Float` and `float` has been made to indicate when a val
 
 ## Classes and interfaces
 ### `Item` and `Discount`
-These are the interfaces that should be implemented by a user, each having getters for accessing `unitPrice`, `quantity` and `vatPercentage`
+These are the interfaces that should be implemented by a user, each having getters for accessing `unitPrice`, `quantity` and `vatPercentage`. An Item can also contain an optional local discount that will be applied to only the item itself, as opposed to the cart-wide discount that will affect the entire carts value. Multiple cart-wide discounts is possible: they will then be calculated as if applied on the gross value of the cart in consecutive order. Eg, two 10% discounts will result in a total discount of 19%. Also noteworthy is that discounts can be negative, and would then represent a value addition/a 'top up'.
 ### `Cart`
-The cart is constructed as an immutable object, where the collections of items and discounts are given at construction time. After construction, the cart holds information on a per line level, and a total level. Each line is represented by a `ItemLine` or a `DiscountLine`. The object is queryable for properties such as totalGrossAmount, effectivePrice etc. Also, the cart can be cloned into it's negative counterpart by calling Cart.inverse(), which is useful for example when creating a cart that is representing a full refund of the original.
+The cart is constructed as an immutable object, where the collections of items and discounts are given at construction time. After construction, the cart holds information on a per line level, and a total level. Each line is represented by a `ItemLine` or a `DiscountLine`. The object is queryable for properties such as grossValue, value etc. Also, the cart can be cloned into it's negative counterpart by calling `Cart.inverse()`, which is useful for example when creating a cart that is representing a full refund of the original.
 ### `ItemLine` and `DiscountLine`
 These are the objects that will populate the cart's 'item list'. Each item and discount line will hold information such as effectivePrice and effectiveVat, but also keeping a reference to it's original item/discount.
 
-## Examples
-For now, the easiest way is probably to look at the [`CartTest`](https://github.com/iZettle/izettle-toolbox/blob/master/izettle-cart/src/test/java/com/izettle/cart/CartTest.java) class.
+## Example
+```java
+	long unitPrice;
+	Float vat;
+	BigDecimal quantity;
+	List<TestItem> items = new LinkedList<TestItem>();
+
+	unitPrice = 500L;
+	vat = 10f;
+	quantity = new BigDecimal("2.0");
+	items.add(new TestItem(unitPrice, vat, quantity));
+
+	unitPrice = 50L;
+	vat = 50f;
+	quantity = BigDecimal.ONE;
+	items.add(new TestItem(unitPrice, vat, quantity));
+
+	List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+	Long discountAmount = 110L;
+	Double discountPercentage = null;
+	quantity = BigDecimal.ONE;
+	discounts.add(new TestDiscount(discountAmount, discountPercentage, quantity));
+
+	Cart<TestItem, TestDiscount, TestDiscount> cart = new Cart<TestItem, TestDiscount, TestDiscount>(items, discounts);
+	System.out.println(cart);
+```
+outputs:
+```
+Cart {
+	LineItems:
+		LineItem { item = TestItem{ unitPrice = 500, vatPercentage = 10.0, quantity = 2.0, name = null, discount = null}, grossValue = 1000, grossVat = 91, actualValue = 895, actualVat = 81}
+		LineItem { item = TestItem{ unitPrice = 50, vatPercentage = 50.0, quantity = 1, name = null, discount = null}, grossValue = 50, grossVat = 17, actualValue = 45, actualVat = 15}
+	Discounts:
+		DiscountLine { discount = TestDiscount{ amount = 110, percentage = null, quantity = 1}, actualPercentage = 10.476190476190476, value = 110}
+	Gross Amounts:
+		Gross Value: 1050
+		Gross VAT: 108
+	Actual Amounts:
+		Value: 940
+		Discount Value: 110
+		Discount Percentage: 10.476190476190476
+		VAT: 96
+}
+```
 
 ## Todos
-* Currently there is only support for 'global' discounts, e.g. any discount (percent or amount) is applied cart wide. Discount on a per item basis might be a candidate for future improvements.
 * Possibility to treat a cart as an item, effectively opening up for adding one cart into another.
 * Possibility to call inverse, but for just a subset of the items, effectively allowing for partial refunds.
 

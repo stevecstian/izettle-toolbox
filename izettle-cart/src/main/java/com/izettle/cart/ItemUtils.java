@@ -11,6 +11,12 @@ public class ItemUtils {
 	private ItemUtils() {
 	}
 
+	/**
+	 * Calculates the gross value of an item. This value will be the local value of an isolated item with it's optional
+	 * local discounts taken into consideration, but with no awareness of possible cart-wide side effects
+	 * @param item the Item to calculate the value for
+	 * @return the isolated value of this item
+	 */
 	public static long getGrossValue(Item item) {
 		BigDecimal exactValue = item.getQuantity().multiply(BigDecimal.valueOf(item.getUnitPrice()));
 		Discount discount = item.getDiscount();
