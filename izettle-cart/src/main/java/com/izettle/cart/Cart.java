@@ -22,7 +22,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 	/**
 	 * Produces a new immutable cart object from two lists if Items and Discounts
 	 * @param items the list of items, must not be empty (as a cart without items makes no sense)
-	 * @param discounts the list of cart wide discounts, possibly empty
+	 * @param discounts the list of cart wide discounts, possibly null or empty
 	 */
 	public Cart(List<T> items, List<K> discounts) {
 		if (items == null) {
