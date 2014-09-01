@@ -1,5 +1,6 @@
 package com.izettle.cart;
 
+import static com.izettle.cart.ItemUtils.grossValue;
 import static com.izettle.java.ValueChecks.allNull;
 import static com.izettle.java.ValueChecks.coalesce;
 import static com.izettle.java.ValueChecks.empty;
@@ -27,7 +28,7 @@ class CartUtils {
 		long grossPrice = 0;
 		if (!empty(items)) {
 			for (T item : items) {
-				grossPrice += ItemUtils.getGrossValue(item);
+				grossPrice += grossValue(item);
 			}
 		}
 		return grossPrice;
@@ -97,7 +98,7 @@ class CartUtils {
 		NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
 		for (int itemIdx = 0; itemIdx < items.size(); itemIdx++) {
 			Item item = items.get(itemIdx);
-			final double nonRoundedDiscount = ItemUtils.getGrossValue(item) * discountFraction;
+			final double nonRoundedDiscount = grossValue(item) * discountFraction;
 			final long roundedDiscount = CartUtils.round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> itemIdxs = itemIdxByRoundingLoss.get(roundingLoss);
@@ -121,7 +122,7 @@ class CartUtils {
 			}
 			Long roundedDiscount = discountAmountByItemIdx.get(itemIdxToChange);
 			Item item = items.get(itemIdxToChange);
-			Double nonRoundedDiscount = ItemUtils.getGrossValue(item) * discountFraction;
+			Double nonRoundedDiscount = grossValue(item) * discountFraction;
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
@@ -252,7 +253,7 @@ class CartUtils {
 		final List<ItemLine<T>> retList = new ArrayList<ItemLine<T>>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
-			long linePrice = ItemUtils.getGrossValue(item);
+			long linePrice = grossValue(item);
 			final long effectivePrice;
 			if (discountAmountByItemIdx != null) {
 				Long discountAmount = discountAmountByItemIdx.get(i);
