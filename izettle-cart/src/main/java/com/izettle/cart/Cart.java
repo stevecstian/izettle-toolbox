@@ -20,8 +20,8 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 	private final Long grossVat;
 
 	public Cart(List<T> items, List<K> discounts) {
-		if (empty(items)) {
-			throw new IllegalArgumentException("Cannot create a cart with no items");
+		if (items == null) {
+			items = Collections.emptyList();
 		}
 		this.grossValue = CartUtils.getGrossValue(items);
 		this.discountValue = CartUtils.getTotalDiscountValue(discounts, grossValue);
@@ -37,7 +37,7 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 		List<T> inverseItems;
 		List<K> inverseDiscounts;
 		if (empty(itemLines)) {
-			inverseItems = Collections.EMPTY_LIST;
+			inverseItems = Collections.emptyList();
 		} else {
 			inverseItems = new ArrayList<T>(itemLines.size());
 			for (ItemLine<T> itemLine : itemLines) {
@@ -45,14 +45,14 @@ public class Cart<T extends Item<T>, K extends Discount<K>> {
 			}
 		}
 		if (empty(discountLines)) {
-			inverseDiscounts = Collections.EMPTY_LIST;
+			inverseDiscounts = Collections.emptyList();
 		} else {
 			inverseDiscounts = new ArrayList<K>(discountLines.size());
 			for (DiscountLine<K> discountLine : discountLines) {
 				inverseDiscounts.add(discountLine.getDiscount().inverse());
 			}
 		}
-		return new Cart(inverseItems, inverseDiscounts);
+		return new Cart<T, K>(inverseItems, inverseDiscounts);
 	}
 
 	public long getValue() {

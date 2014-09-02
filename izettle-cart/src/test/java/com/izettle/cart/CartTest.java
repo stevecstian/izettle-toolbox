@@ -1,10 +1,12 @@
 package com.izettle.cart;
 
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -402,13 +404,21 @@ public class CartTest {
 	}
 
 	@Test
-	public void shouldNotBlowUpIfGrosValueIsZeroAndHaveDiscount() {
+	public void shouldNotBlowUpIfGrossValueIsZeroAndHaveDiscount() {
 		List<TestDiscount> discounts = new ArrayList<TestDiscount>();
 		discounts.add(new TestDiscount(null, 15d, BigDecimal.ONE));
 		List<TestItem> items = new ArrayList<TestItem>();
 		items.add(new TestItem(0L, null, BigDecimal.ONE));
 		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(items, discounts);
 		assertEquals(0l, cart.getValue());
+	}
+
+	@Test
+	public void anEmptyCartIsAlsoACart() {
+		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(Collections.<TestItem>emptyList(), null);
+		assertThat(cart.getValue()).isEqualTo(0);
+		assertThat(cart.getActualVat()).isEqualTo(null);
+		assertThat(cart.getGrossValue()).isEqualTo(0);
 	}
 
 	//Dummy method for bypassing ambiguity against two similar Assert.assertEqual methods
