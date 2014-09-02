@@ -417,7 +417,7 @@ public class CartTest {
 
 	@Test
 	public void anEmptyCartIsAlsoACart() {
-		Cart<TestItem, TestDiscount> cart = new Cart<TestItem, TestDiscount>(Collections.<TestItem>emptyList(), null);
+		Cart<TestItem, TestDiscount, TestDiscount> cart = new Cart<TestItem, TestDiscount, TestDiscount>(Collections.<TestItem>emptyList(), null);
 		assertThat(cart.getValue()).isEqualTo(0);
 		assertThat(cart.getActualVat()).isEqualTo(null);
 		assertThat(cart.getGrossValue()).isEqualTo(0);

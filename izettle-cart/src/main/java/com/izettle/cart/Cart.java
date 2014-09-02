@@ -62,7 +62,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 				inverseDiscounts.add(discountLine.getDiscount().inverse());
 			}
 		}
-		return new Cart<T, K>(inverseItems, inverseDiscounts);
+		return new Cart<T, D, K>(inverseItems, inverseDiscounts);
 	}
 
 	/**
