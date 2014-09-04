@@ -5,13 +5,13 @@
 	<groupId>com.izettle.toolbox</groupId>
 	<artifactId>izettle-toolbox</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0.27</version>
+	<version>1.0.28-SNAPSHOT</version>
 
 	<scm>
 		<url>https://github.com/iZettle/izettle-toolbox</url>
 		<connection>scm:git:git://github.com/iZettle/izettle-toolbox.git</connection>
 		<developerConnection>scm:git:git:@github.com:iZettle/izettle-toolbox.git</developerConnection>
-	  <tag>izettle-toolbox-1.0.27</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<repositories>
