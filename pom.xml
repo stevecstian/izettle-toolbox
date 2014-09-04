@@ -106,7 +106,7 @@
 			<plugins>
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>2.5</version>
+					<version>3.1</version>
 					<configuration>
 						<source>1.7</source>
 						<target>1.7</target>
@@ -117,6 +117,17 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
 					<version>2.5</version>
+					<configuration>
+						<autoVersionSubmodules>true</autoVersionSubmodules>
+						<mavenExecutorId>forked-path</mavenExecutorId>
+						<tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
+						<preparationGoals>clean verify</preparationGoals>
+						<localCheckout>true</localCheckout>
+						<pushChanges>true</pushChanges>
+						<scmCommentPrefix>${project.artifactId}:&#160;</scmCommentPrefix>
+						<useReleaseProfile>true</useReleaseProfile>
+					</configuration>
+
 				</plugin>
 			</plugins>
 		</pluginManagement>
