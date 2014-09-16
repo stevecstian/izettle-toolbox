@@ -16,101 +16,6 @@ import org.junit.Test;
 
 public class CartTest {
 
-	private static class TestItem implements Item<TestItem, TestDiscount> {
-
-		private final long unitPrice;
-		private final Float vatPercentage;
-		private final BigDecimal quantity;
-		private final String name;
-		private final TestDiscount discount;
-
-		TestItem(String name, long unitPrice, Float vatPercentage, BigDecimal quantity, TestDiscount discount) {
-			this.name = name;
-			this.unitPrice = unitPrice;
-			this.vatPercentage = vatPercentage;
-			this.quantity = quantity;
-			this.discount = discount;
-		}
-
-		TestItem(long unitPrice, Float vatPercentage, BigDecimal quantity) {
-			this(null, unitPrice, vatPercentage, quantity, null);
-		}
-
-		@Override
-		public long getUnitPrice() {
-			return unitPrice;
-		}
-
-		@Override
-		public Float getVatPercentage() {
-			return vatPercentage;
-		}
-
-		@Override
-		public String toString() {
-			return "TestItem{"
-				+ " unitPrice = " + unitPrice
-				+ ", vatPercentage = " + vatPercentage
-				+ ", quantity = " + quantity
-				+ ", name = " + name
-				+ ", discount = " + discount
-				+ '}';
-		}
-
-		@Override
-		public BigDecimal getQuantity() {
-			return this.quantity;
-		}
-
-		@Override
-		public TestItem inverse() {
-			return new TestItem(unitPrice, vatPercentage, quantity.negate());
-		}
-
-		@Override
-		public TestDiscount getDiscount() {
-			return discount;
-		}
-	}
-
-	private static class TestDiscount implements Discount<TestDiscount> {
-
-		private final Long amount;
-		private final Double percentage;
-		private final BigDecimal quantity;
-
-		TestDiscount(Long amount, Double percentage, BigDecimal quantity) {
-			this.amount = amount;
-			this.percentage = percentage;
-			this.quantity = quantity;
-		}
-
-		@Override
-		public Long getAmount() {
-			return amount;
-		}
-
-		@Override
-		public Double getPercentage() {
-			return percentage;
-		}
-
-		@Override
-		public String toString() {
-			return "TestDiscount{ amount = " + amount + ", percentage = " + percentage + ", quantity = " + quantity + '}';
-		}
-
-		@Override
-		public BigDecimal getQuantity() {
-			return this.quantity;
-		}
-
-		@Override
-		public TestDiscount inverse() {
-			return new TestDiscount(amount, percentage, quantity.negate());
-		}
-	}
-
 	@Test
 	public void itShouldCalculateCorrectVatAndEffectivePrice() {
 		List<TestItem> items = new LinkedList<TestItem>();
@@ -127,8 +32,7 @@ public class CartTest {
 	public void itShouldHandleNullVatProperly() {
 		List<TestItem> items = new LinkedList<TestItem>();
 		items.add(new TestItem(1299L, null, new BigDecimal("1.0")));
-		List<TestDiscount> discounts = null;
-		Cart<TestItem, TestDiscount, TestDiscount> cart = new Cart<TestItem, TestDiscount, TestDiscount>(items, discounts);
+		Cart<TestItem, TestDiscount, TestDiscount> cart = new Cart<TestItem, TestDiscount, TestDiscount>(items, null);
 		assertEquals(1299L, cart.getValue());
 		assertNull(cart.getActualDiscountPercentage());
 		assertNull(cart.getActualVat());
