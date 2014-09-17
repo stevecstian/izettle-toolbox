@@ -26,7 +26,7 @@ class CartUtils {
 		long grossPrice = 0;
 		if (!empty(items)) {
 			for (T item : items) {
-				grossPrice += ItemUtils.getGrossValue(item);
+				grossPrice += item.getGrossValue();
 			}
 		}
 		return grossPrice;
@@ -101,7 +101,7 @@ class CartUtils {
 		NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
 		for (int itemIdx = 0; itemIdx < items.size(); itemIdx++) {
 			Item item = items.get(itemIdx);
-			final double nonRoundedDiscount = ItemUtils.getGrossValue(item) * discountFraction;
+			final double nonRoundedDiscount = item.getGrossValue() * discountFraction;
 			final long roundedDiscount = CartUtils.round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> itemIdxs = itemIdxByRoundingLoss.get(roundingLoss);
@@ -125,7 +125,7 @@ class CartUtils {
 			}
 			Long roundedDiscount = discountAmountByItemIdx.get(itemIdxToChange);
 			Item item = items.get(itemIdxToChange);
-			Double nonRoundedDiscount = ItemUtils.getGrossValue(item) * discountFraction;
+			Double nonRoundedDiscount = item.getGrossValue() * discountFraction;
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
@@ -259,7 +259,7 @@ class CartUtils {
 		final List<ItemLine<T, K>> retList = new ArrayList<ItemLine<T, K>>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
-			long linePrice = ItemUtils.getGrossValue(item);
+			long linePrice = item.getGrossValue();
 			final long effectivePrice;
 			if (discountAmountByItemIdx != null) {
 				Long discountAmount = discountAmountByItemIdx.get(i);
