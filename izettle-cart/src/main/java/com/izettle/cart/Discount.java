@@ -3,7 +3,7 @@ package com.izettle.cart;
 import java.math.BigDecimal;
 
 /**
- * An object that can be added to a carts list of discounts
+ * An object that can be added to a cart's list of discounts
  * @param <T> The type of the discount itself
  */
 public interface Discount<T> {
