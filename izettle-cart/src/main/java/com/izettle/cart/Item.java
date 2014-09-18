@@ -8,7 +8,7 @@ import static com.izettle.java.ValueChecks.empty;
 import java.math.BigDecimal;
 
 /**
- * An object that can be added to a carts list of items
+ * An object that can be added to a cart's list of items
  * @param <T> The type of the item itself
  * @param <K> The type of the optional item local discount
  */
@@ -41,21 +41,31 @@ public abstract class Item<T, K extends Discount<?>> {
 	abstract T inverse();
 
 	/**
-	 * Returns the discount applied to this item
+	 * Returns the {@link com.izettle.cart.Discount} applied to this item
 	 * @return
 	 */
 	abstract K getDiscount();
 
 	/**
-	 * Calculates the gross value of an item. This value will be the local value of an isolated item with it's optional
-	 * local discounts taken into consideration, but with no awareness of possible cart-wide side effects
+	 * Returns the gross value of the item. Gross is the {@link #getQuantity()} multiplied with {@link #getUnitPrice()}
+	 * and rounded to a long using {@link com.izettle.cart.CartUtils#round(java.math.BigDecimal)}, VAT is included.
 	 *
-	 * @return the isolated value of this item
+	 * @return the gross value
 	 */
 	public long getGrossValue() {
-		BigDecimal valueBeforeDiscounts = getValueBeforeDiscounts();
-		long originalGrossValue = round(valueBeforeDiscounts);
-		return originalGrossValue - coalesce(getDiscountValue(), 0L);
+		BigDecimal valueBeforeDiscounts = getExactGrossValue();
+		return round(valueBeforeDiscounts);
+	}
+
+	/**
+	 * Calculates the value by subtracting {@link #getGrossValue()} with {@link #getDiscountValue()}.
+	 * This value will be the local value of an isolated item with it's optional local discounts taken into
+	 * consideration, but with no awareness of possible cart-wide side effects.
+	 *
+	 * @return the value
+	 */
+	public long getValue() {
+		return getGrossValue() - coalesce(getDiscountValue(), 0L);
 	}
 
 	/**
@@ -66,13 +76,13 @@ public abstract class Item<T, K extends Discount<?>> {
 	public Long getDiscountValue() {
 		Discount discount = getDiscount();
 		if (!empty(discount)) {
-			BigDecimal valueBeforeDiscounts = getValueBeforeDiscounts();
+			BigDecimal valueBeforeDiscounts = getExactGrossValue();
 			return round(getNonRoundedDiscountValue(discount, valueBeforeDiscounts));
 		}
 		return null;
 	}
 
-	private BigDecimal getValueBeforeDiscounts() {
+	private BigDecimal getExactGrossValue() {
 		return getQuantity().multiply(BigDecimal.valueOf(getUnitPrice()));
 	}
 }
