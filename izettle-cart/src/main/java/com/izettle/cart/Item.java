@@ -18,19 +18,19 @@ public abstract class Item<T, K extends Discount<?>> {
 	 * The quantity, or the number of units that this item represents
 	 * @return the quantity, cannot be null
 	 */
-	abstract BigDecimal getQuantity();
+	public abstract BigDecimal getQuantity();
 
 	/**
 	 * The cost per unit for this item
 	 * @return unit price
 	 */
-	abstract long getUnitPrice();
+	public abstract long getUnitPrice();
 
 	/**
 	 * The percent VAT that is applied to this item, can be null for situations where VAT is not applicable
 	 * @return the vat percentage
 	 */
-	abstract Float getVatPercentage();
+	public abstract Float getVatPercentage();
 
 	/**
 	 * Utility method that subclasses need to implement. Inverse here, means the concept of negating the line, which
@@ -38,13 +38,13 @@ public abstract class Item<T, K extends Discount<?>> {
 	 * such as refunds
 	 * @return the inversed Item
 	 */
-	abstract T inverse();
+	public abstract T inverse();
 
 	/**
 	 * Returns the {@link com.izettle.cart.Discount} applied to this item
 	 * @return
 	 */
-	abstract K getDiscount();
+	public abstract K getDiscount();
 
 	/**
 	 * Returns the gross value of the item. Gross is the {@link #getQuantity()} multiplied with {@link #getUnitPrice()}
