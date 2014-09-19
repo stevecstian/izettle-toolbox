@@ -51,7 +51,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 		if (empty(itemLines)) {
 			inverseItems = Collections.emptyList();
 		} else {
-			inverseItems = new ArrayList<T>(itemLines.size());
+			inverseItems = new ArrayList<>(itemLines.size());
 			for (ItemLine<T, D> itemLine : itemLines) {
 				inverseItems.add(itemLine.getItem().inverse());
 			}
@@ -59,12 +59,12 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 		if (empty(discountLines)) {
 			inverseDiscounts = Collections.emptyList();
 		} else {
-			inverseDiscounts = new ArrayList<K>(discountLines.size());
+			inverseDiscounts = new ArrayList<>(discountLines.size());
 			for (DiscountLine<K> discountLine : discountLines) {
 				inverseDiscounts.add(discountLine.getDiscount().inverse());
 			}
 		}
-		return new Cart<T, D, K>(inverseItems, inverseDiscounts);
+		return new Cart<>(inverseItems, inverseDiscounts);
 	}
 
 	/**
