@@ -15,6 +15,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 	private final List<DiscountLine<K>> discountLines;
 	private final long grossValue;
 	private final Long discountValue;
+	private final Long cartWideDiscountValue;
 	private final Long actualVat;
 	private final Double actualDiscountPercentage;
 	private final Long grossVat;
@@ -29,10 +30,11 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 			items = Collections.emptyList();
 		}
 		this.grossValue = CartUtils.getGrossValue(items);
-		this.discountValue = CartUtils.getTotalDiscountValue(discounts, grossValue);
+		this.discountValue = CartUtils.getTotalDiscountValue(discounts, grossValue, items);
 		this.actualDiscountPercentage = CartUtils.getDiscountPercentage(grossValue, discountValue);
-		this.discountLines = CartUtils.buildDiscountLines(discounts, grossValue, discountValue);
-		this.itemLines = CartUtils.buildItemLines(items, grossValue, discountValue);
+		this.cartWideDiscountValue = CartUtils.getTotalCartWideDiscountValue(discounts, grossValue);
+		this.discountLines = CartUtils.buildDiscountLines(discounts, grossValue, cartWideDiscountValue);
+		this.itemLines = CartUtils.buildItemLines(items, grossValue, cartWideDiscountValue);
 		this.grossVat = CartUtils.summarizeGrossVat(itemLines);
 		this.actualVat = CartUtils.summarizeEffectiveVat(itemLines);
 	}
@@ -70,7 +72,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 	 * @return the actual value of the cart
 	 */
 	public long getValue() {
-		return grossValue - coalesce(discountValue, 0L);
+		return grossValue - coalesce(cartWideDiscountValue, 0L);
 	}
 
 	/**
@@ -100,11 +102,31 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 	}
 
 	/**
-	 * The actual value of all cart wide discounts, where percentage discounts has been translated to amounts
-	 * @return the amount of cart-wide discounts
+	 * The actual value of all cart wide discounts and item line discounts.
+	 * @return the amount all discounts
 	 */
 	public Long getDiscountValue() {
 		return discountValue;
+	}
+
+	/**
+	 * The number of discounts, both item line discounts and cart-wide discounts.
+	 * @return Total number of discounts.
+	 */
+	public int getNumberOfDiscounts() {
+		int numberOfDiscounts = 0;
+
+		if (discountLines != null) {
+			numberOfDiscounts = discountLines.size();
+		}
+
+		for (ItemLine<T, D> itemLine : itemLines) {
+			if (itemLine.getItem().getDiscount() != null) {
+				numberOfDiscounts++;
+			}
+		}
+
+		return numberOfDiscounts;
 	}
 
 	/**
