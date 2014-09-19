@@ -439,6 +439,21 @@ public class CartTest {
 		assertEquals(-81L, cart.inverse().getValue());
 	}
 
+	@Test
+	public void testTotalDiscount() {
+		ArrayList<TestItem> items = new ArrayList<TestItem>();
+		items.add(new TestItem("", 100L, 10f, new BigDecimal(2), new TestDiscount(100L, null, BigDecimal.ONE)));
+
+		ArrayList<TestDiscount> discounts = new ArrayList<TestDiscount>();
+		discounts.add(new TestDiscount(null, 50d, BigDecimal.ONE));
+
+		Cart<TestItem, TestDiscount, TestDiscount> cart = new Cart<TestItem, TestDiscount, TestDiscount>(items, discounts);
+
+		assertThat(cart.getDiscountValue()).isEqualTo(150);
+		assertThat(cart.getNumberOfDiscounts()).isEqualTo(2);
+		assertThat(cart.getDiscountVat()).isEqualTo(13L);
+	}
+
 	//Dummy method for bypassing ambiguity against two similar Assert.assertEqual methods
 	private void assEq(Long one, Long two) {
 		assertEquals(one, two);

@@ -1,5 +1,6 @@
 package com.izettle.cart;
 
+import static com.izettle.java.ValueChecks.allEmpty;
 import static com.izettle.java.ValueChecks.coalesce;
 import static com.izettle.java.ValueChecks.empty;
 
@@ -58,15 +59,47 @@ class CartUtils {
 	}
 
 	/**
-	 * Given a total gross amount, this calculates the total effect of a list of discounts on a cart, by applying them
-	 * one at a time, in order
-	 * @param discounts the discounts to apply, in order
-	 * @param totalGrossAmount
+	 * Calculates the total discount amount. Both the cart-wide discount on the cart gross value and the item line
+	 * discounts.
+	 * @param discounts the cart-wide discounts to apply, in order
+	 * @param totalGrossAmount cart gross amount
+	 * @param items cart items
 	 * @return the total rounded discounted value
 	 */
-	static Long getTotalDiscountValue(List<? extends Discount> discounts, long totalGrossAmount) {
+	static Long getTotalDiscountValue(List<? extends Discount> discounts, long totalGrossAmount, List<? extends Item> items) {
+
+		Long cartWideDiscount = getTotalCartWideDiscountValue(discounts, totalGrossAmount);
+
+		/*
+			Sum up line item discounts.
+		 */
+		Long lineItemDiscount = null;
+
+		for (Item item : items) {
+			Long discountValue = item.getDiscountValue();
+			if (discountValue != null) {
+				lineItemDiscount = coalesce(lineItemDiscount, 0L) + discountValue;
+			}
+		}
+
+		if (!allEmpty(lineItemDiscount, cartWideDiscount)) {
+			return coalesce(cartWideDiscount, 0L) + coalesce(lineItemDiscount, 0L);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Total value of the cart-wide discounts, if any.
+	 *
+	 * @param discounts Cart-wide discounts.
+	 * @param totalGrossAmount Cart gross value (after line item discounts).
+	 * @return Total value of cart-wide discounts if any, null otherwise.
+	 */
+	static Long getTotalCartWideDiscountValue(List<? extends Discount> discounts, long totalGrossAmount) {
 		boolean appliedDiscount = false;
 		BigDecimal tmpTotalAmount = BigDecimal.valueOf(totalGrossAmount);
+
 		if (!empty(discounts)) {
 			for (Discount discount : discounts) {
 				BigDecimal discountValue = getNonRoundedDiscountValue(discount, tmpTotalAmount);
@@ -76,6 +109,7 @@ class CartUtils {
 				}
 			}
 		}
+
 		if (appliedDiscount) {
 			return round(BigDecimal.valueOf(totalGrossAmount).subtract(tmpTotalAmount));
 		}
@@ -95,14 +129,14 @@ class CartUtils {
 	 */
 	static <T extends Item> Map<Integer, Long> distributeDiscountedAmountOverItems(
 		final List<T> items,
-		final Long discountAmount,
+		final Long cartWideDiscountAmount,
 		final long grossAmount
 	) {
-		if (discountAmount == null || grossAmount == 0L) {
+		if (cartWideDiscountAmount == null || grossAmount == 0L) {
 			return null;
 		}
-		final double discountFraction = ((double) discountAmount) / grossAmount;
-		long remainingDiscountAmountToDistribute = discountAmount;
+		final double discountFraction = ((double) cartWideDiscountAmount) / grossAmount;
+		long remainingDiscountAmountToDistribute = cartWideDiscountAmount;
 		Map<Integer, Long> discountAmountByItemIdx = new HashMap<Integer, Long>();
 		NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
 		for (int itemIdx = 0; itemIdx < items.size(); itemIdx++) {
@@ -255,11 +289,11 @@ class CartUtils {
 	static <T extends Item<T, K>, K extends Discount<K>> List<ItemLine<T, K>> buildItemLines(
 		final List<T> items,
 		final Long grossValue,
-		final Long totalDiscountValue
+		final Long cartWideDiscountAmount
 	) {
 		final Map<Integer, Long> discountAmountByItemIdx = distributeDiscountedAmountOverItems(
 			items,
-			totalDiscountValue,
+			cartWideDiscountAmount,
 			grossValue
 		);
 		final List<ItemLine<T, K>> retList = new ArrayList<ItemLine<T, K>>();
@@ -273,7 +307,7 @@ class CartUtils {
 			} else {
 				effectivePrice = linePrice;
 			}
-			Long grossVat = calculateVatFromGrossAmount(linePrice, item.getVatPercentage());
+			Long grossVat = calculateVatFromGrossAmount(item.getGrossValue(), item.getVatPercentage());
 			Long effectiveVat = calculateVatFromGrossAmount(effectivePrice, item.getVatPercentage());
 			ItemLine<T, K> itemLine = new ItemLine<T, K>(item, linePrice, grossVat, effectivePrice, effectiveVat);
 			retList.add(itemLine);
