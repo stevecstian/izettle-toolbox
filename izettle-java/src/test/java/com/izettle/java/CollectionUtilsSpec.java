@@ -104,12 +104,12 @@ public class CollectionUtilsSpec {
 
 	@Test
 	public void itShouldPartitionCorrectCollectionClass() {
-		Collection<Integer> collection = new HashSet<Integer>(Arrays.asList(6, 5, 4, 3));
+		Collection<Integer> collection = new HashSet<>(Arrays.asList(6, 5, 4, 3));
 		//Just verify that the result is a set
 		List<Collection<Integer>> parts = partition(collection, 2);
 		assertTrue(parts.get(0) instanceof Set);
 
-		collection = new TreeSet<Integer>(Arrays.asList(6, 5, 4, 3));
+		collection = new TreeSet<>(Arrays.asList(6, 5, 4, 3));
 		//Verify that the result is a set
 		parts = partition(collection, 2);
 		assertTrue(parts.get(0) instanceof Set);
@@ -117,7 +117,7 @@ public class CollectionUtilsSpec {
 		assertTrue(parts.get(0).iterator().next() == 3);
 		assertTrue(parts.get(1).iterator().next() == 5);
 
-		collection = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3));
+		collection = new ArrayList<>(Arrays.asList(6, 5, 4, 3));
 		collection.add(6);
 		collection.add(5);
 		collection.add(4);
@@ -132,13 +132,13 @@ public class CollectionUtilsSpec {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void itShouldThrowExceptionForUnhandledCollectionType() {
-		Collection<Integer> collection = new PriorityQueue<Integer>(Arrays.asList(6, 5, 4, 3));
+		Collection<Integer> collection = new PriorityQueue<>(Arrays.asList(6, 5, 4, 3));
 		List<Collection<Integer>> parts = partition(collection, 2);
 	}
 
 	@Test
 	public void itShouldToStringProperly() {
-		Set<String> set = new TreeSet<String>();
+		Set<String> set = new TreeSet<>();
 		set.add("A");
 		set.add("B");
 		set.add("C");
@@ -147,7 +147,7 @@ public class CollectionUtilsSpec {
 
 	@Test
 	public void itShouldToStringEmpty() {
-		Set<String> set = new TreeSet<String>();
+		Set<String> set = new TreeSet<>();
 		assertEquals("", CollectionUtils.toString(set));
 	}
 
