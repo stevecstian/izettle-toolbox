@@ -17,14 +17,14 @@ public class ValueChecksSpec {
 
 	@Test
 	public void allDefined() {
-		assertFalse(ValueChecks.anyNull("Foo", new Integer(1)));
+		assertFalse(ValueChecks.anyNull("Foo", 1));
 		assertTrue(ValueChecks.anyNull("Foo", null));
 		assertTrue(ValueChecks.anyNull(null, null));
 
 		// If the args-array itself is null, it should return false.
 		Object[] noObjects = null;
 		assertTrue(ValueChecks.anyNull(noObjects));
-		assertFalse(ValueChecks.anyNull("Foo", new Integer(2)));
+		assertFalse(ValueChecks.anyNull("Foo", 2));
 	}
 
 	@Test
