@@ -137,16 +137,16 @@ class CartUtils {
 		}
 		final double discountFraction = ((double) cartWideDiscountAmount) / grossAmount;
 		long remainingDiscountAmountToDistribute = cartWideDiscountAmount;
-		Map<Integer, Long> discountAmountByItemIdx = new HashMap<Integer, Long>();
-		NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
+		Map<Integer, Long> discountAmountByItemIdx = new HashMap<>();
+		NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<>();
 		for (int itemIdx = 0; itemIdx < items.size(); itemIdx++) {
 			Item item = items.get(itemIdx);
 			final double nonRoundedDiscount = item.getValue() * discountFraction;
-			final long roundedDiscount = CartUtils.round(nonRoundedDiscount);
+			final long roundedDiscount = round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> itemIdxs = itemIdxByRoundingLoss.get(roundingLoss);
 			if (itemIdxs == null) {
-				itemIdxs = new LinkedList<Integer>();
+				itemIdxs = new LinkedList<>();
 				itemIdxByRoundingLoss.put(roundingLoss, itemIdxs);
 			}
 			itemIdxs.add(itemIdx);
@@ -173,7 +173,7 @@ class CartUtils {
 			double newRoundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> newItemIdxs = itemIdxByRoundingLoss.get(newRoundingLoss);
 			if (newItemIdxs == null) {
-				newItemIdxs = new LinkedList<Integer>();
+				newItemIdxs = new LinkedList<>();
 				itemIdxByRoundingLoss.put(newRoundingLoss, newItemIdxs);
 			}
 			newItemIdxs.add(itemIdxToChange);
@@ -192,9 +192,9 @@ class CartUtils {
 			return null;
 		}
 		long remainingDiscountAmountToDistribute = discountAmount;
-		Map<Integer, Long> roundedDiscountAmountByDiscountIdx = new HashMap<Integer, Long>();
-		Map<Integer, BigDecimal> nonRoundedDiscountAmountByDiscountIdx = new HashMap<Integer, BigDecimal>();
-		NavigableMap<BigDecimal, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<BigDecimal, Queue<Integer>>();
+		Map<Integer, Long> roundedDiscountAmountByDiscountIdx = new HashMap<>();
+		Map<Integer, BigDecimal> nonRoundedDiscountAmountByDiscountIdx = new HashMap<>();
+		NavigableMap<BigDecimal, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<>();
 		BigDecimal tmpTotAmount = BigDecimal.valueOf(totalGrossAmount);
 		for (int discountIdx = 0; discountIdx < discounts.size(); discountIdx++) {
 			Discount discount = discounts.get(discountIdx);
@@ -203,7 +203,7 @@ class CartUtils {
 			final BigDecimal roundingLoss = nonRoundedDiscount.subtract(BigDecimal.valueOf(roundedDiscount));
 			Queue<Integer> discountIdxs = discountIdxByRoundingLoss.get(roundingLoss);
 			if (discountIdxs == null) {
-				discountIdxs = new LinkedList<Integer>();
+				discountIdxs = new LinkedList<>();
 				discountIdxByRoundingLoss.put(roundingLoss, discountIdxs);
 			}
 			discountIdxs.add(discountIdx);
@@ -231,7 +231,7 @@ class CartUtils {
 			final BigDecimal newRoundingLoss = nonRoundedDiscount.subtract(BigDecimal.valueOf(roundedDiscount));
 			Queue<Integer> newDiscountIdxs = discountIdxByRoundingLoss.get(newRoundingLoss);
 			if (newDiscountIdxs == null) {
-				newDiscountIdxs = new LinkedList<Integer>();
+				newDiscountIdxs = new LinkedList<>();
 				discountIdxByRoundingLoss.put(newRoundingLoss, newDiscountIdxs);
 			}
 			newDiscountIdxs.add(discountIdxToChange);
@@ -251,13 +251,13 @@ class CartUtils {
 			totalDiscountValue,
 			grossValue
 		);
-		final List<DiscountLine<K>> retList = new ArrayList<DiscountLine<K>>();
+		final List<DiscountLine<K>> retList = new ArrayList<>();
 		if (!empty(discounts)) {
 			for (int i = 0; i < discounts.size(); i++) {
 				K discount = discounts.get(i);
 				Long discountAmount = discountAmountByDiscountIdx.get(i);
 				Double linePercentage = 100d * discountAmount / grossValue;
-				DiscountLine<K> discountLine = new DiscountLine<K>(discount, linePercentage, discountAmount);
+				DiscountLine<K> discountLine = new DiscountLine<>(discount, linePercentage, discountAmount);
 				retList.add(discountLine);
 			}
 		}
@@ -296,7 +296,7 @@ class CartUtils {
 			cartWideDiscountAmount,
 			grossValue
 		);
-		final List<ItemLine<T, K>> retList = new ArrayList<ItemLine<T, K>>();
+		final List<ItemLine<T, K>> retList = new ArrayList<>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
 			long linePrice = item.getValue();
@@ -309,7 +309,7 @@ class CartUtils {
 			}
 			Long grossVat = calculateVatFromGrossAmount(item.getGrossValue(), item.getVatPercentage());
 			Long effectiveVat = calculateVatFromGrossAmount(effectivePrice, item.getVatPercentage());
-			ItemLine<T, K> itemLine = new ItemLine<T, K>(item, linePrice, grossVat, effectivePrice, effectiveVat);
+			ItemLine<T, K> itemLine = new ItemLine<>(item, linePrice, grossVat, effectivePrice, effectiveVat);
 			retList.add(itemLine);
 		}
 		return retList;
@@ -323,9 +323,9 @@ class CartUtils {
 	}
 
 	static <T extends Item<T, K>, K extends Discount<K>> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(Collection<ItemLine<T, K>> itemLines) {
-		SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<Float, Long>();
-		SortedMap<Float, Long> actualValuePerVatGroup = new TreeMap<Float, Long>();
-		SortedMap<Float, VatGroupValues> vatGroupValues = new TreeMap<Float, VatGroupValues>();
+		SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<>();
+		SortedMap<Float, Long> actualValuePerVatGroup = new TreeMap<>();
+		SortedMap<Float, VatGroupValues> vatGroupValues = new TreeMap<>();
 		for (ItemLine<T, K> itemLine : itemLines) {
 			Long actualVat = itemLine.getActualVat();
 			Long actualValue = itemLine.getActualValue();
