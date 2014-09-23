@@ -183,11 +183,11 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Cart {\n");
-		sb.append("\tLineItems:\n");
+		sb.append("\tItemLines:\n");
 		for (ItemLine<T, D> itemLine : itemLines) {
 			sb.append("\t\t").append(itemLine).append("\n");
 		}
-		sb.append("\tDiscounts:\n");
+		sb.append("\tDiscountLines:\n");
 		for (DiscountLine<K> discountLine : discountLines) {
 			sb.append("\t\t").append(discountLine).append("\n");
 		}

@@ -70,7 +70,7 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> {
 	@Override
 	public String toString() {
 		return ""
-			+ "LineItem {"
+			+ "ItemLine {"
 			+ " item = " + item
 			+ ", grossValue = " + grossValue
 			+ ", grossVat = " + grossVat
