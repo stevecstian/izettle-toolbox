@@ -19,7 +19,7 @@ class CartUtils {
 	 * Rounds the value to a long using {@link java.math.RoundingMode#HALF_UP}
 	 *
 	 * @param decimal the value to round
-	 * @return
+	 * @return rounded value
 	 */
 	static long round(BigDecimal decimal) {
 		return decimal.setScale(0, ROUNDING_MODE).longValue();
@@ -33,7 +33,7 @@ class CartUtils {
 		long grossPrice = 0;
 		if (!empty(items)) {
 			for (T item : items) {
-				grossPrice += item.getValue();
+				grossPrice += ItemUtils.getValue(item);
 			}
 		}
 		return grossPrice;
@@ -76,7 +76,7 @@ class CartUtils {
 		Long lineItemDiscount = null;
 
 		for (Item item : items) {
-			Long discountValue = item.getDiscountValue();
+			Long discountValue = ItemUtils.getDiscountValue(item);
 			if (discountValue != null) {
 				lineItemDiscount = coalesce(lineItemDiscount, 0L) + discountValue;
 			}
@@ -141,7 +141,7 @@ class CartUtils {
 		NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<>();
 		for (int itemIdx = 0; itemIdx < items.size(); itemIdx++) {
 			Item item = items.get(itemIdx);
-			final double nonRoundedDiscount = item.getValue() * discountFraction;
+			final double nonRoundedDiscount = ItemUtils.getValue(item) * discountFraction;
 			final long roundedDiscount = round(nonRoundedDiscount);
 			final double roundingLoss = nonRoundedDiscount - roundedDiscount;
 			Queue<Integer> itemIdxs = itemIdxByRoundingLoss.get(roundingLoss);
@@ -165,7 +165,7 @@ class CartUtils {
 			}
 			Long roundedDiscount = discountAmountByItemIdx.get(itemIdxToChange);
 			Item item = items.get(itemIdxToChange);
-			Double nonRoundedDiscount = item.getValue() * discountFraction;
+			Double nonRoundedDiscount = ItemUtils.getValue(item) * discountFraction;
 			//reclaim one unit of money:
 			roundedDiscount += reclaiming ? -1L : 1L;
 			remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
@@ -299,17 +299,24 @@ class CartUtils {
 		final List<ItemLine<T, K>> retList = new ArrayList<>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
-			long linePrice = item.getValue();
 			final long effectivePrice;
 			if (discountAmountByItemIdx != null) {
 				Long discountAmount = discountAmountByItemIdx.get(i);
-				effectivePrice = linePrice - coalesce(discountAmount, 0L);
+				effectivePrice = ItemUtils.getValue(item) - coalesce(discountAmount, 0L);
 			} else {
-				effectivePrice = linePrice;
+				effectivePrice = ItemUtils.getValue(item);
 			}
-			Long grossVat = calculateVatFromGrossAmount(item.getGrossValue(), item.getVatPercentage());
+			Long grossVat = calculateVatFromGrossAmount(ItemUtils.getGrossValue(item), item.getVatPercentage());
 			Long effectiveVat = calculateVatFromGrossAmount(effectivePrice, item.getVatPercentage());
-			ItemLine<T, K> itemLine = new ItemLine<>(item, linePrice, grossVat, effectivePrice, effectiveVat);
+
+			ItemLine<T, K> itemLine = new ItemLine<>(
+				item,
+				ItemUtils.getGrossValue(item),
+				grossVat,
+				effectivePrice,
+				effectiveVat,
+				ItemUtils.getDiscountValue(item));
+
 			retList.add(itemLine);
 		}
 		return retList;
