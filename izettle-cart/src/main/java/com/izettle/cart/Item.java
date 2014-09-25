@@ -1,10 +1,5 @@
 package com.izettle.cart;
 
-import static com.izettle.cart.CartUtils.getNonRoundedDiscountValue;
-import static com.izettle.cart.CartUtils.round;
-import static com.izettle.java.ValueChecks.coalesce;
-import static com.izettle.java.ValueChecks.empty;
-
 import java.math.BigDecimal;
 
 /**
@@ -12,25 +7,25 @@ import java.math.BigDecimal;
  * @param <T> The type of the item itself
  * @param <K> The type of the optional item local discount
  */
-public abstract class Item<T, K extends Discount<?>> {
+public interface Item<T, K extends Discount<?>> {
 
 	/**
 	 * The quantity, or the number of units that this item represents
 	 * @return the quantity, cannot be null
 	 */
-	public abstract BigDecimal getQuantity();
+	BigDecimal getQuantity();
 
 	/**
 	 * The cost per unit for this item
 	 * @return unit price
 	 */
-	public abstract long getUnitPrice();
+	long getUnitPrice();
 
 	/**
 	 * The percent VAT that is applied to this item, can be null for situations where VAT is not applicable
 	 * @return the vat percentage
 	 */
-	public abstract Float getVatPercentage();
+	Float getVatPercentage();
 
 	/**
 	 * Utility method that subclasses need to implement. Inverse here, means the concept of negating the line, which
@@ -38,51 +33,11 @@ public abstract class Item<T, K extends Discount<?>> {
 	 * such as refunds
 	 * @return the inversed Item
 	 */
-	public abstract T inverse();
+	T inverse();
 
 	/**
 	 * Returns the {@link com.izettle.cart.Discount} applied to this item
 	 * @return
 	 */
-	public abstract K getDiscount();
-
-	/**
-	 * Returns the gross value of the item. Gross is the {@link #getQuantity()} multiplied with {@link #getUnitPrice()}
-	 * and rounded to a long using {@link com.izettle.cart.CartUtils#round(java.math.BigDecimal)}, VAT is included.
-	 *
-	 * @return the gross value
-	 */
-	public long getGrossValue() {
-		BigDecimal valueBeforeDiscounts = getExactGrossValue();
-		return round(valueBeforeDiscounts);
-	}
-
-	/**
-	 * Calculates the value by subtracting {@link #getGrossValue()} with {@link #getDiscountValue()}.
-	 * This value will be the local value of an isolated item with it's optional local discounts taken into
-	 * consideration, but with no awareness of possible cart-wide side effects.
-	 *
-	 * @return the value
-	 */
-	public long getValue() {
-		return getGrossValue() - coalesce(getDiscountValue(), 0L);
-	}
-
-	/**
-	 * Calculates the value of the item line discount.
-	 *
-	 * @return the line item discount value.
-	 */
-	public Long getDiscountValue() {
-		Discount discount = getDiscount();
-		if (!empty(discount)) {
-			BigDecimal valueBeforeDiscounts = getExactGrossValue();
-			return round(getNonRoundedDiscountValue(discount, valueBeforeDiscounts));
-		}
-		return null;
-	}
-
-	private BigDecimal getExactGrossValue() {
-		return getQuantity().multiply(BigDecimal.valueOf(getUnitPrice()));
-	}
+	K getDiscount();
 }

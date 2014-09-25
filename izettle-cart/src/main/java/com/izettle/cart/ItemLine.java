@@ -13,13 +13,15 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> {
 	private final Long grossVat;
 	private final long actualValue;
 	private final Long actualVat;
+	private final Long discountValue;
 
-	ItemLine(T item, long grossValue, Long grossVat, long actualValue, Long actualVat) {
+	ItemLine(T item, long grossValue, Long grossVat, long actualValue, Long actualVat, Long discountValue) {
 		this.item = item;
 		this.grossValue = grossValue;
 		this.grossVat = grossVat;
 		this.actualValue = actualValue;
 		this.actualVat = actualVat;
+		this.discountValue = discountValue;
 	}
 
 	/**
@@ -52,8 +54,8 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> {
 	}
 
 	/**
-	 * The amount that this line represents on it's own, e.g. the raw gross value plus/minus it's line local discount
-	 * @return The value this line represents before cart wide discounts are applied
+	 * The amount that this line before any kind of discount.
+	 * @return The value this line represents before any kind of discount applied.
 	 */
 	public long getGrossValue() {
 		return grossValue;
@@ -65,6 +67,14 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> {
 	 */
 	public Long getGrossVat() {
 		return grossVat;
+	}
+
+	/**
+	 * The value of the line item discount including VAT.
+	 * @return The value of the line item discount including VAT.
+	 */
+	public Long getDiscountValue() {
+		return discountValue;
 	}
 
 	@Override
