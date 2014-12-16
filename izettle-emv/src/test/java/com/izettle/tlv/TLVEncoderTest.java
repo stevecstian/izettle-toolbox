@@ -33,4 +33,12 @@ public class TLVEncoderTest {
 		TLVEncoder encoder = new TLVEncoder();
 		encoder.encode(new byte[]{(byte) 0x9f}, new byte[5]);
 	}
+
+	@Test(expected = TLVException.class)
+	public void testMalformedTag2() throws Exception {
+
+		// Multi-byte tag that isn't closed properly (lower 6 bits are set in last byte)
+		TLVEncoder encoder = new TLVEncoder();
+		encoder.encode(new byte[]{(byte) 0x0f, (byte) 0x1f}, new byte[5]);
+	}
 }

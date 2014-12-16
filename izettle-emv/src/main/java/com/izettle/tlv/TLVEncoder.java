@@ -1,67 +1,38 @@
 package com.izettle.tlv;
 
 import static com.izettle.java.ValueChecks.*;
-import com.izettle.java.Hex;
 
 /**
- * ISO 7816, ASN.1 compliantish parser.
- * See http://www.gorferay.com/ber-tlv-length-fields/
- * See http://www.cardwerk.com/smartcards/smartcard_standard_ISO7816-4_annex-d.aspx
+ * ISO 7816 / ASN.1 compliantish encoder.
  * @author fidde
  */
 public class TLVEncoder {
 
-	private boolean strict;
+	public TLVEncoder() { }
 
-	public TLVEncoder() {
-
-	}
-
-	public static void main(String[] args) {
-		try {
-			TLVEncoder encoder = new TLVEncoder();
-
-			// 00
-			System.out.println(Hex.toHexString(encoder.encodeLength(0)));
-			// 7F
-			System.out.println(Hex.toHexString(encoder.encodeLength(127)));
-			// 8180
-			System.out.println(Hex.toHexString(encoder.encodeLength(128)));
-			// 81FF
-			System.out.println(Hex.toHexString(encoder.encodeLength(255)));
-			// 820100
-			System.out.println(Hex.toHexString(encoder.encodeLength(256)));
-			// 820101
-			System.out.println(Hex.toHexString(encoder.encodeLength(257)));
-			// 82FFFF
-			System.out.println(Hex.toHexString(encoder.encodeLength(0xFFFF)));
-			// 83010000
-			System.out.println(Hex.toHexString(encoder.encodeLength(0xFFFF + 1)));
-			// 83FFFFFF
-			System.out.println(Hex.toHexString(encoder.encodeLength(0xFFFFFF)));
-			// 8401000000
-			System.out.println(Hex.toHexString(encoder.encodeLength(0xFFFFFF + 1)));
-			// 8401000001
-			System.out.println(Hex.toHexString(encoder.encodeLength(0xFFFFFF + 1 + 1)));
-
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public Object encode(byte[] tag, byte[] data) throws TLVException {
+	/**
+	 * Validates tag and creates a properly encoded length.
+	 * @param tag Tag bytes
+	 * @param value Data bytes, nullable.
+	 * @throws TLVException On malformed inputs
+	 */
+	public TLV encode(byte[] tag, byte[] value) throws TLVException {
 		validateTag(tag);
-		return null;
+		byte[] length = encodeLength(null != value ? value.length : 0);
+		return new TLV(tag, length, value);
 	}
 
-	byte[] encodeLength(int l) throws TLVException {
+	/**
+	 * Encodes an integer length into ASN.1 format
+	 * @param l Length to encode
+	 * @throws TLVException If input is less then zero
+	 */
+	static byte[] encodeLength(int l) throws TLVException {
 
-		if(l > 0xFFFFFFFFL) {
-			throw new TLVException("Length exceeds integer 4 bytes length");
-		}
 		if(l < 0) {
 			throw new TLVException("Length less than zero");
 		}
+
 		byte[] out;
 
 		if (l > 0x00FFFFFF) {
@@ -93,7 +64,7 @@ public class TLVEncoder {
 		return out;
 	}
 
-	private void validateTag(byte[] tag) throws TLVException {
+	static void validateTag(byte[] tag) throws TLVException {
 
 		if(empty(tag)) {
 			throw new TLVException("Malformed tag: empty");
