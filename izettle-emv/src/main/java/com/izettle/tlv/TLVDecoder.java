@@ -17,6 +17,10 @@ public class TLVDecoder {
 
 	}
 
+	public void addExpandTag(byte[] tag) throws TLVException {
+		expandTags.add(TLVUtils.tagToInt(tag));
+	}
+
 	public List<TLV> decode(byte[] in) throws TLVException {
 
 		List<TLV> out = new ArrayList<>();
@@ -24,7 +28,7 @@ public class TLVDecoder {
 		return out;
 	}
 
-	public void helper(byte[] input, int offset, List<TLV> tags) throws TLVException {
+	private void helper(byte[] input, int offset, List<TLV> tags) throws TLVException {
 
 		// Parse tag
 		byte[] tag = new byte[]{input[0]};
@@ -39,7 +43,7 @@ public class TLVDecoder {
 		}
 
 		// Validate tag
-		TLVEncoder.validateTag(tag);
+		TLVUtils.validateTag(tag);
 
 		if (offset + 1 >= input.length) {
 			return;
@@ -73,10 +77,7 @@ public class TLVDecoder {
 		byte[] value = new byte[length];
 		System.arraycopy(input, offset, value, 0, length);
 
-		int tagAsInteger = 0;
-		for(int i=0; i<tag.length; i++) {
-			tagAsInteger |= (tag[i] & 0xff) << (8 * (tag.length - i - 1));
-		}
+		int tagAsInteger = TLVUtils.tagToInt(tag);
 
 		if(expandTags.contains(tagAsInteger)) {
 			helper(value, 0, tags);

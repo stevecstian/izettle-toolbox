@@ -17,7 +17,7 @@ public class TLVEncoder {
 	 * @throws TLVException On malformed inputs
 	 */
 	public TLV encode(byte[] tag, byte[] value) throws TLVException {
-		validateTag(tag);
+		TLVUtils.validateTag(tag);
 		byte[] length = encodeLength(null != value ? value.length : 0);
 		return new TLV(tag, length, value);
 	}
@@ -63,37 +63,4 @@ public class TLVEncoder {
 
 		return out;
 	}
-
-	static void validateTag(byte[] tag) throws TLVException {
-
-		if(empty(tag)) {
-			throw new TLVException("Malformed tag: empty");
-		}
-
-		/*
-			 UNUSED: Leading byte, B8 + B7 is application class
-			 UNUSED: Leading byte, B6 is primitive/constructed flag
-		 */
-
-		boolean isMultiByteTag = (tag[0] & 0x1f) == 0x1f;
-
-		if(isMultiByteTag) {
-			if(1 == tag.length) {
-				throw new TLVException("Malformed tag: indicates multibyte, but is not");
-			}
-			if((tag[tag.length - 1] & 0x1f) == 0x1f) {
-				throw new TLVException("Malformed tag: multibyte, but last byte doesn't close");
-			}
-			for(int i = 1; i<tag.length - 1; i++) {
-				if(0x80 != (tag[i] & 0x80)) {
-					throw new TLVException("Malformed tag: multibyte, but 0x80 not set in tag byte " + i);
-				}
-			}
-		} else {
-			if(1 != tag.length) {
-				throw new TLVException("Malformed tag: indicates single byte, but is not");
-			}
-		}
-	}
-
 }

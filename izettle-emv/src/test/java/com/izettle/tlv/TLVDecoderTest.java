@@ -51,4 +51,28 @@ public class TLVDecoderTest {
 		Assert.assertEquals("820002", Hex.toHexString(tlv.getLength()));
 	}
 
+	@Test(expected = TLVException.class)
+	public void testInvalidTag() throws Exception {
+
+		byte[] tlvData = Hex.hexToByteArray("9F1F01AA");
+		TLVDecoder dec = new TLVDecoder();
+		TLV tlv = dec.decode(tlvData).get(0);
+	}
+
+	@Test
+	public void testExpandedTag() throws Exception {
+
+		TLVEncoder enc = new TLVEncoder();
+		TLVDecoder dec = new TLVDecoder();
+
+		TLV innerObject = dec.decode(Hex.hexToByteArray("9F27820002AABB")).get(0);
+		TLV outerObject = enc.encode(Hex.hexToByteArray("9A"), innerObject.toBytes());
+
+		dec.addExpandTag(Hex.hexToByteArray("9A"));
+
+		List<TLV> decodedTags = dec.decode(outerObject.toBytes());
+		Assert.assertTrue(1 == decodedTags.size());
+		Assert.assertEquals("9F27", Hex.toHexString(decodedTags.get(0).getTag()));
+	}
+
 }
