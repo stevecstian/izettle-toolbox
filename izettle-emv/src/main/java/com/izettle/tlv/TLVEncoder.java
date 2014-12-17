@@ -84,6 +84,11 @@ public class TLVEncoder {
 			if((tag[tag.length - 1] & 0x1f) == 0x1f) {
 				throw new TLVException("Malformed tag: multibyte, but last byte doesn't close");
 			}
+			for(int i = 1; i<tag.length - 1; i++) {
+				if(0x80 != (tag[i] & 0x80)) {
+					throw new TLVException("Malformed tag: multibyte, but 0x80 not set in tag byte " + i);
+				}
+			}
 		} else {
 			if(1 != tag.length) {
 				throw new TLVException("Malformed tag: indicates single byte, but is not");

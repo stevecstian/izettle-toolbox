@@ -41,4 +41,12 @@ public class TLVEncoderTest {
 		TLVEncoder encoder = new TLVEncoder();
 		encoder.encode(new byte[]{(byte) 0x0f, (byte) 0x1f}, new byte[5]);
 	}
+
+	@Test(expected = TLVException.class)
+	public void testMalformedTag3() throws Exception {
+
+		// 0x80 is not set in the middle byte(s) for a multi-byte tag.
+		TLVEncoder encoder = new TLVEncoder();
+		encoder.encode(new byte[]{(byte) 0x1f, (byte) 0x1f, (byte)0x20}, new byte[5]);
+	}
 }

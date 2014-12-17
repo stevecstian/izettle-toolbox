@@ -17,34 +17,16 @@ public class TLVDecoder {
 
 	}
 
-	public List<TLV> parse(byte[] in) throws TLVException {
+	public List<TLV> decode(byte[] in) throws TLVException {
 
 		List<TLV> out = new ArrayList<>();
 		helper(in, 0, out);
 		return out;
 	}
 
-	public static void main(String[] args) {
-		//List<TLV> tags = new ArrayList<>();
-		//byte[] input = Hex.hexToByteArray("DFFF03");
-		//helper(input, 0, tags);
-		try {
-			TLVEncoder encoder = new TLVEncoder();
-			TLV tlv = encoder.encode(Hex.hexToByteArray("9F26"), new byte[128]);
-
-			byte[] raw = ArrayUtils.concat(tlv.getTag(), tlv.getLength(), tlv.getValue());
-			TLVDecoder decoder = new TLVDecoder();
-			decoder.parse(raw);
-
-		} catch(Exception e) {
-			e.printStackTrace();;
-		}
-	}
-
 	public void helper(byte[] input, int offset, List<TLV> tags) throws TLVException {
-		/*
-		 * Parse tag
-		 */
+
+		// Parse tag
 		byte[] tag = new byte[]{input[0]};
 		if ((input[offset] & 0x1f) == 0x1f) {
 			/*
@@ -56,7 +38,8 @@ public class TLVDecoder {
 			} while ((input[offset] & 0x80) == 0x80);
 		}
 
-		System.out.println("Parsed tag: " + Hex.toHexString(tag));
+		// Validate tag
+		TLVEncoder.validateTag(tag);
 
 		if (offset + 1 >= input.length) {
 			return;
@@ -66,19 +49,20 @@ public class TLVDecoder {
 		byte[] lengthEncoded;
 
 		if ((length & 0x80) == 0x80) {
+
 			int numBytesForLength = length ^ (byte) 0x80;
-			lengthEncoded = new byte[numBytesForLength];
-			System.arraycopy(input, offset, lengthEncoded, 0, numBytesForLength);
+
+			// Save the actual encoded length
+			lengthEncoded = new byte[numBytesForLength + 1];
+			System.arraycopy(input, offset, lengthEncoded, 0, numBytesForLength + 1);
+
 			length = 0;
 			while (numBytesForLength-- > 0) {
-				length |= (input[++offset] & 0xFF) << (numBytesForLength * 8);
+				length |= (input[++offset] & 0xff) << (numBytesForLength * 8);
 			}
 		} else {
 			lengthEncoded = new byte[]{(byte)length};
 		}
-
-
-		System.out.println("Parsed length " + length);
 
 		++offset; // Now positioned at first data byte
 
@@ -99,18 +83,5 @@ public class TLVDecoder {
 		} else {
 			tags.add(new TLV(tag, lengthEncoded, value));
 		}
-
-
-		/*
-		if (wrapperTagsHex.contains(tag.tagAsHex())) {
-			helper(tag.dataBytes, 0, tags, wrapperTagsHex);
-		} else {
-			tags.add(tag);
-		}
-		*/
-
-
-
 	}
-
 }
