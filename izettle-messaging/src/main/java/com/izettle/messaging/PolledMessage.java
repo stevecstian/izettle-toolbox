@@ -30,7 +30,7 @@ public class PolledMessage<M> {
 	 */
 	public PolledMessage(M message) {
 		this.message = message;
-		this.messageId = UUIDFactory.createAsString();
+		this.messageId = UUIDFactory.createUUID4AsString();
 	}
 
 	public M getMessage() {

@@ -75,7 +75,7 @@ public class Base64 {
 	}
 
 	/**
-	 * Will translate a b64 string to it's byte array conterpart. The alphabet used is A-Za-z0-9-_. The input string
+	 * Will translate (decode) a b64 string to it's byte array conterpart. The alphabet used is A-Za-z0-9-_. The input string
 	 * must not be chunked. This method will produce the exact same output as
 	 * org.apache.commons.codec.binary.Base64.decodeBase64, but twice as fast
 	 * @param b64 the encoded string
