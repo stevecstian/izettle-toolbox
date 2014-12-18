@@ -1,6 +1,7 @@
 package com.izettle.tlv;
 
 import com.izettle.java.ArrayUtils;
+import com.izettle.java.Hex;
 
 /**
  * Created by fidde on 16/12/14.
@@ -32,4 +33,13 @@ public class TLV {
 	public byte[] toBytes() {
 		return ArrayUtils.concat(tag, length, value);
 	}
+
+	@Override
+	public String toString() {
+		return String.format(
+			"[T:%s L:%s V:%s]",
+			Hex.toHexString(tag),
+			Hex.toHexString(length),
+			Hex.toHexString(value));
+	};
 }
