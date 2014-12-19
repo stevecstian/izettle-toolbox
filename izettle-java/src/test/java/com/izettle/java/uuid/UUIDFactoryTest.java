@@ -1,4 +1,4 @@
-package com.izettle.java;
+package com.izettle.java.uuid;
 
 import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.izettle.java.uuid.uuid1.UUID1Utils;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.UUID;
@@ -101,7 +102,7 @@ public class UUIDFactoryTest {
 		byte[] uuidBytes = UUIDFactory.uuidToByteArray(uuidAsString);
 
 		UUID uuid = createUUID1(uuidBytes);
-		Date uuidDate = getDateFromUUID1(uuid);
+		Date uuidDate = UUID1Utils.getDateFromUUID1(uuid);
 
 		// Assert that the UUID date is after the recent current date
 		assertTrue(uuidDate.compareTo(recentCurrentDate) > 0);
@@ -139,15 +140,5 @@ public class UUIDFactoryTest {
 			throw new IllegalArgumentException("The supplied byte array could not be converted into a UUID version 1");
 		}
 		return uuid1;
-	}
-
-	/**
-	 * This extracts and converts the 64-bit UUID timestamp to a UNIX timestamp and finally returns it as a Date
-	 * @param uuid1 The UUID to extracted from.
-	 * @return The extracted date from the UUID.
-	 */
-	private static Date getDateFromUUID1(UUID uuid1) {
-		long numberOf100NanosecondsIntervalsSinceUuidEpoch = 0x01b21dd213814000L;
-		return new Date((uuid1.timestamp() - numberOf100NanosecondsIntervalsSinceUuidEpoch) / 10000);
 	}
 }

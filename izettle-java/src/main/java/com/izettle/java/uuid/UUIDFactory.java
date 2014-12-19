@@ -1,6 +1,7 @@
-package com.izettle.java;
+package com.izettle.java.uuid;
 
-import com.fasterxml.uuid.Generators;
+import com.izettle.java.Base64;
+import com.izettle.java.uuid.uuid1.UUID1Generator;
 import java.util.UUID;
 
 /**
@@ -28,7 +29,7 @@ public final class UUIDFactory {
 	 * @return The encoded UUID as string.
 	 */
 	public static String createUUID1AsString() {
-		return toBase64String(Generators.timeBasedGenerator().generate());
+		return toBase64String(UUID1Generator.generate());
 	}
 
 	/**

@@ -1,6 +1,6 @@
 package com.izettle.messaging;
 
-import com.izettle.java.UUIDFactory;
+import com.izettle.java.uuid.UUIDFactory;
 
 /**
  * Wrapper for message received from message queue. Holds both the message itself, and a handle to the message
