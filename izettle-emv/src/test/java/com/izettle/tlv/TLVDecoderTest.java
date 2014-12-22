@@ -3,7 +3,6 @@ package com.izettle.tlv;
 import com.izettle.java.Hex;
 import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.List;
 
 /**
@@ -56,7 +55,7 @@ public class TLVDecoderTest {
 
 		byte[] tlvData = Hex.hexToByteArray("9F1F01AA");
 		TLVDecoder dec = new TLVDecoder();
-		TLV tlv = dec.decode(tlvData).get(0);
+		dec.decode(tlvData).get(0);
 	}
 
 	@Test
