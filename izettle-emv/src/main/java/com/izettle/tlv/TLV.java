@@ -1,9 +1,9 @@
 package com.izettle.tlv;
 
 import static com.izettle.java.ValueChecks.anyNull;
+
 import com.izettle.java.ArrayUtils;
 import com.izettle.java.Hex;
-
 import java.util.Arrays;
 
 /**

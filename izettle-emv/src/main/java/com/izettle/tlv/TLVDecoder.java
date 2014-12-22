@@ -1,7 +1,6 @@
 package com.izettle.tlv;
 
 import com.izettle.java.ArrayUtils;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
