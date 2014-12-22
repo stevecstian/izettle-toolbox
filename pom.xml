@@ -68,7 +68,8 @@
 		<module>izettle-cryptography</module>
 		<module>izettle-cassandra</module>
 		<module>izettle-cart</module>
-	</modules>
+		<module>izettle-emv</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
