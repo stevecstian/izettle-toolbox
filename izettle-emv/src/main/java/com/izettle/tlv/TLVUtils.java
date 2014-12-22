@@ -7,6 +7,8 @@ import static com.izettle.java.ValueChecks.empty;
  */
 public class TLVUtils {
 
+	private TLVUtils() {}
+
 	static int tagToInt(byte[] tag) throws TLVException {
 
 		validateTag(tag);

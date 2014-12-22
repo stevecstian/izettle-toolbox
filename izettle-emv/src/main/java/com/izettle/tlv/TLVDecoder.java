@@ -1,9 +1,11 @@
 package com.izettle.tlv;
 
 import com.izettle.java.ArrayUtils;
-import com.izettle.java.Hex;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * ISO 7816 / ASN.1 compliantish decoder.
@@ -11,11 +13,9 @@ import java.util.*;
  */
 public class TLVDecoder {
 
-	private Set<Integer> expandTags = new HashSet<>();
+	private final Set<Integer> expandTags = new HashSet<>();
 
-	public TLVDecoder() {
-
-	}
+	public TLVDecoder() { }
 
 	public void addExpandTag(byte[] tag) throws TLVException {
 		expandTags.add(TLVUtils.tagToInt(tag));

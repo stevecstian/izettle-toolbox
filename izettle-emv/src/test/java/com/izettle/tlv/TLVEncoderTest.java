@@ -49,4 +49,11 @@ public class TLVEncoderTest {
 		TLVEncoder encoder = new TLVEncoder();
 		encoder.encode(new byte[]{(byte) 0x1f, (byte) 0x1f, (byte)0x20}, new byte[5]);
 	}
+
+	@Test(expected = TLVException.class)
+	public void testNullValue() throws Exception {
+
+		TLVEncoder encoder = new TLVEncoder();
+		encoder.encode(new byte[]{(byte) 0x1f, (byte) 0x1f, (byte)0x20}, null);
+	}
 }

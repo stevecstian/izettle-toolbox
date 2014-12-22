@@ -8,8 +8,4 @@ public class TLVException extends Exception {
 	public TLVException(String str) {
 		super(str);
 	}
-
-	public TLVException(String str, Throwable t) {
-		super(str, t);
-	}
 }
