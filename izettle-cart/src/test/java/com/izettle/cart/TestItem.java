@@ -50,7 +50,7 @@ public class TestItem implements Item<TestItem, TestDiscount> {
 
 	@Override
 	public TestItem inverse() {
-		return new TestItem(unitPrice, vatPercentage, quantity.negate());
+		return new TestItem(name, unitPrice, vatPercentage, quantity.negate(), discount != null ? discount.inverse() : null);
 	}
 
 	@Override
