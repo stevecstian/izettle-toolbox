@@ -1,4 +1,4 @@
-package com.izettle.java.uuid;
+package com.izettle.java;
 
 import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
@@ -7,7 +7,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.izettle.java.uuid.uuid1.UUID1Utils;
+import com.izettle.java.testutils.UUIDUtils;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.UUID;
@@ -102,7 +102,7 @@ public class UUIDFactoryTest {
 		byte[] uuidBytes = UUIDFactory.uuidToByteArray(uuidAsString);
 
 		UUID uuid = createUUID1(uuidBytes);
-		Date uuidDate = UUID1Utils.getDateFromUUID1(uuid);
+		Date uuidDate = UUIDUtils.getDateFromUUID1(uuid);
 
 		// Assert that the UUID date is after the recent current date
 		assertTrue(uuidDate.compareTo(recentCurrentDate) > 0);
