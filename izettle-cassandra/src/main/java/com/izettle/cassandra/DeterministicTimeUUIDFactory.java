@@ -69,7 +69,7 @@ public class DeterministicTimeUUIDFactory {
 		midhi &= ~0xF000; // remove high nibble of 6th byte
 		midhi |= 0x1000; // type 1
 		long midhiL = (long) midhi;
-		midhiL = ((midhiL << 32) >>> 32); // to get rid of sign extension
+		midhiL = (midhiL << 32) >>> 32; // to get rid of sign extension
 		// and reconstruct
 		// last detail: must force 2 MSB to be '10'
 		return (((long) clockLo) << 32) | midhiL;

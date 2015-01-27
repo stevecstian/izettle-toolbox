@@ -196,7 +196,7 @@ public abstract class ResourceUtils {
 	// Heavily influenced from http://stackoverflow.com/questions/6247144/how-to-load-a-folder-from-a-jar
 	public static String[] getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
 		URL dirURL = clazz.getClassLoader().getResource(path);
-		if (dirURL != null && dirURL.getProtocol().equals("file")) {
+		if (dirURL != null && "file".equals(dirURL.getProtocol())) {
 			/* A file path: easy enough */
 			return new File(dirURL.toURI()).list();
 		}
@@ -206,17 +206,17 @@ public abstract class ResourceUtils {
 			 * In case of a jar file, we can't actually find a directory.
 			 * Have to assume the same jar as clazz.
 			 */
-			String me = clazz.getName().replace(".", "/")+".class";
+			String me = clazz.getName().replace(".", "/") + ".class";
 			dirURL = clazz.getClassLoader().getResource(me);
 		}
 
-		if (dirURL != null && dirURL.getProtocol().equals("jar")) {
+		if (dirURL != null && "jar".equals(dirURL.getProtocol())) {
 			/* A JAR path */
 			String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
 			JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
 			Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
 			Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory
-			while(entries.hasMoreElements()) {
+			while (entries.hasMoreElements()) {
 				String name = entries.nextElement().getName();
 				if (name.startsWith(path)) { //filter according to the path
 					String filename = name.substring(path.length());
@@ -228,6 +228,6 @@ public abstract class ResourceUtils {
 			return result.toArray(new String[result.size()]);
 		}
 
-		throw new UnsupportedOperationException("Cannot list files for URL "+dirURL);
+		throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
 	}
 }

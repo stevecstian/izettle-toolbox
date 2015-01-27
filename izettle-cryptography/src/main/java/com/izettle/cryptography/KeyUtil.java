@@ -40,7 +40,7 @@ public final class KeyUtil {
 		}
 	}
 
-	private static abstract class KeyReader {
+	private abstract static class KeyReader {
 
 		protected final InputStream input;
 

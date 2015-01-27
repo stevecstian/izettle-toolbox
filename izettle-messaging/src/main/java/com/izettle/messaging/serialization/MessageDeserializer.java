@@ -14,7 +14,7 @@ public class MessageDeserializer<M> {
 
 	private final byte[] privatePgpKey;
 	private final String privatePgpKeyPassphrase;
-	private static final ObjectMapper jsonMapper = JsonSerializer.getInstance();
+	private static final ObjectMapper JSON_MAPPER = JsonSerializer.getInstance();
 	private final Class<M> messageClass;
 
 	public MessageDeserializer(Class<M> messageClass, byte[] privatePgpKey, final String privatePgpKeyPassphrase) {
@@ -38,12 +38,12 @@ public class MessageDeserializer<M> {
 	}
 
 	public M deserialize(String message) throws IOException {
-		return jsonMapper.readValue(message, messageClass);
+		return JSON_MAPPER.readValue(message, messageClass);
 	}
 
 	public static String removeSnsEnvelope(String message) throws IOException {
 		if (!empty(message) && message.startsWith("{")) {
-			JsonNode root = jsonMapper.readTree(message);
+			JsonNode root = JSON_MAPPER.readTree(message);
 			if (root.has("TopicArn") && root.has("Message")) {
 				return root.get("Message").asText();
 			}

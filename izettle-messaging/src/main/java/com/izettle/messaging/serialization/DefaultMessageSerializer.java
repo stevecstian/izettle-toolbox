@@ -13,7 +13,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 public class DefaultMessageSerializer implements MessageSerializer {
 
 	private final PGPPublicKey publicKey;
-	private final static ObjectMapper jsonMapper = JsonSerializer.getInstance();
+	private static final ObjectMapper JSON_MAPPER = JsonSerializer.getInstance();
 
 	public DefaultMessageSerializer(byte[] publicPgpKey) throws CryptographyException {
 		try (InputStream publicPgpKeyInputStream = new ByteArrayInputStream(publicPgpKey)) {
@@ -38,6 +38,6 @@ public class DefaultMessageSerializer implements MessageSerializer {
 
 	@Override
 	public String serialize(Object message) throws JsonProcessingException {
-		return jsonMapper.writeValueAsString(message);
+		return JSON_MAPPER.writeValueAsString(message);
 	}
 }

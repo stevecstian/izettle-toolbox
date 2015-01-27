@@ -16,7 +16,7 @@ public class TLV {
 	private final byte[] value;
 
 	public TLV(byte[] tag, byte[] length, byte[] value) {
-		if(anyNull(tag, length, value)) {
+		if (anyNull(tag, length, value)) {
 			throw new IllegalStateException("No null arguments");
 		}
 		this.tag = tag;

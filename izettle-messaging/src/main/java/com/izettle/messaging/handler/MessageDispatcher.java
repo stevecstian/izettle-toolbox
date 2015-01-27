@@ -25,7 +25,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
 	private final MessageDeserializer<String> messageDeserializer;
 	private final Map<String, ListOfMessageHandlersForType> messageHandlersPerEventName = new ConcurrentHashMap<>();
 	private final List<MessageHandler<AmazonSNSMessage>> defaultMessageHandlers = new ArrayList<>();
-	private final static ObjectMapper jsonMapper = JsonSerializer.getInstance();
+	private static final ObjectMapper JSON_MAPPER = JsonSerializer.getInstance();
 
 	public static MessageDispatcher nonEncryptedMessageDispatcher() {
 		return new MessageDispatcher();
@@ -37,7 +37,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
 		}
 		return new MessageDispatcher(privatePgpKey, privatePgpKeyPassphrase);
 	}
-	
+
 	private MessageDispatcher() {
 		this.messageDeserializer = new MessageDeserializer<>(String.class);
 	}
@@ -49,8 +49,8 @@ public class MessageDispatcher implements MessageHandler<Message> {
 	private static class ListOfMessageHandlersForType<M> {
 		private final Class<M> messageType;
 		public final List<MessageHandler<M>> handlers = new ArrayList<>();
-		private final static ObjectMapper jsonMapper = JsonSerializer.getInstance();
-		
+		private static final ObjectMapper JSON_MAPPER = JsonSerializer.getInstance();
+
 		public ListOfMessageHandlersForType(Class<M> messageType) {
 			this.messageType = messageType;
 		}
@@ -58,7 +58,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
 			handlers.add(handler);
 		}
 		public void callAllHandlers(String message) throws Exception {
-			M msg = jsonMapper.readValue(message, messageType);
+			M msg = JSON_MAPPER.readValue(message, messageType);
 			MessageDispatcher.callAllHandlers(handlers, msg);
 		}
 	}
@@ -90,11 +90,11 @@ public class MessageDispatcher implements MessageHandler<Message> {
 	public void addDefaultHandler(MessageHandler<AmazonSNSMessage> handler) {
 		defaultMessageHandlers.add(handler);
 	}
-	
+
 	@Override
 	public void handle(Message message) throws Exception {
 		String messageBody = message.getBody();
-		AmazonSNSMessage sns = jsonMapper.readValue(messageBody, AmazonSNSMessage.class);
+		AmazonSNSMessage sns = JSON_MAPPER.readValue(messageBody, AmazonSNSMessage.class);
 		String decryptedMessage = messageDeserializer.decrypt(sns.getMessage());
 		String eventName = sns.getSubject();
 		if (empty(eventName)) {
@@ -104,7 +104,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
 					+ "Make sure that you publish your message with a message subject before trying to receive it."
 			);
 		}
-		
+
 		if (messageHandlersPerEventName.containsKey(eventName)) {
 			messageHandlersPerEventName.get(eventName).callAllHandlers(decryptedMessage);
 		} else {

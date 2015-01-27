@@ -20,7 +20,7 @@ public class CalendarCreator {
 		return Calendar.getInstance(timeZoneId.getTimeZone(), locale);
 	}
 
-	public static Calendar create(Date date, TimeZoneId timeZoneId, Locale locale){
+	public static Calendar create(Date date, TimeZoneId timeZoneId, Locale locale) {
 		Calendar calendar = create(timeZoneId, locale);
 		calendar.setTime(date);
 		return calendar;

@@ -2,7 +2,7 @@ package com.izettle.java;
 
 public class Hex {
 
-	private final static char[] BASE_16_DIGITS = "0123456789ABCDEF".toCharArray();
+	private static final char[] BASE_16_DIGITS = "0123456789ABCDEF".toCharArray();
 
 	/**
 	 * Will return an uppercase hex representation of the provided byte array.
@@ -26,8 +26,8 @@ public class Hex {
 
 	public static String toHexString(byte b) {
 		char[] result = new char[2];
-		result[0] = BASE_16_DIGITS[((b >> 4) & 0x0000000F)];
-		result[1] = BASE_16_DIGITS[(b & 0x0000000F)];
+		result[0] = BASE_16_DIGITS[(b >> 4) & 0x0000000F];
+		result[1] = BASE_16_DIGITS[b & 0x0000000F];
 		return String.valueOf(result);
 	}
 
@@ -35,7 +35,7 @@ public class Hex {
 		if (hexString == null) {
 			return null;
 		}
-		byte[] retArr = new byte[(hexString.length() / 2)];
+		byte[] retArr = new byte[hexString.length() / 2];
 		for (int i = 0; i < retArr.length; i++) {
 			retArr[i] = hexToByte(hexString.substring(i * 2, i * 2 + 2));
 		}

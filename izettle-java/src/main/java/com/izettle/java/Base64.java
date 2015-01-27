@@ -2,8 +2,8 @@ package com.izettle.java;
 
 public class Base64 {
 
-	final static char[] BASE_64_DIGITS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
-	final static int[] BASE_64_VALUES = new int['z' + 1];
+	static final char[] BASE_64_DIGITS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
+	static final int[] BASE_64_VALUES = new int['z' + 1];
 
 	static {
 		for (int i = 0; i < BASE_64_DIGITS.length; i++) {
@@ -43,7 +43,7 @@ public class Base64 {
 				}
 				case 6: {
 					byte bm = (byte) (0xFF >> 6); //"00000011";
-					tmpVal = ((firstByteVal & bm) << 4);
+					tmpVal = (firstByteVal & bm) << 4;
 					if (byteOffset + 1 < byteArr.length) {
 						byte bm2 = (byte) (0xFF << 4); //"11110000";
 						tmpVal |= (byteArr[byteOffset + 1] & 0xff & bm2) >> 4;
@@ -52,7 +52,7 @@ public class Base64 {
 				}
 				case 4: {
 					byte bm = (byte) (0xFF >> 4); //"00001111";
-					tmpVal = ((firstByteVal & bm) << 2);
+					tmpVal = (firstByteVal & bm) << 2;
 					if (byteOffset + 1 < byteArr.length) {
 						byte bm2 = (byte) (0xFF << 6); //"11000000";
 						tmpVal |= (byteArr[byteOffset + 1] & 0xff & bm2) >> 6;

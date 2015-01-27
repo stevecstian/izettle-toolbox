@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 
-	private final static Logger LOG = LoggerFactory.getLogger(AwsSecurityGroupHostSupplier.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AwsSecurityGroupHostSupplier.class);
 
 	private final AmazonEC2 client;
 	private Region region;
@@ -45,7 +45,7 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 
 	private static final int DEFAULT_TIMEOUT = 5000;
 	private static final Region DEFAULT_REGION = Region.getRegion(Regions.EU_WEST_1);
-	private static final String metadataEndpoint = "http://169.254.169.254/latest/meta-data/placement/availability-zone";
+	private static final String METADATA_ENDPOINT = "http://169.254.169.254/latest/meta-data/placement/availability-zone";
 
 	/**
 	 * Constructor with a specific region. Can run on non-AWS installations.
@@ -85,7 +85,7 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 	 */
 	private Region findMyRegion() {
 		try {
-			URL url = new URL(metadataEndpoint);
+			URL url = new URL(METADATA_ENDPOINT);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setConnectTimeout(DEFAULT_TIMEOUT); // 5 seconds
 			conn.setReadTimeout(DEFAULT_TIMEOUT); // 5 seconds

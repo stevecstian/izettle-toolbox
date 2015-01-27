@@ -17,12 +17,12 @@ public interface MessageSerializer {
 	 * @return encrypted message
 	 * @throws CryptographyException if encryption of message fail
 	 */
-	public String encrypt(String message) throws CryptographyException;
+	String encrypt(String message) throws CryptographyException;
 
 	/**
 	 * @param message to be serialized.
 	 * @return serialized version of the message.
 	 * @throws JsonProcessingException if the serialization fail.
 	 */
-	public String serialize(Object message) throws JsonProcessingException;
+	String serialize(Object message) throws JsonProcessingException;
 }

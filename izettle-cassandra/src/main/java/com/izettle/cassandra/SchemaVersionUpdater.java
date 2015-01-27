@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SchemaVersionUpdater {
 
-	private final static Logger LOG = LoggerFactory.getLogger(SchemaVersionUpdater.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SchemaVersionUpdater.class);
 	private static final String COLUMN_FAMILY_NAME = "schema_scripts_version";
 
 	private final Keyspace keyspace;

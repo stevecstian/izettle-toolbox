@@ -31,7 +31,7 @@ public class QueueProcessor implements MessageQueueProcessor {
 	private final String deadLetterQueueUrl;
 	private final AmazonSQS amazonSQS;
 	private final MessageHandler<Message> messageHandler;
-	private int deadLetterQueuePollSequence = 0;
+	private int deadLetterQueuePollSequence;
 
 	public static MessageQueueProcessor createQueueProcessor(
 			AmazonSQS amazonSQS,

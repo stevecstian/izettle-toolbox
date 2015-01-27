@@ -101,7 +101,7 @@ public class PGP {
 		PGPPrivateKey key = null;
 		PGPPublicKeyEncryptedData encrypted = null;
 		final PGPSecretKeyRingCollection keys = new PGPSecretKeyRingCollection(new ArmoredInputStream(keyfile));
-		for (final Iterator<PGPPublicKeyEncryptedData> i = getEncryptedObjects(data); key == null && i.hasNext(); ) {
+		for (final Iterator<PGPPublicKeyEncryptedData> i = getEncryptedObjects(data); key == null && i.hasNext();) {
 			encrypted = i.next();
 			key = findSecretKey(keys, encrypted.getKeyID(), passphrase);
 		}
@@ -123,8 +123,8 @@ public class PGP {
 			final PGPObjectFactory pgpFact = new PGPObjectFactory(cData.getDataStream());
 			// Find the first PGPLiteralData object
 			Object object = null;
-			for (int safety = 0; safety++ < 1000 && !(object instanceof PGPLiteralData); object = pgpFact.nextObject())
-				;
+			for (int safety = 0; safety++ < 1000 && !(object instanceof PGPLiteralData); object = pgpFact.nextObject()) {
+            }
 			return (PGPLiteralData) object;
 		} else if (message instanceof PGPLiteralData) {
 			return (PGPLiteralData) message;

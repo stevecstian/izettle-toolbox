@@ -64,7 +64,7 @@ public class TLVDecoder {
 				length |= (input[++offset] & 0xff) << (numBytesForLength * 8);
 			}
 		} else {
-			lengthEncoded = new byte[]{(byte)length};
+			lengthEncoded = new byte[]{(byte) length};
 		}
 
 		++offset; // Now positioned at first data byte
@@ -78,7 +78,7 @@ public class TLVDecoder {
 
 		int tagAsInteger = TLVUtils.tagToInt(tag);
 
-		if(expandTags.contains(tagAsInteger)) {
+		if (expandTags.contains(tagAsInteger)) {
 			helper(value, 0, tags);
 		} else {
 			tags.add(new TLV(tag, lengthEncoded, value));

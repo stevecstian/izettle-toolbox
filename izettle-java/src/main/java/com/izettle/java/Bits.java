@@ -19,14 +19,14 @@ public class Bits {
 		boolean[] bits = new boolean[bytes.length * 8];
 		int p = 0;
 		for (int i = 0; i < bytes.length; i++, p += 8) {
-			bits[p+0] = (bytes[i] & 0x80) > 0;
-			bits[p+1] = (bytes[i] & 0x40) > 0;
-			bits[p+2] = (bytes[i] & 0x20) > 0;
-			bits[p+3] = (bytes[i] & 0x10) > 0;
-			bits[p+4] = (bytes[i] & 0x08) > 0;
-			bits[p+5] = (bytes[i] & 0x04) > 0;
-			bits[p+6] = (bytes[i] & 0x02) > 0;
-			bits[p+7] = (bytes[i] & 0x01) > 0;
+			bits[p + 0] = (bytes[i] & 0x80) > 0;
+			bits[p + 1] = (bytes[i] & 0x40) > 0;
+			bits[p + 2] = (bytes[i] & 0x20) > 0;
+			bits[p + 3] = (bytes[i] & 0x10) > 0;
+			bits[p + 4] = (bytes[i] & 0x08) > 0;
+			bits[p + 5] = (bytes[i] & 0x04) > 0;
+			bits[p + 6] = (bytes[i] & 0x02) > 0;
+			bits[p + 7] = (bytes[i] & 0x01) > 0;
 		}
 		return bits;
 	}

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class JsonSerializer {
-	private final static ObjectMapper jsonMapper = createInstance();
+	private static final ObjectMapper JSON_MAPPER = createInstance();
 
 	private static ObjectMapper createInstance() {
 		ObjectMapper result = new ObjectMapper();
@@ -13,6 +13,6 @@ public class JsonSerializer {
 	}
 
 	public static ObjectMapper getInstance() {
-		return jsonMapper;
+		return JSON_MAPPER;
 	}
 }
