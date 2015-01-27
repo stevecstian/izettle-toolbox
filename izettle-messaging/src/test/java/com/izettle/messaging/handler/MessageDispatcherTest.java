@@ -14,99 +14,99 @@ import org.mockito.ArgumentCaptor;
 
 public class MessageDispatcherTest {
 
-	private final MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
-	@SuppressWarnings("unchecked")
-	private final MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
-	@SuppressWarnings("unchecked")
-	private final MessageHandler<String> stringHandler = mock(MessageHandler.class);
-	@SuppressWarnings("unchecked")
-	private final MessageHandler<AmazonSNSMessage> testSNSMessageHandler = mock(MessageHandler.class);
+    private final MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
+    @SuppressWarnings("unchecked")
+    private final MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
+    @SuppressWarnings("unchecked")
+    private final MessageHandler<String> stringHandler = mock(MessageHandler.class);
+    @SuppressWarnings("unchecked")
+    private final MessageHandler<AmazonSNSMessage> testSNSMessageHandler = mock(MessageHandler.class);
 
-	@Test(expected = com.izettle.messaging.MessagingException.class)
-	public void shouldThrowExceptionIfNoMessageHandlersForMessageTypeIsPresent() throws Exception {
-		Message message = new Message();
-		message.setBody("{\"Subject\":\"com.izettle.messaging.messages.MessageWithoutHandle\", \"Message\": \"{}\"}");
+    @Test(expected = com.izettle.messaging.MessagingException.class)
+    public void shouldThrowExceptionIfNoMessageHandlersForMessageTypeIsPresent() throws Exception {
+        Message message = new Message();
+        message.setBody("{\"Subject\":\"com.izettle.messaging.messages.MessageWithoutHandle\", \"Message\": \"{}\"}");
 
-		dispatcher.handle(message);
-	}
+        dispatcher.handle(message);
+    }
 
-	@Test(expected = com.izettle.messaging.MessagingException.class)
-	public void shouldThrowExceptionIfMessageHasNoSubject() throws Exception {
-		Message message = new Message();
-		message.setBody("{\"Message\": \"{}\"}");
-		dispatcher.handle(message);
-	}
+    @Test(expected = com.izettle.messaging.MessagingException.class)
+    public void shouldThrowExceptionIfMessageHasNoSubject() throws Exception {
+        Message message = new Message();
+        message.setBody("{\"Message\": \"{}\"}");
+        dispatcher.handle(message);
+    }
 
-	@Test
-	public void shouldCallSingleHandlerWhenReceivingMessage() throws Exception {
+    @Test
+    public void shouldCallSingleHandlerWhenReceivingMessage() throws Exception {
 
-		dispatcher.addHandler(TestMessage.class, testMessageHandler);
+        dispatcher.addHandler(TestMessage.class, testMessageHandler);
 
-		Message message = new Message();
-		message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
-		dispatcher.handle(message);
+        Message message = new Message();
+        message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+        dispatcher.handle(message);
 
-		verify(testMessageHandler).handle(any(TestMessage.class));
-	}
+        verify(testMessageHandler).handle(any(TestMessage.class));
+    }
 
-	@Test
-	public void shouldCallCorrectHandlerWhenReceivingMessage() throws Exception {
+    @Test
+    public void shouldCallCorrectHandlerWhenReceivingMessage() throws Exception {
 
-		dispatcher.addHandler(TestMessage.class, testMessageHandler);
-		dispatcher.addHandler(String.class, stringHandler);
-		
-		Message message = new Message();
-		message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
-		dispatcher.handle(message);
-		
-		verify(testMessageHandler).handle(any(TestMessage.class));
-		verify(stringHandler, never()).handle(any(String.class));
-	}
+        dispatcher.addHandler(TestMessage.class, testMessageHandler);
+        dispatcher.addHandler(String.class, stringHandler);
 
-	@Test
-	public void shouldDeserializeMessageFromJson() throws Exception {
+        Message message = new Message();
+        message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+        dispatcher.handle(message);
 
-		dispatcher.addHandler(TestMessage.class, testMessageHandler);
-		
-		Message message = new Message();
-		message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"Hello!\\\"}\"}");
-		dispatcher.handle(message);
+        verify(testMessageHandler).handle(any(TestMessage.class));
+        verify(stringHandler, never()).handle(any(String.class));
+    }
 
-		ArgumentCaptor<TestMessage> argumentCaptor = ArgumentCaptor.forClass(TestMessage.class);
-		verify(testMessageHandler).handle(argumentCaptor.capture());
-		TestMessage testMessage = argumentCaptor.getValue();
-		assertEquals("Hello!", testMessage.getMessage());
-	}
+    @Test
+    public void shouldDeserializeMessageFromJson() throws Exception {
 
-	@Test
-	public void shouldCallHandlerForEventNameWhenReceivingMessage() throws Exception {
+        dispatcher.addHandler(TestMessage.class, testMessageHandler);
 
-		// Arrange
-		dispatcher.addHandler(String.class, stringHandler);
-		dispatcher.addHandler(TestMessage.class, "ForcedEventName", testMessageHandler);
+        Message message = new Message();
+        message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"Hello!\\\"}\"}");
+        dispatcher.handle(message);
 
-		Message message = new Message();
-		message.setBody("{\"Subject\":\"ForcedEventName\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+        ArgumentCaptor<TestMessage> argumentCaptor = ArgumentCaptor.forClass(TestMessage.class);
+        verify(testMessageHandler).handle(argumentCaptor.capture());
+        TestMessage testMessage = argumentCaptor.getValue();
+        assertEquals("Hello!", testMessage.getMessage());
+    }
 
-		// Act
-		dispatcher.handle(message);
+    @Test
+    public void shouldCallHandlerForEventNameWhenReceivingMessage() throws Exception {
 
-		// Assert
-		verify(testMessageHandler).handle(any(TestMessage.class));
-		verify(stringHandler, never()).handle(any(String.class));
-	}
+        // Arrange
+        dispatcher.addHandler(String.class, stringHandler);
+        dispatcher.addHandler(TestMessage.class, "ForcedEventName", testMessageHandler);
 
-	@Test
-	public void shouldCallDefaultHandlerWhenReceivingMessageAndNoOtherMessageHandlersMatch() throws Exception {
+        Message message = new Message();
+        message.setBody("{\"Subject\":\"ForcedEventName\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
 
-		dispatcher.addHandler(TestMessage.class, testMessageHandler);
-		dispatcher.addDefaultHandler(testSNSMessageHandler);
+        // Act
+        dispatcher.handle(message);
 
-		Message message = new Message();
-		message.setBody("{\"Subject\":\"MessageTypeThatDoesNotMatch\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
-		dispatcher.handle(message);
+        // Assert
+        verify(testMessageHandler).handle(any(TestMessage.class));
+        verify(stringHandler, never()).handle(any(String.class));
+    }
 
-		verify(testSNSMessageHandler).handle(any(AmazonSNSMessage.class));
-		verify(testMessageHandler, never()).handle(any(TestMessage.class));
-	}
+    @Test
+    public void shouldCallDefaultHandlerWhenReceivingMessageAndNoOtherMessageHandlersMatch() throws Exception {
+
+        dispatcher.addHandler(TestMessage.class, testMessageHandler);
+        dispatcher.addDefaultHandler(testSNSMessageHandler);
+
+        Message message = new Message();
+        message.setBody("{\"Subject\":\"MessageTypeThatDoesNotMatch\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+        dispatcher.handle(message);
+
+        verify(testSNSMessageHandler).handle(any(AmazonSNSMessage.class));
+        verify(testMessageHandler, never()).handle(any(TestMessage.class));
+    }
 }

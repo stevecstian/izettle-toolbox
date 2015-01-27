@@ -35,145 +35,145 @@ import org.slf4j.LoggerFactory;
  */
 public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 
-	private final static Logger LOG = LoggerFactory.getLogger(AwsSecurityGroupHostSupplier.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AwsSecurityGroupHostSupplier.class);
 
-	private final AmazonEC2 client;
-	private Region region;
-	private final int port;
-	private final Filter filter;
-	private volatile List<Host> previousHosts;
+    private final AmazonEC2 client;
+    private Region region;
+    private final int port;
+    private final Filter filter;
+    private volatile List<Host> previousHosts;
 
-	private static final int DEFAULT_TIMEOUT = 5000;
-	private static final Region DEFAULT_REGION = Region.getRegion(Regions.EU_WEST_1);
-	private static final String metadataEndpoint = "http://169.254.169.254/latest/meta-data/placement/availability-zone";
+    private static final int DEFAULT_TIMEOUT = 5000;
+    private static final Region DEFAULT_REGION = Region.getRegion(Regions.EU_WEST_1);
+    private static final String METADATA_ENDPOINT = "http://169.254.169.254/latest/meta-data/placement/availability-zone";
 
-	/**
-	 * Constructor with a specific region. Can run on non-AWS installations.
-	 *
-	 * @param client      - {@link AmazonEC2Client} implementation
-	 * @param groupId     - AWS security group id
-	 * @param region      - AWS {@link Region} to look for nodes in
-	 * @param defaultPort - default Cassandra api port
-	 */
-	public AwsSecurityGroupHostSupplier(AmazonEC2Client client, String groupId, Region region, int defaultPort) {
-		this.client = client;
-		this.filter = new Filter("group-id", Lists.newArrayList(groupId));
-		this.region = region;
-		this.port = defaultPort;
-		if (region == null) {
-			setMyRegion();
-		} else {
-			client.setRegion(region);
-		}
-	}
+    /**
+     * Constructor with a specific region. Can run on non-AWS installations.
+     *
+     * @param client      - {@link AmazonEC2Client} implementation
+     * @param groupId     - AWS security group id
+     * @param region      - AWS {@link Region} to look for nodes in
+     * @param defaultPort - default Cassandra api port
+     */
+    public AwsSecurityGroupHostSupplier(AmazonEC2Client client, String groupId, Region region, int defaultPort) {
+        this.client = client;
+        this.filter = new Filter("group-id", Lists.newArrayList(groupId));
+        this.region = region;
+        this.port = defaultPort;
+        if (region == null) {
+            setMyRegion();
+        } else {
+            client.setRegion(region);
+        }
+    }
 
-	/**
-	 * Constructor with the default region. Will try to determine the Cassandra region based
-	 * on the current instance placement.
-	 * Astyanax should be running on an AWS instance if this constructor is used.
-	 *
-	 * @param client      - {@link AmazonEC2Client} implementation
-	 * @param groupId     - AWS security group id
-	 * @param defaultPort - default Cassandra api port
-	 */
-	public AwsSecurityGroupHostSupplier(AmazonEC2Client client, String groupId, int defaultPort) {
-		this(client, groupId, null, defaultPort);
-	}
+    /**
+     * Constructor with the default region. Will try to determine the Cassandra region based
+     * on the current instance placement.
+     * Astyanax should be running on an AWS instance if this constructor is used.
+     *
+     * @param client      - {@link AmazonEC2Client} implementation
+     * @param groupId     - AWS security group id
+     * @param defaultPort - default Cassandra api port
+     */
+    public AwsSecurityGroupHostSupplier(AmazonEC2Client client, String groupId, int defaultPort) {
+        this(client, groupId, null, defaultPort);
+    }
 
-	/*
-	 * Find out the region we are placed in
-	 */
-	private Region findMyRegion() {
-		try {
-			URL url = new URL(metadataEndpoint);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setConnectTimeout(DEFAULT_TIMEOUT); // 5 seconds
-			conn.setReadTimeout(DEFAULT_TIMEOUT); // 5 seconds
+    /*
+     * Find out the region we are placed in
+     */
+    private Region findMyRegion() {
+        try {
+            URL url = new URL(METADATA_ENDPOINT);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(DEFAULT_TIMEOUT); // 5 seconds
+            conn.setReadTimeout(DEFAULT_TIMEOUT); // 5 seconds
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
-			String zone = br.readLine();
+            String zone = br.readLine();
 
-			br.close();
+            br.close();
 
-			if (zone != null && zone.length() > 0) {
-				zone = zone.substring(0, zone.length() - 1);
-				return Region.getRegion(Regions.fromName(zone));
-			}
+            if (zone != null && zone.length() > 0) {
+                zone = zone.substring(0, zone.length() - 1);
+                return Region.getRegion(Regions.fromName(zone));
+            }
 
-		} catch (IOException e) {
-			LOG.warn("Could not get the Region information, is this instance even running on AWS? "
-					+ "Will try again next time", e);
-		}
+        } catch (IOException e) {
+            LOG.warn("Could not get the Region information, is this instance even running on AWS? "
+                    + "Will try again next time", e);
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	/*
-	 * Find out and set the region if it hasn't already been set
-	 */
-	private void setMyRegion() {
-		if (region == null) {
-			region = findMyRegion();
-			if (region != null) {
-				client.setRegion(region);
-			} else {
-				// set to default region for now, will try again next time
-				client.setRegion(DEFAULT_REGION);
-			}
-		}
-	}
+    /*
+     * Find out and set the region if it hasn't already been set
+     */
+    private void setMyRegion() {
+        if (region == null) {
+            region = findMyRegion();
+            if (region != null) {
+                client.setRegion(region);
+            } else {
+                // set to default region for now, will try again next time
+                client.setRegion(DEFAULT_REGION);
+            }
+        }
+    }
 
-	@Override
-	public synchronized List<Host> get() {
-		try {
-			setMyRegion();
-			Map<String, Host> ipToHost = Maps.newHashMap();
-			DescribeInstancesRequest req = new DescribeInstancesRequest();
-			req.withFilters(filter);
-			DescribeInstancesResult res = client.describeInstances(req);
-			for (Reservation reservation : res.getReservations()) {
-				for (Instance instance : reservation.getInstances()) {
-					String privateIP = instance.getPrivateIpAddress();
-					if (privateIP != null) {
-						Host host = new Host(privateIP, port);
-						ipToHost.put(privateIP, host);
-					}
-				}
-			}
+    @Override
+    public synchronized List<Host> get() {
+        try {
+            setMyRegion();
+            Map<String, Host> ipToHost = Maps.newHashMap();
+            DescribeInstancesRequest req = new DescribeInstancesRequest();
+            req.withFilters(filter);
+            DescribeInstancesResult res = client.describeInstances(req);
+            for (Reservation reservation : res.getReservations()) {
+                for (Instance instance : reservation.getInstances()) {
+                    String privateIP = instance.getPrivateIpAddress();
+                    if (privateIP != null) {
+                        Host host = new Host(privateIP, port);
+                        ipToHost.put(privateIP, host);
+                    }
+                }
+            }
 
-			ArrayList<Host> currentHosts = Lists.newArrayList(ipToHost.values());
-			logHostUpdate(previousHosts, currentHosts);
-			previousHosts = currentHosts;
-			return previousHosts;
-		} catch (AmazonClientException ex) {
-			if (previousHosts == null) {
-				throw new RuntimeException(ex);
-			}
-			LOG.warn("Failed to get hosts for sg: {} in region: {}.  Will use previously known hosts instead",
-					Arrays.toString(filter.getValues().toArray()),
-					region == null ? DEFAULT_REGION.toString() : region.toString());
-			return previousHosts;
-		}
-	}
+            ArrayList<Host> currentHosts = Lists.newArrayList(ipToHost.values());
+            logHostUpdate(previousHosts, currentHosts);
+            previousHosts = currentHosts;
+            return previousHosts;
+        } catch (AmazonClientException ex) {
+            if (previousHosts == null) {
+                throw new RuntimeException(ex);
+            }
+            LOG.warn("Failed to get hosts for sg: {} in region: {}.  Will use previously known hosts instead",
+                    Arrays.toString(filter.getValues().toArray()),
+                    region == null ? DEFAULT_REGION.toString() : region.toString());
+            return previousHosts;
+        }
+    }
 
-	private void logHostUpdate(List<Host> previous, List<Host> current) {
+    private void logHostUpdate(List<Host> previous, List<Host> current) {
 
-		if (current != null) {
-			for (Host host : current) {
-				if (previous == null || !previous.contains(host)) {
-					LOG.info("Registering a possible node on IP {} with the C* connection pool", host.getIpAddress());
-				}
-			}
-		}
+        if (current != null) {
+            for (Host host : current) {
+                if (previous == null || !previous.contains(host)) {
+                    LOG.info("Registering a possible node on IP {} with the C* connection pool", host.getIpAddress());
+                }
+            }
+        }
 
-		if (previous != null) {
-			for (Host host : previous) {
-				if (current == null || !current.contains(host)) {
-					LOG.info("Removing a possible node on IP {} with the C* connection pool", host.getIpAddress());
-				}
-			}
-		}
+        if (previous != null) {
+            for (Host host : previous) {
+                if (current == null || !current.contains(host)) {
+                    LOG.info("Removing a possible node on IP {} with the C* connection pool", host.getIpAddress());
+                }
+            }
+        }
 
-	}
+    }
 }

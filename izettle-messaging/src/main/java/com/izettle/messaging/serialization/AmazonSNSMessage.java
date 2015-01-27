@@ -7,39 +7,39 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AmazonSNSMessage {
-	
-	@JsonProperty("Type")
-	private String type;
-	
-	@JsonProperty("MessageId")
-	private String messageId;
-	
-	@JsonProperty("Message")
-	private String message;
 
-	@JsonProperty("Subject")
-	private String subject;
+    @JsonProperty("Type")
+    private String type;
 
-	public String getType() {
-		return type;
-	}
+    @JsonProperty("MessageId")
+    private String messageId;
 
-	public String getMessageId() {
-		return messageId;
-	}
+    @JsonProperty("Message")
+    private String message;
 
-	public String getMessage() {
-		return message;
-	}
+    @JsonProperty("Subject")
+    private String subject;
 
-	public String getSubject() {
-		return subject;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public AmazonSNSMessage() {
-	}
-	public AmazonSNSMessage(String subject, String message) {
-		this.subject = subject;
-		this.message = message;
-	}
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public AmazonSNSMessage() {
+    }
+    public AmazonSNSMessage(String subject, String message) {
+        this.subject = subject;
+        this.message = message;
+    }
 }

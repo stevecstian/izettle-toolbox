@@ -7,18 +7,18 @@ import org.junit.Test;
 
 public class DateFormatCreatorTest {
 
-	private final Date dateToVerify = new Date(1387920896123L); // 24 Dec 2013, 22:34:56.123 (UTC+1)
+    private final Date dateToVerify = new Date(1387920896123L); // 24 Dec 2013, 22:34:56.123 (UTC+1)
 
-	@Test
-	public void shouldFormatDatesAsRFC3339InUTC() throws Exception {
-		String formattedDate = DateFormatCreator.createRFC3339Formatter().format(dateToVerify);
-		assertEquals("2013-12-24T21:34:56.123+0000", formattedDate);
-	}
-	@Test
-	public void shouldFormatDatesAsRFC3339WithColonInUTC() throws Exception {
-		String formattedDate = DateFormatCreator.createRFC3339FormatterWithColonInTimezone().format(dateToVerify);
-		assertEquals("2013-12-24T21:34:56.123Z", formattedDate);
-		Date parsedDate = DateFormatCreator.createRFC3339FormatterWithColonInTimezone().parse("2013-12-24T21:34:56.123+00:00");
-		assertEquals(dateToVerify.getTime(), parsedDate.getTime());
-	}
+    @Test
+    public void shouldFormatDatesAsRFC3339InUTC() throws Exception {
+        String formattedDate = DateFormatCreator.createRFC3339Formatter().format(dateToVerify);
+        assertEquals("2013-12-24T21:34:56.123+0000", formattedDate);
+    }
+    @Test
+    public void shouldFormatDatesAsRFC3339WithColonInUTC() throws Exception {
+        String formattedDate = DateFormatCreator.createRFC3339FormatterWithColonInTimezone().format(dateToVerify);
+        assertEquals("2013-12-24T21:34:56.123Z", formattedDate);
+        Date parsedDate = DateFormatCreator.createRFC3339FormatterWithColonInTimezone().parse("2013-12-24T21:34:56.123+00:00");
+        assertEquals(dateToVerify.getTime(), parsedDate.getTime());
+    }
 }

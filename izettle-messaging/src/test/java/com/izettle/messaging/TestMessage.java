@@ -1,16 +1,16 @@
 package com.izettle.messaging;
 
 public class TestMessage {
-	private String message;
+    private String message;
 
-	public TestMessage() {
-	}
+    public TestMessage() {
+    }
 
-	public TestMessage(String message) {
-		this.message = message;
-	}
+    public TestMessage(String message) {
+        this.message = message;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public String getMessage() {
+        return message;
+    }
 }

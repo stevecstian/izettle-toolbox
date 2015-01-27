@@ -15,91 +15,91 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 public class PublisherServiceTest {
-	private final AmazonSNSClient snsClient = mock(AmazonSNSClient.class);
+    private final AmazonSNSClient snsClient = mock(AmazonSNSClient.class);
 
-	@Before
-	public final void before() throws Exception {
-		when(snsClient.publish(any(PublishRequest.class))).thenReturn(mock(PublishResult.class));
-	}
+    @Before
+    public final void before() throws Exception {
+        when(snsClient.publish(any(PublishRequest.class))).thenReturn(mock(PublishResult.class));
+    }
 
-	@Test
-	public void shouldUseMessageTypeAsSubjectWhenPostingToSNS() throws Exception {
-		
-		// Arrange
-		TestMessage message = new TestMessage("ad99bb4f");
-		MessagePublisher publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
+    @Test
+    public void shouldUseMessageTypeAsSubjectWhenPostingToSNS() throws Exception {
 
-		// Act
-		publisherService.post(message, TestMessage.class.getName());
+        // Arrange
+        TestMessage message = new TestMessage("ad99bb4f");
+        MessagePublisher publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
 
-		// Assert
-		ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
-		verify(snsClient).publish(argumentCaptor.capture());
-		assertEquals("topicArn", argumentCaptor.getValue().getTopicArn());
-		assertEquals(TestMessage.class.getName(), argumentCaptor.getValue().getSubject());
-		assertEquals("{\"message\":\"ad99bb4f\"}", argumentCaptor.getValue().getMessage());
-	}
+        // Act
+        publisherService.post(message, TestMessage.class.getName());
 
-	@Test
-	public void shouldUseSpecifiedEventNameAsSubjectWhenPostingToSNS() throws Exception {
+        // Assert
+        ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+        verify(snsClient).publish(argumentCaptor.capture());
+        assertEquals("topicArn", argumentCaptor.getValue().getTopicArn());
+        assertEquals(TestMessage.class.getName(), argumentCaptor.getValue().getSubject());
+        assertEquals("{\"message\":\"ad99bb4f\"}", argumentCaptor.getValue().getMessage());
+    }
 
-		// Arrange
-		TestMessage message = new TestMessage("ad99bb4f");
-		MessagePublisher publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
+    @Test
+    public void shouldUseSpecifiedEventNameAsSubjectWhenPostingToSNS() throws Exception {
 
-		// Act
-		publisherService.post(message, "ForcedEventName");
+        // Arrange
+        TestMessage message = new TestMessage("ad99bb4f");
+        MessagePublisher publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
 
-		// Assert
-		ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
-		verify(snsClient).publish(argumentCaptor.capture());
-		assertEquals("topicArn", argumentCaptor.getValue().getTopicArn());
-		assertEquals("ForcedEventName", argumentCaptor.getValue().getSubject());
-		assertEquals("{\"message\":\"ad99bb4f\"}", argumentCaptor.getValue().getMessage());
-	}
+        // Act
+        publisherService.post(message, "ForcedEventName");
 
-	@Test
-	public void itShouldUseTheSuppliedMessageSerializerForEncryptionAndSerializer() throws Exception {
+        // Assert
+        ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+        verify(snsClient).publish(argumentCaptor.capture());
+        assertEquals("topicArn", argumentCaptor.getValue().getTopicArn());
+        assertEquals("ForcedEventName", argumentCaptor.getValue().getSubject());
+        assertEquals("{\"message\":\"ad99bb4f\"}", argumentCaptor.getValue().getMessage());
+    }
 
-		// Arrange
-		final TestMessage message = new TestMessage("ad99bb4f");
-		final MessageSerializer messageSerializer = mock(MessageSerializer.class);
-		final String serializedMessage = "{\"message\":\"serialized message\"}";
-		final String encryptedMessage = "{\"message\":\"encrypted message\"}";
-		when(messageSerializer.serialize(message)).thenReturn(serializedMessage);
-		when(messageSerializer.encrypt(serializedMessage)).thenReturn(encryptedMessage);
-		final MessagePublisher messagePublisher  = PublisherService.nonEncryptedPublisherService(
-				snsClient,
-				"topicArn",
-				messageSerializer
-		);
+    @Test
+    public void itShouldUseTheSuppliedMessageSerializerForEncryptionAndSerializer() throws Exception {
 
-		// Act
-		messagePublisher.post(message, "TestName");
+        // Arrange
+        final TestMessage message = new TestMessage("ad99bb4f");
+        final MessageSerializer messageSerializer = mock(MessageSerializer.class);
+        final String serializedMessage = "{\"message\":\"serialized message\"}";
+        final String encryptedMessage = "{\"message\":\"encrypted message\"}";
+        when(messageSerializer.serialize(message)).thenReturn(serializedMessage);
+        when(messageSerializer.encrypt(serializedMessage)).thenReturn(encryptedMessage);
+        final MessagePublisher messagePublisher  = PublisherService.nonEncryptedPublisherService(
+                snsClient,
+                "topicArn",
+                messageSerializer
+        );
 
-		//Verify
-		verify(messageSerializer).serialize(message);
-		verify(messageSerializer).encrypt(serializedMessage);
+        // Act
+        messagePublisher.post(message, "TestName");
 
-		ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
-		verify(snsClient).publish(argumentCaptor.capture());
-		assertEquals("topicArn", argumentCaptor.getValue().getTopicArn());
-		assertEquals("TestName", argumentCaptor.getValue().getSubject());
-		assertEquals(encryptedMessage, argumentCaptor.getValue().getMessage());
-	}
+        //Verify
+        verify(messageSerializer).serialize(message);
+        verify(messageSerializer).encrypt(serializedMessage);
 
-	@Test(expected = IllegalArgumentException.class)
-	public void itShouldFailToConstructWithEmptySNSClient() throws Exception {
-		PublisherService.nonEncryptedPublisherService(null, "topicArn");
-	}
+        ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+        verify(snsClient).publish(argumentCaptor.capture());
+        assertEquals("topicArn", argumentCaptor.getValue().getTopicArn());
+        assertEquals("TestName", argumentCaptor.getValue().getSubject());
+        assertEquals(encryptedMessage, argumentCaptor.getValue().getMessage());
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void itShouldFailToConstructWithEmptyTopicArn() throws Exception {
-		PublisherService.nonEncryptedPublisherService(snsClient, "");
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void itShouldFailToConstructWithEmptySNSClient() throws Exception {
+        PublisherService.nonEncryptedPublisherService(null, "topicArn");
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void itShouldFailToConstructWithEmptyMessageSerializer() throws Exception {
-		PublisherService.nonEncryptedPublisherService(snsClient, "topicArn", null);
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void itShouldFailToConstructWithEmptyTopicArn() throws Exception {
+        PublisherService.nonEncryptedPublisherService(snsClient, "");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void itShouldFailToConstructWithEmptyMessageSerializer() throws Exception {
+        PublisherService.nonEncryptedPublisherService(snsClient, "topicArn", null);
+    }
 }
