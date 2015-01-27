@@ -22,86 +22,86 @@ import java.util.UUID;
  */
 public class TimeSeries<K> {
 
-	private final Keyspace keyspace;
-	private final ColumnFamily<K, UUID> columnFamily;
+    private final Keyspace keyspace;
+    private final ColumnFamily<K, UUID> columnFamily;
 
-	public TimeSeries(Keyspace keyspace, ColumnFamily<K, UUID> columnFamily) {
-		this.keyspace = keyspace;
-		this.columnFamily = columnFamily;
-	}
+    public TimeSeries(Keyspace keyspace, ColumnFamily<K, UUID> columnFamily) {
+        this.keyspace = keyspace;
+        this.columnFamily = columnFamily;
+    }
 
-	/**
-	 * Adds event to a time series.
-	 *
-	 * @param key Time series key.
-	 * @param uuid Event UUID.
-	 * @param date Event time.
-	 * @param value Event data.
-	 * @throws ConnectionException Failed to store event in Cassandra.
-	 */
-	public void add(K key, UUID uuid, Date date, String value) throws ConnectionException {
-		MutationBatch mutationBatch = keyspace.prepareMutationBatch();
+    /**
+     * Adds event to a time series.
+     *
+     * @param key Time series key.
+     * @param uuid Event UUID.
+     * @param date Event time.
+     * @param value Event data.
+     * @throws ConnectionException Failed to store event in Cassandra.
+     */
+    public void add(K key, UUID uuid, Date date, String value) throws ConnectionException {
+        MutationBatch mutationBatch = keyspace.prepareMutationBatch();
 
-		mutationBatch
-				.withRow(columnFamily, key)
-				.putColumn(DeterministicTimeUUIDFactory.create(uuid, date), value);
+        mutationBatch
+                .withRow(columnFamily, key)
+                .putColumn(DeterministicTimeUUIDFactory.create(uuid, date), value);
 
-		mutationBatch.execute();
-	}
+        mutationBatch.execute();
+    }
 
-	/**
-	 * Adds event to a time series.
-	 *
-	 * @param key Time series key.
-	 * @param eventString Event string. (Instead of seed UUID)
-	 * @param date Event time.
-	 * @param value Event data.
-	 * @throws ConnectionException Failed to store event in Cassandra.
-	 */
-	public void add(K key, String eventString, Date date, String value) throws ConnectionException {
-		MutationBatch mutationBatch = keyspace.prepareMutationBatch();
+    /**
+     * Adds event to a time series.
+     *
+     * @param key Time series key.
+     * @param eventString Event string. (Instead of seed UUID)
+     * @param date Event time.
+     * @param value Event data.
+     * @throws ConnectionException Failed to store event in Cassandra.
+     */
+    public void add(K key, String eventString, Date date, String value) throws ConnectionException {
+        MutationBatch mutationBatch = keyspace.prepareMutationBatch();
 
-		mutationBatch
-				.withRow(columnFamily, key)
-				.putColumn(DeterministicTimeUUIDFactory.create(eventString, date), value);
+        mutationBatch
+                .withRow(columnFamily, key)
+                .putColumn(DeterministicTimeUUIDFactory.create(eventString, date), value);
 
-		mutationBatch.execute();
-	}
+        mutationBatch.execute();
+    }
 
-	/**
-	 * Get events for a specific time period.
-	 *
-	 * @param key Time series key.
-	 * @param begin From time (inclusive).
-	 * @param end To time (exclusive).
-	 * @param reversed If true, the order of the results will be reversed.
-	 * @param count Max number of events to return.
-	 * @return Time series events.
-	 * @throws ConnectionException Failed to retrieve time series events from Cassandra.
-	 */
-	public List<String> get(K key, Date begin, Date end, boolean reversed, int count) throws ConnectionException {
+    /**
+     * Get events for a specific time period.
+     *
+     * @param key Time series key.
+     * @param begin From time (inclusive).
+     * @param end To time (exclusive).
+     * @param reversed If true, the order of the results will be reversed.
+     * @param count Max number of events to return.
+     * @return Time series events.
+     * @throws ConnectionException Failed to retrieve time series events from Cassandra.
+     */
+    public List<String> get(K key, Date begin, Date end, boolean reversed, int count) throws ConnectionException {
 
-		List<String> events = new ArrayList<>();
+        List<String> events = new ArrayList<>();
 
-		OperationResult<ColumnList<UUID>> operationResult = keyspace
-				.prepareQuery(columnFamily)
-				.getKey(key)
-				.withColumnRange(
-						DeterministicTimeUUIDFactory.createFirst(begin),
-						DeterministicTimeUUIDFactory.createLast(end),
-						reversed,
-						count
-				)
-				.execute();
+        OperationResult<ColumnList<UUID>> operationResult = keyspace
+                .prepareQuery(columnFamily)
+                .getKey(key)
+                .withColumnRange(
+                        DeterministicTimeUUIDFactory.createFirst(begin),
+                        DeterministicTimeUUIDFactory.createLast(end),
+                        reversed,
+                        count
+                )
+                .execute();
 
-		ColumnList<UUID> result = operationResult.getResult();
+        ColumnList<UUID> result = operationResult.getResult();
 
-		for (Column<UUID> column : result) {
-			if (column.hasValue()) {
-				events.add(column.getStringValue());
-			}
-		}
+        for (Column<UUID> column : result) {
+            if (column.hasValue()) {
+                events.add(column.getStringValue());
+            }
+        }
 
-		return events;
-	}
+        return events;
+    }
 }

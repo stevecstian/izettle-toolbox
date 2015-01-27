@@ -22,78 +22,78 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 public class QueueProcessorTest {
-	private MessageQueueProcessor queueProcessor;
-	private final AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
-	private final MessageHandler<Message> mockHandler = mock(MessageHandler.class);
-	private final List<Message> receivedMessages = new ArrayList<>();
+    private MessageQueueProcessor queueProcessor;
+    private final AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
+    private final MessageHandler<Message> mockHandler = mock(MessageHandler.class);
+    private final List<Message> receivedMessages = new ArrayList<>();
 
-	@Before
-	public final void before() throws Exception {
-		queueProcessor = QueueProcessor.createQueueProcessor(
-				mockAmazonSQS,
-				"UnitTestProcessor",
-				"testurl",
-				"deadLetterQueueUrl",
-				mockHandler
-		);
+    @Before
+    public final void before() throws Exception {
+        queueProcessor = QueueProcessor.createQueueProcessor(
+                mockAmazonSQS,
+                "UnitTestProcessor",
+                "testurl",
+                "deadLetterQueueUrl",
+                mockHandler
+        );
 
-		ReceiveMessageResult messageResult = mock(ReceiveMessageResult.class);
-		when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(messageResult);
-		when(messageResult.getMessages()).thenReturn(receivedMessages);
-	}
+        ReceiveMessageResult messageResult = mock(ReceiveMessageResult.class);
+        when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(messageResult);
+        when(messageResult.getMessages()).thenReturn(receivedMessages);
+    }
 
-	private Message createMessage(String messageId) {
-		Message msg = new Message();
-		msg.setMessageId(messageId);
-		msg.setReceiptHandle(messageId);
-		return msg;
-	}
+    private Message createMessage(String messageId) {
+        Message msg = new Message();
+        msg.setMessageId(messageId);
+        msg.setReceiptHandle(messageId);
+        return msg;
+    }
 
-	@Test
-	public void shouldPassAllPolledMessagesToSpecifiedHandler() throws Exception {
-		
-		// Arrange
-		Message msg1 = createMessage("msg1");
-		Message msg2 = createMessage("msg2");
-		receivedMessages.add(msg1);
-		receivedMessages.add(msg2);
-		
-		// Act
-		queueProcessor.poll();
-		
-		// Assert
-		verify(mockHandler).handle(msg1);
-		verify(mockHandler).handle(msg2);
-		verifyNoMoreInteractions(mockHandler);
-	}
+    @Test
+    public void shouldPassAllPolledMessagesToSpecifiedHandler() throws Exception {
 
-	@Test
-	public void shouldDeletePolledMessagesAfterHavingPassedThemToTheMessageHandler() throws Exception {
-		// Arrange
-		Message msg1 = createMessage("testReceiptHandle");
-		receivedMessages.add(msg1);
-		
-		// Act
-		queueProcessor.poll();
-		
-		// Assert
-		ArgumentCaptor<DeleteMessageRequest> argumentCaptor = ArgumentCaptor.forClass(DeleteMessageRequest.class);
-		verify(mockAmazonSQS).deleteMessage(argumentCaptor.capture());
-		assertEquals("testReceiptHandle", argumentCaptor.getValue().getReceiptHandle());
-	}
+        // Arrange
+        Message msg1 = createMessage("msg1");
+        Message msg2 = createMessage("msg2");
+        receivedMessages.add(msg1);
+        receivedMessages.add(msg2);
 
-	@Test
-	public void shouldNotDeletePolledMessagesIfTheHandlerThrowsAnException() throws Exception {
-		// Arrange
-		Message msg1 = createMessage("msg1");
-		receivedMessages.add(msg1);
-		doThrow(new Exception()).when(mockHandler).handle(msg1);
-		
-		// Act
-		queueProcessor.poll();
-		
-		// Assert
-		verify(mockHandler).handle(msg1);
-		verify(mockAmazonSQS, never()).deleteMessage(any(DeleteMessageRequest.class));
-	}
+        // Act
+        queueProcessor.poll();
+
+        // Assert
+        verify(mockHandler).handle(msg1);
+        verify(mockHandler).handle(msg2);
+        verifyNoMoreInteractions(mockHandler);
+    }
+
+    @Test
+    public void shouldDeletePolledMessagesAfterHavingPassedThemToTheMessageHandler() throws Exception {
+        // Arrange
+        Message msg1 = createMessage("testReceiptHandle");
+        receivedMessages.add(msg1);
+
+        // Act
+        queueProcessor.poll();
+
+        // Assert
+        ArgumentCaptor<DeleteMessageRequest> argumentCaptor = ArgumentCaptor.forClass(DeleteMessageRequest.class);
+        verify(mockAmazonSQS).deleteMessage(argumentCaptor.capture());
+        assertEquals("testReceiptHandle", argumentCaptor.getValue().getReceiptHandle());
+    }
+
+    @Test
+    public void shouldNotDeletePolledMessagesIfTheHandlerThrowsAnException() throws Exception {
+        // Arrange
+        Message msg1 = createMessage("msg1");
+        receivedMessages.add(msg1);
+        doThrow(new Exception()).when(mockHandler).handle(msg1);
+
+        // Act
+        queueProcessor.poll();
+
+        // Assert
+        verify(mockHandler).handle(msg1);
+        verify(mockAmazonSQS, never()).deleteMessage(any(DeleteMessageRequest.class));
+    }
 }

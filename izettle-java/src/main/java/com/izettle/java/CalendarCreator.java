@@ -9,20 +9,20 @@ import java.util.Locale;
  */
 public class CalendarCreator {
 
-	private CalendarCreator() {
-	}
+    private CalendarCreator() {
+    }
 
-	public static Calendar create(TimeZoneId timeZoneId) {
-		return Calendar.getInstance(timeZoneId.getTimeZone());
-	}
+    public static Calendar create(TimeZoneId timeZoneId) {
+        return Calendar.getInstance(timeZoneId.getTimeZone());
+    }
 
-	public static Calendar create(TimeZoneId timeZoneId, Locale locale) {
-		return Calendar.getInstance(timeZoneId.getTimeZone(), locale);
-	}
+    public static Calendar create(TimeZoneId timeZoneId, Locale locale) {
+        return Calendar.getInstance(timeZoneId.getTimeZone(), locale);
+    }
 
-	public static Calendar create(Date date, TimeZoneId timeZoneId, Locale locale) {
-		Calendar calendar = create(timeZoneId, locale);
-		calendar.setTime(date);
-		return calendar;
-	}
+    public static Calendar create(Date date, TimeZoneId timeZoneId, Locale locale) {
+        Calendar calendar = create(timeZoneId, locale);
+        calendar.setTime(date);
+        return calendar;
+    }
 }

@@ -11,27 +11,27 @@ import java.util.List;
 
 public abstract class HashMD5 {
 
-	private HashMD5() {
-	}
+    private HashMD5() {
+    }
 
-	public static String digestStringsToB64Hash(List<String> subjects) {
-		MessageDigest md;
-		try {
-			md = MessageDigest.getInstance("MD5");
-			md.reset();
-			for (String string : subjects) {
-				if (!empty(string)) {
-					md.update(string.getBytes("utf-8"));
-				}
-			}
-			byte[] thedigest = md.digest();
-			return byteArrToB64String(thedigest);
-		} catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-			throw new RuntimeException(ex);
-		}
-	}
+    public static String digestStringsToB64Hash(List<String> subjects) {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("MD5");
+            md.reset();
+            for (String string : subjects) {
+                if (!empty(string)) {
+                    md.update(string.getBytes("utf-8"));
+                }
+            }
+            byte[] thedigest = md.digest();
+            return byteArrToB64String(thedigest);
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
-	public static String digestStringsToB64Hash(String... subjects) {
-		return digestStringsToB64Hash(Arrays.asList(subjects));
-	}
+    public static String digestStringsToB64Hash(String... subjects) {
+        return digestStringsToB64Hash(Arrays.asList(subjects));
+    }
 }

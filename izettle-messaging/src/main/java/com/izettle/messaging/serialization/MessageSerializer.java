@@ -10,19 +10,19 @@ import com.izettle.cryptography.CryptographyException;
  */
 public interface MessageSerializer {
 
-	/**
-	 * Encrypt the message with the implementation specific cryptology method.
-	 *
-	 * @param message to be encrypted
-	 * @return encrypted message
-	 * @throws CryptographyException if encryption of message fail
-	 */
-	String encrypt(String message) throws CryptographyException;
+    /**
+     * Encrypt the message with the implementation specific cryptology method.
+     *
+     * @param message to be encrypted
+     * @return encrypted message
+     * @throws CryptographyException if encryption of message fail
+     */
+    String encrypt(String message) throws CryptographyException;
 
-	/**
-	 * @param message to be serialized.
-	 * @return serialized version of the message.
-	 * @throws JsonProcessingException if the serialization fail.
-	 */
-	String serialize(Object message) throws JsonProcessingException;
+    /**
+     * @param message to be serialized.
+     * @return serialized version of the message.
+     * @throws JsonProcessingException if the serialization fail.
+     */
+    String serialize(Object message) throws JsonProcessingException;
 }

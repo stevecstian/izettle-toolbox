@@ -7,9 +7,9 @@ package com.izettle.messaging.handler;
  *
  * A message handler can throw a <code>RetryableMessageHandlerException</code>, to indicate to
  * the callers that the message cannot be handled right now, but should be retried at a later time.
- * 
+ *
  * @param <M> The type of message that is being handled.
  */
 public interface MessageHandler<M> {
-	void handle(M message) throws Exception;
+    void handle(M message) throws Exception;
 }

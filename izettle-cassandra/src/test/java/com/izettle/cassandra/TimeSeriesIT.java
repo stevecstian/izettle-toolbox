@@ -26,73 +26,73 @@ import org.junit.Test;
 
 public class TimeSeriesIT extends AbstractCassandraUnit4TestCase {
 
-	private static Keyspace keyspace;
-	private static AstyanaxContext<Keyspace> astyanaxContext;
+    private static Keyspace keyspace;
+    private static AstyanaxContext<Keyspace> astyanaxContext;
 
-	@BeforeClass
-	public static void beforeClass() {
+    @BeforeClass
+    public static void beforeClass() {
 
-		astyanaxContext =
-				new AstyanaxContext.Builder()
-						.forKeyspace("timeSeriesKeyspace")
-						.withConnectionPoolConfiguration(
-								new ConnectionPoolConfigurationImpl("myCPConfig")
-										.setSeeds("localhost")
-										.setPort(9171))
-						.withAstyanaxConfiguration(
-								new AstyanaxConfigurationImpl()
-										.setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
-										.setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE))
-						.buildKeyspace(ThriftFamilyFactory.getInstance());
+        astyanaxContext =
+                new AstyanaxContext.Builder()
+                        .forKeyspace("timeSeriesKeyspace")
+                        .withConnectionPoolConfiguration(
+                                new ConnectionPoolConfigurationImpl("myCPConfig")
+                                        .setSeeds("localhost")
+                                        .setPort(9171))
+                        .withAstyanaxConfiguration(
+                                new AstyanaxConfigurationImpl()
+                                        .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
+                                        .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE))
+                        .buildKeyspace(ThriftFamilyFactory.getInstance());
 
-		keyspace = astyanaxContext.getClient();
-		astyanaxContext.start();
-	}
+        keyspace = astyanaxContext.getClient();
+        astyanaxContext.start();
+    }
 
-	@AfterClass
-	public static void afterClass() {
-		astyanaxContext.shutdown();
-	}
+    @AfterClass
+    public static void afterClass() {
+        astyanaxContext.shutdown();
+    }
 
-	@Test
-	public void addEventsByUUIDAndRetrieveTimePeriod() throws IOException, ConnectionException {
+    @Test
+    public void addEventsByUUIDAndRetrieveTimePeriod() throws IOException, ConnectionException {
 
-		TimeSeries<String> timeSeries = new TimeSeries<>(keyspace, new ColumnFamily<>("timeSeriesColumnFamily", StringSerializer.get(), UUIDSerializer.get()));
+        TimeSeries<String> timeSeries = new TimeSeries<>(keyspace, new ColumnFamily<>("timeSeriesColumnFamily", StringSerializer.get(), UUIDSerializer.get()));
 
-		String key = "key";
+        String key = "key";
 
-		timeSeries.add(key, UUID.randomUUID(), new Date(10), "Data1");
-		timeSeries.add(key, UUID.randomUUID(), new Date(20), "Data21");
-		timeSeries.add(key, UUID.randomUUID(), new Date(20), "Data22");
-		timeSeries.add(key, UUID.randomUUID(), new Date(30), "Data3");
-		timeSeries.add(key, UUID.randomUUID(), new Date(40), "Data4");
+        timeSeries.add(key, UUID.randomUUID(), new Date(10), "Data1");
+        timeSeries.add(key, UUID.randomUUID(), new Date(20), "Data21");
+        timeSeries.add(key, UUID.randomUUID(), new Date(20), "Data22");
+        timeSeries.add(key, UUID.randomUUID(), new Date(30), "Data3");
+        timeSeries.add(key, UUID.randomUUID(), new Date(40), "Data4");
 
-		List<String> result = timeSeries.get(key, new Date(20), new Date(31), false, 100);
+        List<String> result = timeSeries.get(key, new Date(20), new Date(31), false, 100);
 
-		assertThat(result.size()).isEqualTo(3);
-	}
+        assertThat(result.size()).isEqualTo(3);
+    }
 
-	@Test
-	public void addEventsByStringAndRetrieveTimePeriod() throws IOException, ConnectionException {
+    @Test
+    public void addEventsByStringAndRetrieveTimePeriod() throws IOException, ConnectionException {
 
-		TimeSeries<String> timeSeries = new TimeSeries<>(keyspace, new ColumnFamily<>("timeSeriesColumnFamily", StringSerializer.get(), UUIDSerializer.get()));
+        TimeSeries<String> timeSeries = new TimeSeries<>(keyspace, new ColumnFamily<>("timeSeriesColumnFamily", StringSerializer.get(), UUIDSerializer.get()));
 
-		String key = "key";
+        String key = "key";
 
-		timeSeries.add(key, "Event 1", new Date(10), "Data1");
-		timeSeries.add(key, "Event 2", new Date(20), "Data21");
-		timeSeries.add(key, "Event 3", new Date(20), "Data22");
-		timeSeries.add(key, "Event 3", new Date(20), "Data22 (duplicate will overwrite)");
-		timeSeries.add(key, "Event 4", new Date(30), "Data3");
-		timeSeries.add(key, "Event 5", new Date(40), "Data4");
+        timeSeries.add(key, "Event 1", new Date(10), "Data1");
+        timeSeries.add(key, "Event 2", new Date(20), "Data21");
+        timeSeries.add(key, "Event 3", new Date(20), "Data22");
+        timeSeries.add(key, "Event 3", new Date(20), "Data22 (duplicate will overwrite)");
+        timeSeries.add(key, "Event 4", new Date(30), "Data3");
+        timeSeries.add(key, "Event 5", new Date(40), "Data4");
 
-		List<String> result = timeSeries.get(key, new Date(20), new Date(31), false, 100);
+        List<String> result = timeSeries.get(key, new Date(20), new Date(31), false, 100);
 
-		assertThat(result.size()).isEqualTo(3);
-	}
+        assertThat(result.size()).isEqualTo(3);
+    }
 
-	@Override
-	public DataSet getDataSet() {
-		return new ClassPathYamlDataSet("cassandraDataSet.yaml");
-	}
+    @Override
+    public DataSet getDataSet() {
+        return new ClassPathYamlDataSet("cassandraDataSet.yaml");
+    }
 }

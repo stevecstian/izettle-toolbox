@@ -5,7 +5,7 @@ package com.izettle.tlv;
  */
 public class TLVException extends Exception {
 
-	public TLVException(String str) {
-		super(str);
-	}
+    public TLVException(String str) {
+        super(str);
+    }
 }
