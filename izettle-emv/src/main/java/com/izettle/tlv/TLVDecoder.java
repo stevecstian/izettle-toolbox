@@ -57,6 +57,9 @@ public class TLVDecoder {
 
             // Save the actual encoded length
             lengthEncoded = new byte[numBytesForLength + 1];
+            if (numBytesForLength + offset > input.length) {
+                throw new TLVException("Malformed length, first length byte indiciates length that doesn't fit");
+            }
             System.arraycopy(input, offset, lengthEncoded, 0, numBytesForLength + 1);
 
             length = 0;
