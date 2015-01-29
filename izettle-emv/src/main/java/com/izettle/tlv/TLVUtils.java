@@ -7,7 +7,8 @@ import static com.izettle.java.ValueChecks.empty;
  */
 public class TLVUtils {
 
-    private TLVUtils() {}
+    private TLVUtils() {
+    }
 
     static int tagToInt(byte[] tag) throws TLVException {
 
@@ -31,17 +32,16 @@ public class TLVUtils {
         }
 
         /*
-             UNUSED: Leading byte, B8 + B7 is application class
-             UNUSED: Leading byte, B6 is primitive/constructed flag
+         UNUSED: Leading byte, B8 + B7 is application class
+         UNUSED: Leading byte, B6 is primitive/constructed flag
          */
-
         boolean isMultiByteTag = (tag[0] & 0x1f) == 0x1f;
 
         if (isMultiByteTag) {
             if (1 == tag.length) {
                 throw new TLVException("Malformed tag: indicates multibyte, but is not");
             }
-            if (0x1f == (tag[tag.length - 1] & 0x1f)) {
+            if (0x80 == (tag[tag.length - 1] & 0x80)) {
                 throw new TLVException("Malformed tag: multibyte, but last byte doesn't close");
             }
             for (int i = 1; i < tag.length - 1; i++) {
@@ -55,5 +55,4 @@ public class TLVUtils {
             }
         }
     }
-
 }

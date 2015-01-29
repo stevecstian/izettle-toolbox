@@ -1,9 +1,9 @@
 package com.izettle.tlv;
 
 import com.izettle.java.Hex;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.List;
 
 /**
  * Created by fidde on 17/12/14.
@@ -53,7 +53,7 @@ public class TLVDecoderTest {
     @Test(expected = TLVException.class)
     public void testInvalidTag() throws Exception {
 
-        byte[] tlvData = Hex.hexToByteArray("9F1F01AA");
+        byte[] tlvData = Hex.hexToByteArray("9F8101AA");
         TLVDecoder dec = new TLVDecoder();
         dec.decode(tlvData).get(0);
     }
