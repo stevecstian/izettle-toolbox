@@ -88,6 +88,10 @@ public class TLVDecoder {
                 throw new TLVException("Expand tag " + Hex.toHexString(tag) + " is invalid, exceeds data length");
             }
             helper(value, 0, tags);
+            if (offset + length < input.length) {
+                // There are more tags after the expander tag.
+                helper(input, offset + length, tags);
+            }
         } else {
             tags.add(new TLV(tag, lengthEncoded, value));
             if (offset + length == input.length) {

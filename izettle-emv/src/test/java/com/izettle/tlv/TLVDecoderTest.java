@@ -55,7 +55,7 @@ public class TLVDecoderTest {
     public void testExpandedTagWithMoreTagsAfter() throws Exception {
         TLVDecoder dec = new TLVDecoder();
         dec.addExpandTag(Hex.hexToByteArray("9A"));
-        List<TLV> decodedTags = dec.decode(Hex.hexToByteArray("9A0E9F2602AABB9F2702CCDD5F200101"));
+        List<TLV> decodedTags = dec.decode(Hex.hexToByteArray("9A0A9F2602AABB9F2702AABB5F200101"));
         Assert.assertEquals(3, decodedTags.size());
     }
 
