@@ -1,6 +1,7 @@
 package com.izettle.tlv;
 
 import com.izettle.java.ArrayUtils;
+import com.izettle.java.Hex;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +46,7 @@ public class TLVDecoder {
         TLVUtils.validateTag(tag);
 
         if (offset + 1 >= input.length) {
-            return;
+            throw new TLVException("Malformed data: Tag, but no length present");
         }
 
         int length = input[++offset];
@@ -73,7 +74,7 @@ public class TLVDecoder {
         ++offset; // Now positioned at first data byte
 
         if (offset + length > input.length) {
-            return;
+            throw new TLVException("Tag " + Hex.toHexString(tag) + " exceeds data length");
         }
 
         byte[] value = new byte[length];
@@ -82,9 +83,17 @@ public class TLVDecoder {
         int tagAsInteger = TLVUtils.tagToInt(tag);
 
         if (expandTags.contains(tagAsInteger)) {
+            if (offset + value.length > input.length) {
+                throw new TLVException("Expand tag " + Hex.toHexString(tag) + " is invalid, exceeds data length");
+            }
             helper(value, 0, tags);
         } else {
             tags.add(new TLV(tag, lengthEncoded, value));
+            if(offset + length == input.length) {
+                // We are finished
+            } else {
+                helper(input, offset + length, tags);
+            }
         }
     }
 }
