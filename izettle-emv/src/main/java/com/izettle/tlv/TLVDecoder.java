@@ -32,7 +32,7 @@ public class TLVDecoder {
     private void helper(byte[] input, int offset, List<TLV> tags) throws TLVException {
 
         // Parse tag
-        byte[] tag = new byte[]{input[0]};
+        byte[] tag = new byte[]{input[offset]};
         if ((input[offset] & 0x1f) == 0x1f) {
             /*
              * If first byte of a tag has lowest 5 bits set, it's a multi-byte
