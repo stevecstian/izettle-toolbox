@@ -15,7 +15,8 @@ public class TLVDecoder {
 
     private final Set<Integer> expandTags = new HashSet<>();
 
-    public TLVDecoder() { }
+    public TLVDecoder() {
+    }
 
     public void addExpandTag(byte[] tag) throws TLVException {
         expandTags.add(TLVUtils.tagToInt(tag));
@@ -89,7 +90,7 @@ public class TLVDecoder {
             helper(value, 0, tags);
         } else {
             tags.add(new TLV(tag, lengthEncoded, value));
-            if(offset + length == input.length) {
+            if (offset + length == input.length) {
                 // We are finished
             } else {
                 helper(input, offset + length, tags);
