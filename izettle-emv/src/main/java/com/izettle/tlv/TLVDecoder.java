@@ -1,6 +1,7 @@
 package com.izettle.tlv;
 
 import com.izettle.java.ArrayUtils;
+import com.izettle.java.Hex;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -14,7 +15,8 @@ public class TLVDecoder {
 
     private final Set<Integer> expandTags = new HashSet<>();
 
-    public TLVDecoder() { }
+    public TLVDecoder() {
+    }
 
     public void addExpandTag(byte[] tag) throws TLVException {
         expandTags.add(TLVUtils.tagToInt(tag));
@@ -30,7 +32,7 @@ public class TLVDecoder {
     private void helper(byte[] input, int offset, List<TLV> tags) throws TLVException {
 
         // Parse tag
-        byte[] tag = new byte[]{input[0]};
+        byte[] tag = new byte[]{input[offset]};
         if ((input[offset] & 0x1f) == 0x1f) {
             /*
              * If first byte of a tag has lowest 5 bits set, it's a multi-byte
@@ -45,7 +47,7 @@ public class TLVDecoder {
         TLVUtils.validateTag(tag);
 
         if (offset + 1 >= input.length) {
-            return;
+            throw new TLVException("Malformed data: Tag, but no length present");
         }
 
         int length = input[++offset];
@@ -73,7 +75,7 @@ public class TLVDecoder {
         ++offset; // Now positioned at first data byte
 
         if (offset + length > input.length) {
-            return;
+            throw new TLVException("Tag " + Hex.toHexString(tag) + " exceeds data length");
         }
 
         byte[] value = new byte[length];
@@ -82,9 +84,21 @@ public class TLVDecoder {
         int tagAsInteger = TLVUtils.tagToInt(tag);
 
         if (expandTags.contains(tagAsInteger)) {
+            if (offset + value.length > input.length) {
+                throw new TLVException("Expand tag " + Hex.toHexString(tag) + " is invalid, exceeds data length");
+            }
             helper(value, 0, tags);
+            if (offset + length < input.length) {
+                // There are more tags after the expander tag.
+                helper(input, offset + length, tags);
+            }
         } else {
             tags.add(new TLV(tag, lengthEncoded, value));
+            if (offset + length == input.length) {
+                // We are finished
+            } else {
+                helper(input, offset + length, tags);
+            }
         }
     }
 }

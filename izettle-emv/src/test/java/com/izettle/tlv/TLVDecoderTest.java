@@ -27,6 +27,57 @@ public class TLVDecoderTest {
     }
 
     @Test
+    public void testMultiTags() throws Exception {
+        byte[] tlvData = Hex.hexToByteArray("E003010203E103040506");
+        TLVDecoder dec = new TLVDecoder();
+        List<TLV> tlvs = dec.decode(tlvData);
+        Assert.assertEquals(2, tlvs.size());
+    }
+
+    @Test
+    public void testMultiTagsWithExpander() throws Exception {
+        byte[] tlvData = Hex.hexToByteArray("E50AE003010203E103040506");
+        TLVDecoder dec = new TLVDecoder();
+        dec.addExpandTag(Hex.hexToByteArray("E5"));
+        List<TLV> tlvs = dec.decode(tlvData);
+        Assert.assertEquals(2, tlvs.size());
+    }
+
+    @Test(expected = TLVException.class)
+    public void testMultiTagsWithExpanderWithWrongExpanderLength() throws Exception {
+        byte[] tlvData = Hex.hexToByteArray("E50BE003010203E103040506");
+        TLVDecoder dec = new TLVDecoder();
+        dec.addExpandTag(Hex.hexToByteArray("E5"));
+        dec.decode(tlvData);
+    }
+
+    @Test
+    public void testExpandedTagWithMoreTagsAfter() throws Exception {
+        TLVDecoder dec = new TLVDecoder();
+        dec.addExpandTag(Hex.hexToByteArray("9A"));
+        List<TLV> decodedTags = dec.decode(Hex.hexToByteArray("9A0A9F2602AABB9F2702AABB5F200101"));
+        Assert.assertEquals(3, decodedTags.size());
+    }
+
+    @Test(expected = TLVException.class)
+    public void testMultiTagsWithGarbageEnd() throws Exception {
+        byte[] tlvData = Hex.hexToByteArray("E003010203E10304050690");
+        TLVDecoder dec = new TLVDecoder();
+        List<TLV> tlvs = dec.decode(tlvData);
+        Assert.assertEquals(2, tlvs.size());
+    }
+
+    @Test
+    public void testNestedExpands() throws Exception {
+        byte[] tlvData = Hex.hexToByteArray("E105E203E30101");
+        TLVDecoder dec = new TLVDecoder();
+        dec.addExpandTag(Hex.hexToByteArray("E1"));
+        dec.addExpandTag(Hex.hexToByteArray("E2"));
+        List<TLV> tlvs = dec.decode(tlvData);
+        Assert.assertEquals(1, tlvs.size());
+    }
+
+    @Test
     public void test5ByteLength() throws Exception {
 
         byte[] tlvData = Hex.hexToByteArray("4F8400000005AABBCCDDEE");
