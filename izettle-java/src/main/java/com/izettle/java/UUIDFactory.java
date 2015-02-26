@@ -1,5 +1,6 @@
 package com.izettle.java;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -7,6 +8,11 @@ import java.util.UUID;
  * @see <a href="https://tools.ietf.org/html/rfc4122">https://tools.ietf.org/html/rfc4122</a>
  */
 public final class UUIDFactory {
+
+    static final int VERSION_TIME_BASED = 1;
+    static final int VERSION_DCI_SECURITY = 2;
+    static final int VERSION_NAME_BASED = 3;
+    static final int VERSION_RANDOM = 4;
 
     private UUIDFactory() {
     }
@@ -53,11 +59,41 @@ public final class UUIDFactory {
      * @return A new UUID that is based on the original UUID.
      */
     public static String createAlternative(String uuid, byte[] mask) {
-        byte[] bytes = uuidToByteArray(uuid);
+        final UUID originalUuid = fromBase64String(uuid);
+        final int originalVersion = originalUuid.version();
+        final int originalVariant = originalUuid.variant();
+        final long msb;
+        switch (originalVersion) {
+            case VERSION_TIME_BASED:
+                //we don't want to change msb at all as that contains both version and clock data
+                msb = originalUuid.getMostSignificantBits();
+                break;
+            case VERSION_RANDOM:
+                byte[] msBytes = longToBytes(mask(originalUuid.getMostSignificantBits(), mask));
+                //make sure to keep version and variant
+                msBytes[6] &= 0x0f;  //clear version
+                msBytes[6] |= originalVersion << 4;
+                msb = bytesToLong(msBytes);
+                break;
+            case VERSION_DCI_SECURITY:
+            case VERSION_NAME_BASED:
+            default:
+                throw new UnsupportedOperationException("Cannot create alternative for UUID with version: " + originalVersion);
+        }
+        //We can always change the least significant bits
+        final byte[] lsBytes = longToBytes(mask(originalUuid.getLeastSignificantBits(), mask));
+        lsBytes[0] &= 0x3f;  //clear variant
+        lsBytes[0] |= originalVariant << 4;
+        final long lsb = bytesToLong(lsBytes);
+        return toBase64String(new UUID(msb, lsb));
+    }
+
+    private static long mask(long value, byte[] mask) {
+        byte[] bytes = longToBytes(value);
         for (int i = 0; i < bytes.length; ++i) {
             bytes[i] ^= mask[i % mask.length];
         }
-        return toBase64String(bytes);
+        return bytesToLong(bytes);
     }
 
     /**
@@ -96,15 +132,46 @@ public final class UUIDFactory {
         return result.split("=")[0]; // Remove trailing "=="
     }
 
-    private static byte[] asByteArray(UUID uuid) {
+    static byte[] asByteArray(UUID uuid) {
         long msb = uuid.getMostSignificantBits();
         long lsb = uuid.getLeastSignificantBits();
         byte[] buffer = new byte[16];
-        for (int i = 0; i < 8; i++) {
-            buffer[i] = (byte) (msb >>> 8 * (7 - i));
+        System.arraycopy(longToBytes(msb), 0, buffer, 0, 8);
+        System.arraycopy(longToBytes(lsb), 0, buffer, 8, 8);
+        return buffer;
+    }
+
+    static UUID fromBase64String(String b64) {
+        if (b64 == null || b64.length() != 22) {
+            throw new IllegalArgumentException("Argument b64 string must be defined and have a length of exactly 22");
         }
-        for (int i = 8; i < 16; i++) {
-            buffer[i] = (byte) (lsb >>> 8 * (7 - i));
+        return fromByteArray(Base64.b64StringToByteArr(b64));
+    }
+
+    private static UUID fromByteArray(byte[] bytes) {
+        if (bytes == null || bytes.length != 16) {
+            throw new IllegalArgumentException("Argument byte array must be defined and have a length of exactly 16");
+        }
+        long msb = bytesToLong(Arrays.copyOfRange(bytes, 0, 8));
+        long lsb = bytesToLong(Arrays.copyOfRange(bytes, 8, 16));
+        return new UUID(msb, lsb);
+    }
+
+    static long bytesToLong(byte[] bytes) {
+        if (bytes == null || bytes.length != 8) {
+            throw new IllegalArgumentException("Argument byte array must be defined and have a length of exactly 8");
+        }
+        long retVal = 0;
+        for (int i = 0; i < 8; i++) {
+            retVal += ((long) (bytes[i] & 0xFF)) << 8 * (7 - i);
+        }
+        return retVal;
+    }
+
+    static byte[] longToBytes(long value) {
+        byte[] buffer = new byte[8];
+        for (int i = 0; i < 8; i++) {
+            buffer[i] = (byte) (value >>> 8 * (7 - i));
         }
         return buffer;
     }

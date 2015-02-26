@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import com.izettle.java.testutils.UUIDUtils;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 import org.junit.Test;
 
@@ -79,6 +80,46 @@ public class UUIDFactoryTest {
         String alternativeUUID = UUIDFactory.createAlternative(uuid);
 
         assertOnAlternativeUUID(uuid, alternativeUUID);
+    }
+
+    @Test
+    public void itShouldBeReflectiveBetweenLongsAndBytes() {
+        Random rnd = new Random();
+        for(int i = 0; i < 1000; i++){
+            long l = rnd.nextLong();
+            assertEquals(l, UUIDFactory.bytesToLong(UUIDFactory.longToBytes(l)));
+        }
+    }
+
+    @Test
+    public void itShouldBeReflectiveBetweenB64AndUUID() {
+        for(int i = 0; i < 1000; i++){
+            UUID uuid = UUID.randomUUID();
+            assertEquals(uuid, UUIDFactory.fromBase64String(UUIDFactory.toBase64String(uuid)));
+        }
+    }
+
+    @Test
+    public void alternativeVersionOfUUIDShouldPreserveVersionBitAndTimestampForTimeUUID() {
+        String uuidString = UUIDFactory.createUUID1AsString();
+        UUID uuid = UUIDFactory.fromBase64String(uuidString);
+        String alt = UUIDFactory.createAlternative(uuidString);
+        UUID altUuid = UUIDFactory.fromBase64String(alt);
+        assertEquals(UUIDFactory.VERSION_TIME_BASED, uuid.version());
+        assertEquals(UUIDFactory.VERSION_TIME_BASED, altUuid.version());
+        assertNotEquals(uuid, alt);
+        assertEquals(uuid.timestamp(), altUuid.timestamp());
+    }
+
+    @Test
+    public void alternativeVersionOfUUIDShouldPreserveVersionBitForRandomUUID() {
+        String uuidString = UUIDFactory.createUUID4AsString();
+        UUID uuid = UUIDFactory.fromBase64String(uuidString);
+        String alt = UUIDFactory.createAlternative(uuidString);
+        UUID altUuid = UUIDFactory.fromBase64String(alt);
+        assertEquals(UUIDFactory.VERSION_RANDOM, uuid.version());
+        assertEquals(UUIDFactory.VERSION_RANDOM, altUuid.version());
+        assertNotEquals(uuid, alt);
     }
 
     @Test
