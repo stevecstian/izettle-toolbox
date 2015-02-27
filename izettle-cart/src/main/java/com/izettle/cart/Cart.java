@@ -4,12 +4,13 @@ import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.coalesce;
 import static com.izettle.java.ValueChecks.empty;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 
-public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>> {
+public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>> implements Serializable{
 
     private final List<ItemLine<T, D>> itemLines;
     private final List<DiscountLine<K>> discountLines;
