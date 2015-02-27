@@ -41,6 +41,10 @@ public final class UUIDFactory {
      * is based on the supplied one. This method is guaranteed to return a different UUID than the one supplied,
      * but done in a deterministic fashion (same value will be returned every time for each input value) and with the
      * same guarantee that the result is sufficiently unique to be used as a UUID.
+     * Note, that for a time based UUID (type 1), the original time information will be kept intact. This might be
+     * surprising, but there are really no logical alternatives (except for not allowing to create alternatives for this
+     * type of UUID). As a consequence, the time information within the resulting UUID should not be used as a
+     * substitute for information about when an event actually happened.
      * @param uuid The original UUID.
      * @return A new UUID that is based on the original UUID.
      */
@@ -53,6 +57,10 @@ public final class UUIDFactory {
      * on the supplied one. This method is guaranteed to return a different UUID than the one supplied, but done in a
      * deterministic fashion (same value will be returned every time for each input value) and with the same guarantee
      * that the result is sufficiently unique to be used as a UUID.
+     * Note, that for a time based UUID (type 1), the original time information will be kept intact. This might be
+     * surprising, but there are really no logical alternatives (except for not allowing to create alternatives for this
+     * type of UUID). As a consequence, the time information within the resulting UUID should not be used as a
+     * substitute for information about when an event actually happened.
      * @param uuid The original UUID.
      * @param mask Seed value to be used when producing the alternative. This value will be xor:ed
      *             with the original bytes to produce the alternative.
