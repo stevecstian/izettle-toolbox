@@ -3,6 +3,7 @@ package com.izettle.java;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public class ValueChecks {
 
@@ -83,6 +84,9 @@ public class ValueChecks {
         }
         if (o instanceof Map) {
             return ((Map<?, ?>) o).isEmpty();
+        }
+        if (o instanceof Optional) {
+            return !((Optional) o).isPresent() || empty(((Optional) o).get());
         }
         return false;
     }

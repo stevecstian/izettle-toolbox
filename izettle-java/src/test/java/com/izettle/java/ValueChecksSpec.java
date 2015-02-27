@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,6 +40,9 @@ public class ValueChecksSpec {
         assertTrue("empty array", empty(new byte[0]));
         assertTrue("empty array list", empty(new ArrayList<String>()));
         assertTrue("empty map", empty(new HashMap<String, String>()));
+        assertTrue("empty optional", empty(Optional.empty()));
+        assertTrue("empty optional content", empty(Optional.of("")));
+	}
     }
 
     @Test
@@ -48,6 +52,7 @@ public class ValueChecksSpec {
         assertFalse("one element array", empty(new Object[1]));
         assertFalse("single element list", empty(Arrays.asList("foo")));
         assertFalse("single key map", empty(Collections.singletonMap("foo", "bar")));
+        assertFalse("single character optional", empty(Optional.of("a")));
     }
 
     @Test
