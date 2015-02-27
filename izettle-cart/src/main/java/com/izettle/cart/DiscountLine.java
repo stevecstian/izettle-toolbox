@@ -1,11 +1,13 @@
 package com.izettle.cart;
 
+import java.io.Serializable;
+
 /**
  * Representing a line of a discount in a cart. The line consists of it's Discount member (of type K, originally
  * provided by the caller), and some calculated values that's relevant to it's context and location in the cart
  * @param <K> the type of Discount that this line contains, the same object that originally was provided by the caller
  */
-public class DiscountLine<K extends Discount<K>> {
+public class DiscountLine<K extends Discount<K>> implements Serializable{
 
     private final K discount;
     private final Double actualPercentage;

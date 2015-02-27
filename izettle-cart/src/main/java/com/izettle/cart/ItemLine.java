@@ -1,12 +1,14 @@
 package com.izettle.cart;
 
+import java.io.Serializable;
+
 /**
  * Representing a line of a item in a cart. The line consists of it's Item member (of type &lt;K, T&gt; originally
  * provided by the caller), and some calculated values that's relevant to it's context and location in the cart
  * @param <T> The type of the Item itself
  * @param <K> The type of the optional Discount that might be associated with the provided Item
  */
-public class ItemLine<T extends Item<T, K>, K extends Discount<K>> {
+public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Serializable{
 
     private final T item;
     private final long grossValue;
