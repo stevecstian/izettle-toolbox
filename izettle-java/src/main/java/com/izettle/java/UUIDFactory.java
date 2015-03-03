@@ -91,7 +91,7 @@ public final class UUIDFactory {
         //We can always change the least significant bits
         final byte[] lsBytes = longToBytes(mask(originalUuid.getLeastSignificantBits(), mask));
         lsBytes[0] &= 0x3f;  //clear variant
-        lsBytes[0] |= originalVariant << 4;
+        lsBytes[0] |= originalVariant << 6;
         final long lsb = bytesToLong(lsBytes);
         return toBase64String(new UUID(msb, lsb));
     }

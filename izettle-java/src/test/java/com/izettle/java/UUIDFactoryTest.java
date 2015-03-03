@@ -149,6 +149,42 @@ public class UUIDFactoryTest {
         assertTrue(uuidDate.compareTo(recentCurrentDate) > 0);
     }
 
+    @Test
+    public void shouldCreateAlternativeForVersion4InTheSameWayAsBefore() {
+        for(int i = 0; i < 1000; i++) {
+            String uuidString = UUIDFactory.createUUID4AsString();
+            String oldAlternative = createAlternative_oldVersion(uuidString);
+            String newAlternative = UUIDFactory.createAlternative(uuidString);
+            UUID oldAltUUID = UUIDFactory.fromBase64String(oldAlternative);
+            UUID newAltUUID = UUIDFactory.fromBase64String(newAlternative);
+            assertEquals(oldAltUUID.version(), newAltUUID.version());
+            assertEquals(oldAltUUID.variant(), newAltUUID.variant());
+            assertEquals(oldAlternative, newAlternative);
+        }
+        for(int i = 0; i < 1000; i++){
+            String uuidString = UUIDFactory.createUUID1AsString();
+            UUID originalUUID = UUIDFactory.fromBase64String(uuidString);
+            String alternative = UUIDFactory.createAlternative(uuidString);
+            UUID alternativeUUID = UUIDFactory.fromBase64String(alternative);
+            assertEquals(originalUUID.variant(), alternativeUUID.variant());
+            assertEquals(originalUUID.version(), alternativeUUID.version());
+        }
+    }
+
+    /*
+     * This is the old version of how we did create alternative. It was originally in the UUIDFactory, but moved here as
+     * it's not used anymore, but needs to be used
+     * for verifying that we haven't broken anything
+    */
+    private static String createAlternative_oldVersion(String uuid) {
+        final byte[] mask = new byte[]{(byte) 0x01};
+        byte[] bytes = UUIDFactory.uuidToByteArray(uuid);
+        for (int i = 0; i < bytes.length; ++i) {
+            bytes[i] ^= mask[i % mask.length];
+        }
+        return Base64.byteArrToB64String(bytes);
+    }
+
     private void assertOnBase64String(String base64EncodedString) {
         assertNotNull(base64EncodedString);
         assertFalse(base64EncodedString.isEmpty());
