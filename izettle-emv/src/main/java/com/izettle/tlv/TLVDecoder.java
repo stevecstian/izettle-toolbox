@@ -14,7 +14,7 @@ import java.util.Set;
 public class TLVDecoder {
 
     private final Set<Integer> expandTags = new HashSet<>();
-    private boolean strictMode = false;
+    private boolean strictMode;
 
     public TLVDecoder() {
     }
