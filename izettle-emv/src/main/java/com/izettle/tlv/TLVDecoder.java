@@ -14,8 +14,17 @@ import java.util.Set;
 public class TLVDecoder {
 
     private final Set<Integer> expandTags = new HashSet<>();
+    private boolean strictMode = false;
 
     public TLVDecoder() {
+    }
+
+    /**
+     * Enable strict mode, which does not allow (non-TLV formatted) zero padding between or after
+     * the TLV elements. Default is <b>false</b>
+     */
+    public void setStrictMode(boolean strictMode) {
+        this.strictMode = strictMode;
     }
 
     public void addExpandTag(byte[] tag) throws TLVException {
@@ -30,6 +39,17 @@ public class TLVDecoder {
     }
 
     private void helper(byte[] input, int offset, List<TLV> tags) throws TLVException {
+
+        if (!strictMode) {
+            // Remove leading zeroes
+            while (offset < input.length && 0 == input[offset]) {
+                offset++;
+            }
+        }
+
+        if (offset == input.length) {
+            return;
+        }
 
         // Parse tag
         byte[] tag = new byte[]{input[offset]};

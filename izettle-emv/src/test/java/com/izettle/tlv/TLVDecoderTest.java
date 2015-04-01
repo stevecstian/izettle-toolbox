@@ -125,4 +125,50 @@ public class TLVDecoderTest {
         Assert.assertEquals("9F27", Hex.toHexString(decodedTags.get(0).getTag()));
     }
 
+    @Test
+    public void testStrictModeGoodData() throws Exception {
+        TLVDecoder dec = new TLVDecoder();
+        dec.setStrictMode(true);
+        List<TLV> decodedTags = dec.decode(Hex.hexToByteArray("DF0301FEDF0401FF"));
+        Assert.assertEquals(2, decodedTags.size());
+    }
+
+    @Test(expected = TLVException.class)
+    public void testStrictModeLeftPadded() throws Exception {
+        TLVDecoder dec = new TLVDecoder();
+        dec.setStrictMode(true);
+        // Uneven number of header zeroes = not valid
+        dec.decode(Hex.hexToByteArray("0000000000DF0301FEDF0401FF"));
+    }
+
+    @Test
+    public void testStrictModeRightPadded() throws Exception {
+        TLVDecoder dec = new TLVDecoder();
+        dec.setStrictMode(true);
+        // Even number of trailing zeroes is valid.
+        List<TLV> decodedTags = dec.decode(Hex.hexToByteArray("DF0301FEDF0401FF00000000"));
+        int numberOfZeroTags = 0;
+        for (TLV tlv : decodedTags) {
+            if ("00".equals(Hex.toHexString(tlv.getTag()))) {
+                numberOfZeroTags++;
+            }
+        }
+        Assert.assertEquals(2, numberOfZeroTags);
+    }
+
+    @Test
+    public void testNonStrictMode() throws Exception {
+        TLVDecoder dec = new TLVDecoder();
+        List<TLV> decodedTags;
+        // Uneven number of trailing zeroes is valid
+        decodedTags = dec.decode(Hex.hexToByteArray("DF0301FEDF0401FF0000000000"));
+        Assert.assertEquals(2, decodedTags.size());
+        // Uneven number of heading zeroes is valid
+        decodedTags = dec.decode(Hex.hexToByteArray("000000DF0301FEDF0401FF"));
+        Assert.assertEquals(2, decodedTags.size());
+        // Padding before, between, after.
+        decodedTags = dec.decode(Hex.hexToByteArray("000000DF0301FE0000000000DF0401FF000000"));
+        Assert.assertEquals(2, decodedTags.size());
+    }
+
 }
