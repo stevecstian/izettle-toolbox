@@ -46,6 +46,7 @@
         <module>izettle-cassandra</module>
         <module>izettle-cart</module>
         <module>izettle-emv</module>
+        <module>izettle-jdbi</module>
     </modules>
 
     <properties>
