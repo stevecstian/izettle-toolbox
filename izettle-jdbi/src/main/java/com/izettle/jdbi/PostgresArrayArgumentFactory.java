@@ -25,7 +25,7 @@ public class PostgresArrayArgumentFactory implements ArgumentFactory<SqlArray<?>
         };
     }
 
-    private String getTypeName(final SqlArray<?> value) {
+    protected String getTypeName(final SqlArray<?> value) {
 
         Object[] elements = value.getElements();
         if (elements != null && elements.length > 0) {
@@ -37,8 +37,6 @@ public class PostgresArrayArgumentFactory implements ArgumentFactory<SqlArray<?>
                 return "float4";
             } else if (elements[0] instanceof Double) {
                 return "float8";
-            } else if (elements[0] instanceof Boolean) {
-                return "bool";
             }
         }
 
