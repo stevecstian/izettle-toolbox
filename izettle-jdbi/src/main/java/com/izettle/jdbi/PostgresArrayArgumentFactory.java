@@ -29,8 +29,16 @@ public class PostgresArrayArgumentFactory implements ArgumentFactory<SqlArray<?>
 
         Object[] elements = value.getElements();
         if (elements != null && elements.length > 0) {
-            if (elements[0] instanceof Number) {
+            if (elements[0] instanceof Integer) {
                 return "integer";
+            } else if (elements[0] instanceof Long) {
+                return "bigint";
+            } else if (elements[0] instanceof Float) {
+                return "float4";
+            } else if (elements[0] instanceof Double) {
+                return "float8";
+            } else if (elements[0] instanceof Boolean) {
+                return "bool";
             }
         }
 
