@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk</artifactId>
+            <artifactId>aws-java-sdk-ec2</artifactId>
             <version>${aws.version}</version>
         </dependency>
         <dependency>
