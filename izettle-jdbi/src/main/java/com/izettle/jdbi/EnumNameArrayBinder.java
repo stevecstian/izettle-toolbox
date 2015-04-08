@@ -11,12 +11,8 @@ import org.skife.jdbi.v2.sqlobject.Binder;
 public class EnumNameArrayBinder implements Binder<Bind, Collection<Enum>> {
 
     @Override
-    public void bind(SQLStatement<?> q, Bind bind, Collection<Enum> arg) {
-        Set<String> names =
-            arg
-                .stream()
-                .map(Enum::name)
-                .collect(Collectors.toSet());
+    public void bind(final SQLStatement<?> q, final Bind bind, final Collection<Enum> arg) {
+        final Set<String> names = arg.stream().map(Enum::name).collect(Collectors.toSet());
         q.bind(bind.value(), SqlArray.arrayOf(String.class, names));
     }
 }

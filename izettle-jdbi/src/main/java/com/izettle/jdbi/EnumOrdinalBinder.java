@@ -7,7 +7,7 @@ import org.skife.jdbi.v2.sqlobject.Binder;
 public class EnumOrdinalBinder implements Binder<Bind, Enum> {
 
     @Override
-    public void bind(SQLStatement<?> q, Bind bind, Enum arg) {
+    public void bind(final SQLStatement<?> q, final Bind bind, final Enum arg) {
         q.bind(bind.value(), arg.ordinal());
     }
 }

@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.skife.jdbi.v2.StatementContext;
 
@@ -28,17 +30,14 @@ public class PostgresArrayArgumentSpec {
 
     @Test
     public void testGetTypeName() {
-        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(Long.class, getList(1L)))).isEqualTo("bigint");
-        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(Integer.class, getList(1)))).isEqualTo("integer");
-        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(Double.class, getList(1.1)))).isEqualTo("float8");
-        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(Float.class, getList(1.1F)))).isEqualTo("float4");
-        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(String.class, getList("test")))).isEqualTo("text");
+        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(Long.class, toList(1L)))).isEqualTo("bigint");
+        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(Integer.class, toList(1)))).isEqualTo("integer");
+        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(Double.class, toList(1.1)))).isEqualTo("float8");
+        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(Float.class, toList(1.1F)))).isEqualTo("float4");
+        assertThat(LONG_FACTORY.getTypeName(new SqlArray<>(String.class, toList("test")))).isEqualTo("text");
     }
 
-    private <T> List<T> getList(T value) {
-        List<T> list = new ArrayList<>();
-        list.add(value);
-
-        return list;
+    private <T> List<T> toList(T value) {
+        return Stream.of(value).collect(Collectors.toList());
     }
 }
