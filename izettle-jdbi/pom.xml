@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>izettle-jdbi</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
 
     <properties>
         <jdbi.version>2.59</jdbi.version>
