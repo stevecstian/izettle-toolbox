@@ -2,6 +2,7 @@ package com.izettle.messaging;
 
 import static com.izettle.java.ValueChecks.empty;
 
+import com.amazonaws.AbortedException;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
@@ -9,6 +10,7 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.izettle.messaging.handler.MessageHandler;
 import com.izettle.messaging.handler.MessageHandlerForSingleMessageType;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,9 +104,11 @@ public class QueueProcessor implements MessageQueueProcessor {
             messageRequest.setWaitTimeSeconds(MESSAGE_WAIT_SECONDS);
         }
         List<Message> messages;
-
         try {
             messages = amazonSQS.receiveMessage(messageRequest).getMessages();
+        } catch (AbortedException e) {
+            LOG.info("Client abort.");
+            messages = Collections.emptyList();
         } catch (AmazonClientException e) {
             throw new MessagingException("Failed to poll message queue.", e);
         }

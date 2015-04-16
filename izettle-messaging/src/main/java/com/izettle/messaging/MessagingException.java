@@ -24,10 +24,10 @@ public class MessagingException extends Exception {
 
     private static String buildAmazonClientExceptionMessage(AmazonClientException ace) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Caught an AmazonClientException, which means the client encountered " +
+        sb.append(" Caught an AmazonClientException, which means the client encountered " +
                 "a serious internal problem while trying to communicate with SQS, such as not " +
                 "being able to access the network.");
-        sb.append("Error Message: ").append(ace.getMessage());
+        sb.append(" Error Message: ").append(ace.getMessage());
         return sb.toString();
     }
 
