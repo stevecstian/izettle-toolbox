@@ -6,9 +6,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.junit.Test;
 import org.skife.jdbi.v2.StatementContext;
 
@@ -38,6 +37,6 @@ public class PostgresArrayArgumentSpec {
     }
 
     private <T> List<T> toList(T value) {
-        return Stream.of(value).collect(Collectors.toList());
+        return Arrays.asList(value);
     }
 }
