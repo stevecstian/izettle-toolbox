@@ -178,8 +178,9 @@ public abstract class ResourceUtils {
      * @throws NullPointerException if {@code obj} is {@code null}
      */
     private static <T> T requireNonNull(T obj, String message) {
-        if (obj == null)
+        if (obj == null) {
             throw new NullPointerException(message);
+        }
         return obj;
     }
 
@@ -220,8 +221,12 @@ public abstract class ResourceUtils {
                 String name = entries.nextElement().getName();
                 if (name.startsWith(path)) { //filter according to the path
                     String filename = name.substring(path.length());
-                    while (filename.startsWith("/")) filename = filename.substring(1);
-                    if (empty(filename)) continue;
+                    while (filename.startsWith("/")) {
+                        filename = filename.substring(1);
+                    }
+                    if (empty(filename)) {
+                        continue;
+                    }
                     result.add(filename);
                 }
             }

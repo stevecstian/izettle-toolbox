@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.izettle</groupId>
         <artifactId>izettle</artifactId>
-        <version>1.3</version>
+        <version>1.5</version>
     </parent>
 
     <groupId>com.izettle.toolbox</groupId>
