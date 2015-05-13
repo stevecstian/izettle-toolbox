@@ -12,7 +12,7 @@
     <artifactId>izettle-jdbi</artifactId>
 
     <properties>
-        <jdbi.version>2.59</jdbi.version>
+        <jdbi.version>2.62</jdbi.version>
     </properties>
 
     <dependencies>
