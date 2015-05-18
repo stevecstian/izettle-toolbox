@@ -624,6 +624,7 @@ public enum TimeZoneId {
     PACIFIC_TONGATAPU("Pacific/Tongatapu"),
     ETC_GMT_MINUS14("Etc/GMT-14"),
     PACIFIC_KIRITIMATI("Pacific/Kiritimati");
+
     private final String stringId;
 
     private TimeZoneId(String stringId) {
@@ -632,5 +633,18 @@ public enum TimeZoneId {
 
     public TimeZone getTimeZone() {
         return TimeZone.getTimeZone(this.stringId);
+    }
+
+    public static TimeZoneId getByTimeZone(TimeZone timeZone) {
+        for (TimeZoneId timeZoneId : values()) {
+            if (timeZoneId.stringId.equals(timeZone.getID())) {
+                return timeZoneId;
+            }
+        }
+        throw new IllegalArgumentException("No TimeZoneId with id " + timeZone.getID());
+    }
+
+    public static TimeZoneId systemTimeZoneId() {
+        return getByTimeZone(TimeZone.getDefault());
     }
 }

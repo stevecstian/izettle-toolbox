@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @param <T> The type of the Item itself
  * @param <K> The type of the optional Discount that might be associated with the provided Item
  */
-public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Serializable{
+public class ItemLine<T extends Item<T, K, P>, K extends Discount<K>, P extends ItemType> implements Serializable{
 
     private final T item;
     private final long grossValue;
