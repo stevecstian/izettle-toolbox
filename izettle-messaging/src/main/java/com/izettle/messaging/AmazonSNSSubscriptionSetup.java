@@ -16,7 +16,9 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.SetQueueAttributesRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AmazonSNSSubscriptionSetup {
@@ -91,14 +93,27 @@ public class AmazonSNSSubscriptionSetup {
         String queueARN,
         String topicARN
     ) {
-        Policy policy = new Policy()
-            .withStatements(
-                new Statement(Statement.Effect.Allow)
-                    .withPrincipals(Principal.AllUsers)
-                    .withResources(new Resource(queueARN))
-                    .withActions(SQSActions.SendMessage)
-                    .withConditions(ConditionFactory.newSourceArnCondition(topicARN))
+        GetQueueAttributesResult queueAttributesResult =
+            amazonSQSAsync.getQueueAttributes(
+                new GetQueueAttributesRequest().withQueueUrl(queueURL).withAttributeNames(
+                    QueueAttributeName.Policy
+                )
             );
+
+        String policyJson = queueAttributesResult.getAttributes().get(QueueAttributeName.Policy.name());
+
+        List<Statement> statements = new ArrayList<>(Policy.fromJson(policyJson).getStatements());
+
+        statements.add(
+            new Statement(Statement.Effect.Allow)
+                .withPrincipals(Principal.AllUsers)
+                .withResources(new Resource(queueARN))
+                .withActions(SQSActions.SendMessage)
+                .withConditions(ConditionFactory.newSourceArnCondition(topicARN))
+        );
+
+        Policy policy = new Policy();
+        policy.setStatements(statements);
         Map<String, String> queueAttributes = new HashMap<>();
         queueAttributes.put(QueueAttributeName.Policy.name(), policy.toJson());
 
