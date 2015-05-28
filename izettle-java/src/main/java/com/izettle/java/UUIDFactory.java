@@ -37,6 +37,15 @@ public final class UUIDFactory {
     }
 
     /**
+     * Creates an UUID version 1. The UUID does NOT contain any host information, but only time information.
+     * The resulting string is guaranteed to be sufficiently unique to be usable as an id.
+     * @return The UUID.
+     */
+    public static UUID createUUID1() {
+        return UUID1Generator.generate();
+    }
+
+    /**
      * Creates a mutated URL safe (including removing trailing '=' characters) Base64 encoded UUID. The returned UUID
      * is based on the supplied one. This method is guaranteed to return a different UUID than the one supplied,
      * but done in a deterministic fashion (same value will be returned every time for each input value) and with the
@@ -79,7 +88,7 @@ public final class UUIDFactory {
             case VERSION_RANDOM:
                 byte[] msBytes = longToBytes(mask(originalUuid.getMostSignificantBits(), mask));
                 //make sure to keep version and variant
-                msBytes[6] &= 0x0f;  //clear version
+                msBytes[6] &= 0x0f; //clear version
                 msBytes[6] |= originalVersion << 4;
                 msb = bytesToLong(msBytes);
                 break;
@@ -90,7 +99,7 @@ public final class UUIDFactory {
         }
         //We can always change the least significant bits
         final byte[] lsBytes = longToBytes(mask(originalUuid.getLeastSignificantBits(), mask));
-        lsBytes[0] &= 0x3f;  //clear variant
+        lsBytes[0] &= 0x3f; //clear variant
         lsBytes[0] |= originalVariant << 6;
         final long lsb = bytesToLong(lsBytes);
         return toBase64String(new UUID(msb, lsb));
@@ -131,8 +140,8 @@ public final class UUIDFactory {
      * @param uuid The UUID to be converted.
      * @return The encoded UUID as string.
      */
-    static String toBase64String(UUID uuid) {
-        return toBase64String(asByteArray(uuid));
+    public static String toBase64String(UUID uuid) {
+        return toBase64String(toByteArray(uuid));
     }
 
     private static String toBase64String(byte[] bytes) {
@@ -140,7 +149,10 @@ public final class UUIDFactory {
         return result.split("=")[0]; // Remove trailing "=="
     }
 
-    static byte[] asByteArray(UUID uuid) {
+    public static byte[] toByteArray(UUID uuid) {
+        if (uuid == null) {
+            throw new IllegalArgumentException("uuid cannot be null");
+        }
         long msb = uuid.getMostSignificantBits();
         long lsb = uuid.getLeastSignificantBits();
         byte[] buffer = new byte[16];
@@ -149,14 +161,14 @@ public final class UUIDFactory {
         return buffer;
     }
 
-    static UUID fromBase64String(String b64) {
+    public static UUID fromBase64String(String b64) {
         if (b64 == null || b64.length() != 22) {
             throw new IllegalArgumentException("Argument b64 string must be defined and have a length of exactly 22");
         }
         return fromByteArray(Base64.b64StringToByteArr(b64));
     }
 
-    private static UUID fromByteArray(byte[] bytes) {
+    public static UUID fromByteArray(byte[] bytes) {
         if (bytes == null || bytes.length != 16) {
             throw new IllegalArgumentException("Argument byte array must be defined and have a length of exactly 16");
         }
@@ -224,7 +236,7 @@ public final class UUIDFactory {
             // need to squeeze in type (4 MSBs in byte 6, clock hi)
             midhi &= ~0xF000; // remove high nibble of 6th byte
             midhi |= 0x1000; // type 1
-            long midhiL = (long) midhi;
+            long midhiL = midhi;
             midhiL = (midhiL << 32) >>> 32; // to get rid of sign extension
             // and reconstruct
             long l1 = (((long) clockLo) << 32) | midhiL;
