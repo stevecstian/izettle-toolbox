@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  */
 public class Track1Data {
 
-    private final static Pattern P = Pattern.compile(
+    private static final Pattern P = Pattern.compile(
         ""
             + "%([A-Z])([0-9]{1,19})\\^([^\\^]{2,26})\\^([0-9]{4}|\\^)"
             + "([0-9]{3}|\\^)([^\\?]+)\\?.*"
