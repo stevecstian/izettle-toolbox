@@ -6,12 +6,12 @@ import com.amazonaws.auth.policy.Resource;
 import com.amazonaws.auth.policy.Statement;
 import com.amazonaws.auth.policy.actions.SQSActions;
 import com.amazonaws.auth.policy.conditions.ConditionFactory;
-import com.amazonaws.services.sns.AmazonSNSAsync;
+import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.Subscription;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
@@ -33,33 +33,33 @@ public class AmazonSNSSubscriptionSetup {
      *
      * @param queueURL The queue that should receive the messages posted to the topic.
      * @param topicARN The topic whose messages should be posted to the queue.
-     * @param amazonSQSAsync Amazon SQS client.
-     * @param amazonSNSAsync Amazon SNS client.
+     * @param amazonSQS Amazon SQS client.
+     * @param amazonSNS Amazon SNS client.
      */
     public static void subscribeSQSQueueToSNSTopic(
         String queueURL,
         String topicARN,
-        AmazonSQSAsync amazonSQSAsync,
-        AmazonSNSAsync amazonSNSAsync
+        AmazonSQS amazonSQS,
+        AmazonSNS amazonSNS
     ) {
         // Verify that the queue exists, and get its ARN
-        String queueARN = getSQSQueueARN(amazonSQSAsync, queueURL);
+        String queueARN = getSQSQueueARN(amazonSQS, queueURL);
 
         // The "is already subscribing?"-check has a dual purpose: it will also verify that the
         // topic is already created. If the topic is not created beforehand, this will throw a
         // com.amazonaws.services.sns.model.NotFoundException
-        if (isSQSQueueSubscribingToSNSTopic(amazonSNSAsync, queueARN, topicARN)) {
+        if (isSQSQueueSubscribingToSNSTopic(amazonSNS, queueARN, topicARN)) {
             // Subscription already configured. Do nothing.
             return;
         }
 
-        allowSQSQueueToReceiveMessagesFromSNSTopic(amazonSQSAsync, queueURL, queueARN, topicARN);
-        subscribeSQSQueueToSNSTopic(amazonSNSAsync, queueARN, topicARN);
+        allowSQSQueueToReceiveMessagesFromSNSTopic(amazonSQS, queueURL, queueARN, topicARN);
+        subscribeSQSQueueToSNSTopic(amazonSNS, queueARN, topicARN);
     }
 
-    private static String getSQSQueueARN(AmazonSQSAsync amazonSQSAsync, String queueURL) {
+    private static String getSQSQueueARN(AmazonSQS amazonSQS, String queueURL) {
         // This statement will throw if the queue does not exist.
-        GetQueueAttributesResult queueAttributes = amazonSQSAsync.getQueueAttributes(
+        GetQueueAttributesResult queueAttributes = amazonSQS.getQueueAttributes(
             new GetQueueAttributesRequest()
                 .withQueueUrl(queueURL)
                 .withAttributeNames(QueueAttributeName.QueueArn)
@@ -70,12 +70,12 @@ public class AmazonSNSSubscriptionSetup {
     }
 
     private static boolean isSQSQueueSubscribingToSNSTopic(
-        AmazonSNSAsync amazonSNSAsync,
+        AmazonSNS amazonSNS,
         String queueARN,
         String topicARN
     ) {
         // This statement will throw if the topic does not exist.
-        ListSubscriptionsByTopicResult subscriptions = amazonSNSAsync.listSubscriptionsByTopic(
+        ListSubscriptionsByTopicResult subscriptions = amazonSNS.listSubscriptionsByTopic(
             new ListSubscriptionsByTopicRequest()
                 .withTopicArn(topicARN)
         );
@@ -88,13 +88,13 @@ public class AmazonSNSSubscriptionSetup {
     }
 
     private static void allowSQSQueueToReceiveMessagesFromSNSTopic(
-        AmazonSQSAsync amazonSQSAsync,
+        AmazonSQS amazonSQS,
         String queueURL,
         String queueARN,
         String topicARN
     ) {
         GetQueueAttributesResult queueAttributesResult =
-            amazonSQSAsync.getQueueAttributes(
+            amazonSQS.getQueueAttributes(
                 new GetQueueAttributesRequest().withQueueUrl(queueURL).withAttributeNames(
                     QueueAttributeName.Policy
                 )
@@ -124,7 +124,7 @@ public class AmazonSNSSubscriptionSetup {
         queueAttributes.put(QueueAttributeName.Policy.name(), policy.toJson());
 
         // Note that if the queue already has this policy, this will do nothing.
-        amazonSQSAsync.setQueueAttributes(
+        amazonSQS.setQueueAttributes(
             new SetQueueAttributesRequest()
                 .withQueueUrl(queueURL)
                 .withAttributes(queueAttributes)
@@ -132,12 +132,12 @@ public class AmazonSNSSubscriptionSetup {
     }
 
     private static void subscribeSQSQueueToSNSTopic(
-        AmazonSNSAsync amazonSNSAsync,
+        AmazonSNS amazonSNS,
         String queueARN,
         String topicARN
     ) {
         // Note that if there is already a subscription with these parameters, this will do nothing.
-        amazonSNSAsync.subscribe(
+        amazonSNS.subscribe(
             new SubscribeRequest()
                 .withTopicArn(topicARN)
                 .withProtocol("sqs")
