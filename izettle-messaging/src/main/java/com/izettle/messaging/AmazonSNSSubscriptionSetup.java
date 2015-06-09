@@ -102,7 +102,13 @@ public class AmazonSNSSubscriptionSetup {
 
         String policyJson = queueAttributesResult.getAttributes().get(QueueAttributeName.Policy.name());
 
-        List<Statement> statements = new ArrayList<>(Policy.fromJson(policyJson).getStatements());
+        final List<Statement> statements;
+        if (policyJson != null) {
+            statements = new ArrayList<>(Policy.fromJson(policyJson).getStatements());
+        } else {
+            // no policies yet exist
+            statements = new ArrayList<>();
+        }
 
         statements.add(
             new Statement(Statement.Effect.Allow)
