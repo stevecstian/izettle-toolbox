@@ -13,7 +13,7 @@ public class ItemTest {
     @Test
     public void testDiscountValue() {
 
-        List<TestItem> items = new ArrayList<>();
+        List<TestItem> items = new ArrayList<TestItem>();
 
         items.add(new TestItem(
             "name",
@@ -39,7 +39,7 @@ public class ItemTest {
             null
         ));
 
-        Cart<TestItem, TestDiscount, TestDiscount> cart = new Cart<>(items, null);
+        Cart<TestItem, TestDiscount, TestDiscount> cart = new Cart<TestItem, TestDiscount, TestDiscount>(items, null);
 
         assertThat(cart.getItemLines().get(0).getDiscountValue()).isEqualTo(50L);
         assertThat(cart.getItemLines().get(1).getDiscountValue()).isEqualTo(500L);
@@ -52,7 +52,7 @@ public class ItemTest {
         Cart<TestItem, TestDiscount, TestDiscount> cart;
         Cart<TestItem, TestDiscount, TestDiscount> inverse;
 
-        items = new ArrayList<>();
+        items = new ArrayList<TestItem>();
         items.add(new TestItem(
             "name",
             1000L,
@@ -60,11 +60,11 @@ public class ItemTest {
             BigDecimal.ONE,
             new TestDiscount(50L, null, BigDecimal.ONE)
         ));
-        cart = new Cart<>(items, null);
+        cart = new Cart<TestItem, TestDiscount, TestDiscount>(items, null);
         inverse = cart.inverse();
         assertEquals(cart.getValue(), -1L * inverse.getValue());
 
-        items = new ArrayList<>();
+        items = new ArrayList<TestItem>();
         items.add(new TestItem(
             "name",
             1000L,
@@ -72,7 +72,7 @@ public class ItemTest {
             BigDecimal.ONE,
             new TestDiscount(null, 25d, BigDecimal.ONE)
         ));
-        cart = new Cart<>(items, null);
+        cart = new Cart<TestItem, TestDiscount, TestDiscount>(items, null);
         inverse = cart.inverse();
         assertEquals(cart.getValue(), -1L * inverse.getValue());
 
