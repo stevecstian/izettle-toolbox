@@ -1,6 +1,7 @@
 package com.izettle.java;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -8,6 +9,17 @@ import java.util.UUID;
  * @see <a href="https://tools.ietf.org/html/rfc4122">https://tools.ietf.org/html/rfc4122</a>
  */
 public final class UUIDFactory {
+
+    /**
+     * Used to transform UNIX timestamps to UUID timestamps (100ns
+     * unit offset from the beginning of Gregorian calendar).
+     */
+    private static final long CLOCK_MULTIPLIER = 10000L;
+    /**
+     * Used to transform UNIX timestamps to UUID timestamps (100ns
+     * unit offset from the beginning of Gregorian calendar).
+     */
+    private static final long CLOCK_OFFSET = 0x01b21dd213814000L;
 
     static final int VERSION_TIME_BASED = 1;
     static final int VERSION_DCI_SECURITY = 2;
@@ -206,17 +218,6 @@ public final class UUIDFactory {
      */
     private static class UUID1Generator {
 
-        /**
-         * Used to transform UNIX timestamps to UUID timestamps (100ns
-         * unit offset from the beginning of Gregorian calendar).
-         */
-        private static final long CLOCK_MULTIPLIER = 10000L;
-        /**
-         * Used to transform UNIX timestamps to UUID timestamps (100ns
-         * unit offset from the beginning of Gregorian calendar).
-         */
-        private static final long CLOCK_OFFSET = 0x01b21dd213814000L;
-
         private UUID1Generator() {
         }
 
@@ -243,5 +244,9 @@ public final class UUIDFactory {
             // last detail: must force 2 MSB to be '10'
             return new UUID(l1, UUID.randomUUID().getLeastSignificantBits());
         }
+    }
+
+    public static Date getDateFromUUID1(UUID uuid1) {
+        return new Date((uuid1.timestamp() - CLOCK_OFFSET) / CLOCK_MULTIPLIER);
     }
 }
