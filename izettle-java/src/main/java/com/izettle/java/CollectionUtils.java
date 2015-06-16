@@ -36,7 +36,7 @@ public class CollectionUtils {
         if (largeCollection == null) {
             return null;
         }
-        List<Collection<T>> retList = new LinkedList<>();
+        List<Collection<T>> retList = new LinkedList<Collection<T>>();
         Collection<T> part = null;
         for (T v : largeCollection) {
             if (part != null && part.size() == partitionSize) {
@@ -46,11 +46,11 @@ public class CollectionUtils {
             if (part == null) {
                 //Figure out what kind of collection this is, so that we don't break sorting etc
                 if (largeCollection instanceof SortedSet) {
-                    part = new TreeSet<>();
+                    part = new TreeSet<T>();
                 } else if (largeCollection instanceof Set) {
-                    part = new HashSet<>();
+                    part = new HashSet<T>();
                 } else if (largeCollection instanceof List) {
-                    part = new LinkedList<>();
+                    part = new LinkedList<T>();
                 } else {
                     throw new UnsupportedOperationException("Not prepared for this type of collection: " + largeCollection.getClass().toString());
                 }
