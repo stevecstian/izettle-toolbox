@@ -10,8 +10,8 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.izettle.messaging.handler.MessageHandler;
 import com.izettle.messaging.handler.MessageHandlerForSingleMessageType;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,54 +27,101 @@ public class QueueProcessor implements MessageQueueProcessor {
     private final String name;
 
     private static final int MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE = 10;
-    private static final int MESSAGE_WAIT_SECONDS = 20;
+    private static final Integer MESSAGE_WAIT_SECONDS = 20;
     private static final int DEAD_LETTER_QUEUE_POLL_FREQUENCY = 10;
     private final String queueUrl;
     private final String deadLetterQueueUrl;
     private final AmazonSQS amazonSQS;
     private final MessageHandler<Message> messageHandler;
     private int deadLetterQueuePollSequence;
+    private ExecutorService executorService;
 
     public static MessageQueueProcessor createQueueProcessor(
-            AmazonSQS amazonSQS,
-            String name,
-            String queueUrl,
-            String deadLetterQueueUrl,
-            MessageHandler<Message> messageHandler) {
-        return new QueueProcessor(name,
-                queueUrl,
-                deadLetterQueueUrl,
-                amazonSQS,
-                messageHandler);
+        AmazonSQS amazonSQS,
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        MessageHandler<Message> messageHandler
+    ) {
+        return new QueueProcessor(
+            name,
+            queueUrl,
+            deadLetterQueueUrl,
+            amazonSQS,
+            messageHandler,
+            null
+        );
+    }
+
+    public static MessageQueueProcessor createQueueProcessor(
+        AmazonSQS amazonSQS,
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        MessageHandler<Message> messageHandler,
+        ExecutorService executorService
+    ) {
+        return new QueueProcessor(
+            name,
+            queueUrl,
+            deadLetterQueueUrl,
+            amazonSQS,
+            messageHandler,
+            executorService
+        );
     }
 
     public static <M> MessageQueueProcessor createQueueProcessor(
-            AmazonSQS amazonSQS,
-            Class<M> classType,
-            String name,
-            String queueUrl,
-            String deadLetterQueueUrl,
-            MessageHandler<M> messageHandler) {
+        AmazonSQS amazonSQS,
+        Class<M> classType,
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        MessageHandler<M> messageHandler
+    ) {
         return new QueueProcessor(
-                name,
-                queueUrl,
-                deadLetterQueueUrl,
-                amazonSQS,
-                new MessageHandlerForSingleMessageType<>(messageHandler, classType)
+            name,
+            queueUrl,
+            deadLetterQueueUrl,
+            amazonSQS,
+            new MessageHandlerForSingleMessageType<>(messageHandler, classType),
+            null
+        );
+    }
+
+    public static <M> MessageQueueProcessor createQueueProcessor(
+        AmazonSQS amazonSQS,
+        Class<M> classType,
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        MessageHandler<M> messageHandler,
+        ExecutorService executorService
+    ) {
+        return new QueueProcessor(
+            name,
+            queueUrl,
+            deadLetterQueueUrl,
+            amazonSQS,
+            new MessageHandlerForSingleMessageType<>(messageHandler, classType),
+            executorService
         );
     }
 
     private QueueProcessor(
-            String name,
-            String queueUrl,
-            String deadLetterQueueUrl,
-            AmazonSQS amazonSQS,
-            MessageHandler<Message> messageHandler) {
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        AmazonSQS amazonSQS,
+        MessageHandler<Message> messageHandler,
+        ExecutorService executorService
+    ) {
         this.name = name;
         this.queueUrl = queueUrl;
         this.deadLetterQueueUrl = deadLetterQueueUrl;
         this.amazonSQS = amazonSQS;
         this.messageHandler = messageHandler;
+        this.executorService = executorService;
     }
 
     @Override
@@ -103,18 +150,19 @@ public class QueueProcessor implements MessageQueueProcessor {
         if (useLongPolling) {
             messageRequest.setWaitTimeSeconds(MESSAGE_WAIT_SECONDS);
         }
-        List<Message> messages;
         try {
-            messages = amazonSQS.receiveMessage(messageRequest).getMessages();
+            List<Message> messages = amazonSQS.receiveMessage(messageRequest).getMessages();
+            if (!empty(messages)) {
+                if (executorService != null) {
+                    executorService.submit(() -> handleMessages(messages, messageQueueUrl));
+                } else {
+                    handleMessages(messages, messageQueueUrl);
+                }
+            }
         } catch (AbortedException e) {
-            LOG.info("Client abort.");
-            messages = Collections.emptyList();
+            LOG.info("Client abort receive message.");
         } catch (AmazonClientException e) {
             throw new MessagingException("Failed to poll message queue.", e);
-        }
-
-        if (!empty(messages)) {
-            handleMessages(messages, messageQueueUrl);
         }
     }
 
@@ -150,6 +198,8 @@ public class QueueProcessor implements MessageQueueProcessor {
     private void deleteMessageFromQueue(String messageReceiptHandle, String messageQueueUrl) throws MessagingException {
         try {
             amazonSQS.deleteMessage(new DeleteMessageRequest(messageQueueUrl, messageReceiptHandle));
+        } catch (AbortedException e) {
+            LOG.info("Client abort delete message.");
         } catch (AmazonClientException ase) {
             throw new MessagingException("Failed to delete message with receipt handle " + messageReceiptHandle + " from queue " + messageQueueUrl, ase);
         }
