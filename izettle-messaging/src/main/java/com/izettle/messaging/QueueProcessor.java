@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 public class QueueProcessor implements MessageQueueProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueProcessor.class);
+    private static final boolean DEFAULT_LONG_POLLING = true;
     private final String name;
 
     private static final int MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE = 10;
@@ -33,8 +34,10 @@ public class QueueProcessor implements MessageQueueProcessor {
     private final String deadLetterQueueUrl;
     private final AmazonSQS amazonSQS;
     private final MessageHandler<Message> messageHandler;
+    private final boolean useLongPolling;
     private int deadLetterQueuePollSequence;
     private ExecutorService executorService;
+
 
     public static MessageQueueProcessor createQueueProcessor(
         AmazonSQS amazonSQS,
@@ -49,7 +52,28 @@ public class QueueProcessor implements MessageQueueProcessor {
             deadLetterQueueUrl,
             amazonSQS,
             messageHandler,
-            null
+            null,
+            DEFAULT_LONG_POLLING
+        );
+    }
+
+
+    public static MessageQueueProcessor createQueueProcessor(
+        AmazonSQS amazonSQS,
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        MessageHandler<Message> messageHandler,
+        boolean useLongPolling
+    ) {
+        return new QueueProcessor(
+            name,
+            queueUrl,
+            deadLetterQueueUrl,
+            amazonSQS,
+            messageHandler,
+            null,
+            useLongPolling
         );
     }
 
@@ -67,7 +91,8 @@ public class QueueProcessor implements MessageQueueProcessor {
             deadLetterQueueUrl,
             amazonSQS,
             messageHandler,
-            executorService
+            executorService,
+            DEFAULT_LONG_POLLING
         );
     }
 
@@ -85,7 +110,8 @@ public class QueueProcessor implements MessageQueueProcessor {
             deadLetterQueueUrl,
             amazonSQS,
             new MessageHandlerForSingleMessageType<>(messageHandler, classType),
-            null
+            null,
+            DEFAULT_LONG_POLLING
         );
     }
 
@@ -104,7 +130,8 @@ public class QueueProcessor implements MessageQueueProcessor {
             deadLetterQueueUrl,
             amazonSQS,
             new MessageHandlerForSingleMessageType<>(messageHandler, classType),
-            executorService
+            executorService,
+            DEFAULT_LONG_POLLING
         );
     }
 
@@ -114,7 +141,8 @@ public class QueueProcessor implements MessageQueueProcessor {
         String deadLetterQueueUrl,
         AmazonSQS amazonSQS,
         MessageHandler<Message> messageHandler,
-        ExecutorService executorService
+        ExecutorService executorService,
+        boolean useLongPolling
     ) {
         this.name = name;
         this.queueUrl = queueUrl;
@@ -122,6 +150,7 @@ public class QueueProcessor implements MessageQueueProcessor {
         this.amazonSQS = amazonSQS;
         this.messageHandler = messageHandler;
         this.executorService = executorService;
+        this.useLongPolling = useLongPolling;
     }
 
     @Override
@@ -131,7 +160,7 @@ public class QueueProcessor implements MessageQueueProcessor {
 
     @Override
     public void poll() throws MessagingException {
-        pollMessageQueue(queueUrl, true);
+        pollMessageQueue(queueUrl, useLongPolling);
 
         /*
             Poll the dead letter queue (if specified) every DEAD_LETTER_QUEUE_POLL_FREQUENCY:th poll attempt.

@@ -21,58 +21,85 @@ import java.util.logging.Logger;
 public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
 
     private static final Logger LOG = Logger.getLogger(QueueServicePoller.class.getName());
+
+    private static final int MESSAGE_WAIT_SECONDS = 20;
+    private static final boolean DEFAULT_LONG_POLLING = true;
     private static final int MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE = 10;
     private final String queueUrl;
     private final AmazonSQS amazonSQS;
     private final MessageDeserializer<M> messageDeserializer;
+    private final boolean useLongPolling;
 
     public static <T> MessageQueueConsumer<T> nonEncryptedMessageQueueConsumer(
-            final Class<T> messageClass,
-            final String queueUrl,
-            final AmazonSQS amazonSQSClient
+        final Class<T> messageClass,
+        final String queueUrl,
+        final AmazonSQS amazonSQSClient,
+        boolean useLongPolling
     ) {
-        return new QueueServicePoller<>(messageClass,
-                queueUrl,
-                amazonSQSClient);
+        return new QueueServicePoller<>(
+            queueUrl,
+            amazonSQSClient,
+            new MessageDeserializer<>(messageClass),
+            useLongPolling);
     }
 
     public static <T> MessageQueueConsumer<T> encryptedMessageQueueConsumer(
-            final Class<T> messageClass,
-            final String queueUrl,
-            final AmazonSQS amazonSQSClient,
-            byte[] privatePgpKey,
-            final String privatePgpKeyPassphrase
+        final Class<T> messageClass,
+        final String queueUrl,
+        final AmazonSQS amazonSQSClient,
+        byte[] privatePgpKey,
+        final String privatePgpKeyPassphrase,
+        boolean useLongPolling
     ) throws MessagingException {
         if (empty(privatePgpKey) || empty(privatePgpKeyPassphrase)) {
-            throw new MessagingException("Can't create encryptedQueueServicePoller with private PGP key as null or privatePgpKeyPassphrase as null");
+            throw new MessagingException(
+                "Can't create encryptedQueueServicePoller with private PGP key as null or privatePgpKeyPassphrase as null");
         }
-        return new QueueServicePoller<>(messageClass,
-                queueUrl,
-                amazonSQSClient,
-                privatePgpKey,
-                privatePgpKeyPassphrase);
+        return new QueueServicePoller<>(
+            queueUrl,
+            amazonSQSClient,
+            new MessageDeserializer<>(messageClass, privatePgpKey, privatePgpKeyPassphrase),
+            useLongPolling);
+    }
+
+    public static <T> MessageQueueConsumer<T> nonEncryptedMessageQueueConsumer(
+        final Class<T> messageClass,
+        final String queueUrl,
+        final AmazonSQS amazonSQSClient
+    ) {
+        return nonEncryptedMessageQueueConsumer(
+            messageClass,
+            queueUrl,
+            amazonSQSClient,
+            DEFAULT_LONG_POLLING);
+    }
+
+    public static <T> MessageQueueConsumer<T> encryptedMessageQueueConsumer(
+        final Class<T> messageClass,
+        final String queueUrl,
+        final AmazonSQS amazonSQSClient,
+        byte[] privatePgpKey,
+        final String privatePgpKeyPassphrase
+    ) throws MessagingException {
+        return encryptedMessageQueueConsumer(
+            messageClass,
+            queueUrl,
+            amazonSQSClient,
+            privatePgpKey,
+            privatePgpKeyPassphrase,
+            DEFAULT_LONG_POLLING);
     }
 
     private QueueServicePoller(
-            Class<M> messageClass,
             String queueUrl,
             AmazonSQS amazonSQS,
-            byte[] privatePgpKey,
-            String privatePgpKeyPassphrase
+            MessageDeserializer<M> messageDeserializer,
+            boolean useLongPolling
     ) {
         this.queueUrl = queueUrl;
         this.amazonSQS = amazonSQS;
-        this.messageDeserializer = new MessageDeserializer<>(messageClass, privatePgpKey, privatePgpKeyPassphrase);
-    }
-
-    private QueueServicePoller(
-            Class<M> messageClass,
-            String queueUrl,
-            AmazonSQS amazonSQS
-    ) {
-        this.queueUrl = queueUrl;
-        this.amazonSQS = amazonSQS;
-        this.messageDeserializer = new MessageDeserializer<>(messageClass);
+        this.messageDeserializer = messageDeserializer;
+        this.useLongPolling = useLongPolling;
     }
 
     /**
@@ -91,21 +118,24 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
     }
 
     /**
-     * Polls message queue for new messages. Waits for messages for 20 sec.
+     * Polls message queue for new messages.
+     *
+     * Waits for messages for 20 seconds if long polling is enabled.
      *
      * @return Received messages.
      * @throws MessagingException Failed to poll queue.
      */
     @Override
     public List<PolledMessage<M>> poll() throws MessagingException {
-        return poll(20);
+        return poll(MESSAGE_WAIT_SECONDS);
     }
 
 
     /**
      * Polls message queue for new messages.
      *
-     * @param messageWaitTimeInSeconds, nr of seconds the poll should wait.
+     * @param messageWaitTimeInSeconds
+     *  nr of seconds the poll should wait if long polling is enabled.
      * @return Received messages.
      * @throws MessagingException Failed to poll queue.
      */
@@ -113,7 +143,9 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
     public List<PolledMessage<M>> poll(int messageWaitTimeInSeconds) throws MessagingException {
         ReceiveMessageRequest messageRequest = new ReceiveMessageRequest(queueUrl);
         messageRequest.setMaxNumberOfMessages(MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE);
-        messageRequest.setWaitTimeSeconds(messageWaitTimeInSeconds);
+        if (useLongPolling) {
+            messageRequest.setWaitTimeSeconds(messageWaitTimeInSeconds);
+        }
         List<Message> messages;
         List<PolledMessage<M>> receivedMessages = new ArrayList<>();
 
