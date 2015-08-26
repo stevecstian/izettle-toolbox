@@ -8,6 +8,8 @@ import com.netflix.astyanax.model.ColumnFamily;
 import com.netflix.astyanax.model.ColumnMap;
 import com.netflix.astyanax.recipes.locks.ColumnPrefixDistributedRowLock;
 import com.netflix.astyanax.retry.BoundedExponentialBackoff;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -23,6 +25,8 @@ public class SequenceGenerator<K> {
 
     private final Keyspace keyspace;
     private final ColumnFamily<K, String> columnFamily;
+
+    private final ConcurrentHashMap<K, Semaphore> semaphores = new ConcurrentHashMap<>();
 
     /**
      * Creates a sequence generator persisted in the given Cassandra column family.
@@ -44,12 +48,17 @@ public class SequenceGenerator<K> {
      */
     public long incrementAndGet(K sequenceKey) throws SequenceGeneratorException {
 
+        Semaphore semaphore = getSemaphore(sequenceKey);
+
         ColumnPrefixDistributedRowLock<K> lock =
                 new ColumnPrefixDistributedRowLock<>(keyspace, columnFamily, sequenceKey)
                         .withBackoff(RETRY_POLICY)
                         .expireLockAfter(5, TimeUnit.SECONDS);
 
         try {
+
+            semaphore.acquire();
+
             ColumnMap<String> columns = lock.acquireLockAndReadRow();
 
             long nextSequenceNumber = columns.getLong(COLUMN_NAME, INITIAL_SEQUENCE_VALUE) + 1;
@@ -71,6 +80,11 @@ public class SequenceGenerator<K> {
             }
 
             throw new SequenceGeneratorException("Failed to increment sequence!", e);
+        } finally {
+            if (!semaphore.hasQueuedThreads()) {
+                semaphores.remove(sequenceKey);
+            }
+            semaphore.release();
         }
     }
 
@@ -125,6 +139,10 @@ public class SequenceGenerator<K> {
 
             throw new SequenceGeneratorException("Failed to create sequence!", e);
         }
+    }
 
+    private Semaphore getSemaphore(K key) {
+        semaphores.putIfAbsent(key, new Semaphore(1));
+        return semaphores.get(key);
     }
 }
