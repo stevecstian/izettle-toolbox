@@ -1,5 +1,7 @@
 package com.izettle.java;
 
+import static com.izettle.java.UUIDFactory.parse;
+import static com.izettle.java.UUIDFactory.toBase64String;
 import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -14,6 +16,7 @@ import java.util.UUID;
 import org.junit.Test;
 
 public class UUIDFactoryTest {
+
     private static final String UNENCODED_UUID4_STRING = "cdaed56d-8712-414d-b346-01905d0026fe";
     private static final String ENCODED_UUID4_STRING = "za7VbYcSQU2zRgGQXQAm_g";
 
@@ -23,6 +26,17 @@ public class UUIDFactoryTest {
     @Test
     public void shouldCreateUUID4Successfully() {
         assertOnBase64String(UUIDFactory.createUUID4AsString());
+    }
+
+    @Test
+    public void shouldParseUUIDSuccessfully() {
+        assertEquals(ENCODED_UUID1_STRING, toBase64String(parse(ENCODED_UUID1_STRING)));
+        assertEquals(ENCODED_UUID1_STRING, toBase64String(parse(UNENCODED_UUID1_STRING)));
+    }
+
+    @Test(expected = java.lang.IllegalArgumentException.class)
+    public void shouldThrowWhenParsingInvalidString() {
+        UUIDFactory.parse("");
     }
 
     @Test
@@ -84,7 +98,7 @@ public class UUIDFactoryTest {
     @Test
     public void itShouldBeReflectiveBetweenLongsAndBytes() {
         Random rnd = new Random();
-        for(int i = 0; i < 1000; i++){
+        for (int i = 0; i < 1000; i++) {
             long l = rnd.nextLong();
             assertEquals(l, UUIDFactory.bytesToLong(UUIDFactory.longToBytes(l)));
         }
@@ -92,7 +106,7 @@ public class UUIDFactoryTest {
 
     @Test
     public void itShouldBeReflectiveBetweenB64AndUUID() {
-        for(int i = 0; i < 1000; i++){
+        for (int i = 0; i < 1000; i++) {
             UUID uuid = UUID.randomUUID();
             assertEquals(uuid, UUIDFactory.fromBase64String(UUIDFactory.toBase64String(uuid)));
         }
@@ -150,7 +164,7 @@ public class UUIDFactoryTest {
 
     @Test
     public void shouldCreateAlternativeForVersion4InTheSameWayAsBefore() {
-        for(int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             String uuidString = UUIDFactory.createUUID4AsString();
             String oldAlternative = createAlternative_oldVersion(uuidString);
             String newAlternative = UUIDFactory.createAlternative(uuidString);
@@ -160,7 +174,7 @@ public class UUIDFactoryTest {
             assertEquals(oldAltUUID.variant(), newAltUUID.variant());
             assertEquals(oldAlternative, newAlternative);
         }
-        for(int i = 0; i < 1000; i++){
+        for (int i = 0; i < 1000; i++) {
             String uuidString = UUIDFactory.createUUID1AsString();
             UUID originalUUID = UUIDFactory.fromBase64String(uuidString);
             String alternative = UUIDFactory.createAlternative(uuidString);
@@ -174,7 +188,7 @@ public class UUIDFactoryTest {
      * This is the old version of how we did create alternative. It was originally in the UUIDFactory, but moved here as
      * it's not used anymore, but needs to be used
      * for verifying that we haven't broken anything
-    */
+     */
     private static String createAlternative_oldVersion(String uuid) {
         final byte[] mask = new byte[]{(byte) 0x01};
         byte[] bytes = UUIDFactory.uuidToByteArray(uuid);

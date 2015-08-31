@@ -1,5 +1,7 @@
 package com.izettle.java;
 
+import static com.izettle.java.ValueChecks.empty;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
@@ -173,7 +175,25 @@ public final class UUIDFactory {
         return buffer;
     }
 
-    public static UUID fromBase64String(String b64) {
+    /**
+     * Will try to parse a java.util.UUID object from the provided string. The argument may be either base64
+     * encoded with the length 22, or the standard notation xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx with a length of 36.
+     * Any other length of the value will throw an IllegalArgumentException
+     * @param value the value to parse
+     * @return the parsed UUID object
+     * @throws IllegalArgumentException if the provided argument is not parseable.
+     */
+    public static UUID parse(String value) {
+        if (empty(value)) {
+            throw new IllegalArgumentException("Cannot parse a UUID from an empty string");
+        }
+        if (value.length() == 22) {
+            return fromBase64String(value);
+        }
+        return UUID.fromString(value);
+    }
+
+    static UUID fromBase64String(String b64) {
         if (b64 == null || b64.length() != 22) {
             throw new IllegalArgumentException("Argument b64 string must be defined and have a length of exactly 22");
         }
