@@ -387,10 +387,10 @@ class CartUtils {
         return vatGroupValues;
     }
 
-    static ServiceChargeLine buildServiceChargeLine(
+    static <S extends ServiceCharge<S>> ServiceChargeLine<S> buildServiceChargeLine(
         long grossValue,
         Long cartWideDiscountValue,
-        ServiceCharge serviceCharge
+        S serviceCharge
     ) {
         if (null == serviceCharge) {
             return null;
@@ -417,7 +417,7 @@ class CartUtils {
         if (0 == serviceChargeValue) {
             return null;
         }
-        return new ServiceChargeLine(serviceCharge, serviceChargeValue, serviceChargeVat);
+        return new ServiceChargeLine<S>(serviceCharge, serviceChargeValue, serviceChargeVat);
     }
 
     static Long getServiceChargeValue(

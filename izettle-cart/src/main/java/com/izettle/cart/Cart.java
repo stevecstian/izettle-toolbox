@@ -28,6 +28,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * Produces a new immutable cart object from two lists if Items and Discounts
      * @param items the list of items, must not be empty (as a cart without items makes no sense)
      * @param discounts the list of cart wide discounts, possibly null or empty
+     * @param serviceCharge The applied service charge, possibly null
      */
     public Cart(List<T> items, List<K> discounts, S serviceCharge) {
         if (items == null) {
@@ -54,7 +55,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         //Copy all items and discounts, but negate the quantities:
         List<T> inverseItems;
         List<K> inverseDiscounts;
-        S inverseServiceCharge = null;
+        S inverseServiceCharge;
 
         if (empty(itemLines)) {
             inverseItems = Collections.emptyList();
@@ -73,7 +74,9 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             }
         }
 
-        if (!empty(serviceChargeLine)) {
+        if (empty(serviceChargeLine)) {
+            inverseServiceCharge = null;
+        } else {
             inverseServiceCharge = serviceChargeLine.getServiceCharge().inverse();
         }
 

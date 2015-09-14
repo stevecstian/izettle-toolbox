@@ -8,7 +8,7 @@ public class ServiceChargeLine<S extends ServiceCharge<S>> implements Serializab
     private final long value;
     private final Long vat;
 
-    public ServiceChargeLine(S serviceCharge, long value, Long vat) {
+    ServiceChargeLine(S serviceCharge, long value, Long vat) {
         this.serviceCharge = serviceCharge;
         this.value = value;
         this.vat = vat;
