@@ -34,11 +34,9 @@ public class TestServiceCharge implements ServiceCharge<TestServiceCharge> {
     @Override
     public TestServiceCharge inverse() {
         if (null != amount) {
-            return new TestServiceCharge(vatPercentage, -1 * amount, null);
+            return new TestServiceCharge(vatPercentage, -1 * amount, percentage);
         }
-        if (null != percentage) {
-            return new TestServiceCharge(vatPercentage, null, percentage);
-        }
-        throw new IllegalArgumentException();
+
+        return new TestServiceCharge(vatPercentage, null, percentage);
     }
 }

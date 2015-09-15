@@ -54,6 +54,18 @@ public class CartTest {
 
 
     @Test
+    public void itShouldCalculateCorrectVatAndEffectivePriceWithServiceChargeFixedAmountAndPercentage() {
+        List<TestItem> items = new LinkedList<TestItem>();
+        items.add(new TestItem(1299L, 25f, new BigDecimal("1.0")));
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        TestServiceCharge serviceCharge = new TestServiceCharge(20f, 130L, 10D);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, discounts, serviceCharge);
+        assertEquals(1559L, cart.getValue());
+        assEq(260L, cart.getServiceChargeValue());
+        assEq(303L, cart.getActualVat());
+    }
+
+    @Test
     public void itShouldHandleNullVatProperly() {
         List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(1299L, null, new BigDecimal("1.0")));

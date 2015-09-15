@@ -9,15 +9,15 @@ public interface ServiceCharge<S> {
     Float getVatPercentage();
 
     /**
-     * The amount that this service charge affects is target with
-     * @return The amount, can be null if the percentage is not
+     * The fixed amount that this service charge affects is target with
+     * @return the amount
      */
     Long getAmount();
 
     /**
      * The percentage that this service charge affects is target with. The actual effect will depend on properties on the
      * target, such as it's gross amount
-     * @return The percentage, can be null if the amount is not
+     * @return The percentage
      */
     Double getPercentage();
 

@@ -281,8 +281,7 @@ class CartUtils {
     }
 
     static <T extends Item<T, K>, K extends Discount<K>> Long summarizeEffectiveVat(
-        final List<ItemLine<T, K>>
-            itemLines,
+        final List<ItemLine<T, K>> itemLines,
         ServiceChargeLine serviceChargeLine
     ) {
         Long effectiveVat = null;
@@ -294,7 +293,7 @@ class CartUtils {
         }
 
         if (!empty(serviceChargeLine) && !empty(serviceChargeLine.getVat())) {
-            effectiveVat = coalesce(effectiveVat, 0L) + coalesce(serviceChargeLine.getVat(), 0L);
+            effectiveVat = coalesce(effectiveVat, 0L) + serviceChargeLine.getVat();
         }
 
         return effectiveVat;
@@ -397,7 +396,7 @@ class CartUtils {
         }
 
         long actualValue = grossValue - coalesce(cartWideDiscountValue, 0L);
-        long serviceChargeValue = 0;
+        Long serviceChargeValue = null;
         Long serviceChargeVat = null;
 
         if (!empty(serviceCharge.getAmount())) {
@@ -405,18 +404,15 @@ class CartUtils {
         }
 
         if (!empty(serviceCharge.getPercentage())) {
-            serviceChargeValue = round(actualValue * serviceCharge.getPercentage() / 100);
+            serviceChargeValue = coalesce(serviceChargeValue, 0L) + round(actualValue * serviceCharge.getPercentage() / 100);
         }
 
         if (!empty(serviceCharge.getVatPercentage())) {
-            serviceChargeVat = serviceChargeValue - round(
-                (serviceChargeValue * 100) / (100 + (double) serviceCharge.getVatPercentage())
-            );
+            serviceChargeVat =
+                coalesce(serviceChargeValue, 0L) -
+                round((serviceChargeValue * 100) / (100 + (double) serviceCharge.getVatPercentage()));
         }
 
-        if (0 == serviceChargeValue) {
-            return null;
-        }
         return new ServiceChargeLine<S>(serviceCharge, serviceChargeValue, serviceChargeVat);
     }
 
@@ -438,7 +434,8 @@ class CartUtils {
         }
 
         if (!empty(serviceCharge.getPercentage())) {
-            serviceChargeValue = round(actualValue * serviceCharge.getPercentage() / 100);
+            serviceChargeValue =
+                coalesce(serviceChargeValue, 0L) + round(actualValue * serviceCharge.getPercentage() / 100);
         }
 
         return serviceChargeValue;
