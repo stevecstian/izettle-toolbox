@@ -10,12 +10,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 
-public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>> implements Serializable{
+public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>>
+    implements Serializable {
 
     private final List<ItemLine<T, D>> itemLines;
     private final List<DiscountLine<K>> discountLines;
+    private final ServiceChargeLine<S> serviceChargeLine;
     private final long grossValue;
     private final Long discountValue;
+    private final Long serviceChargeValue;
     private final Long cartWideDiscountValue;
     private final Long actualVat;
     private final Double actualDiscountPercentage;
@@ -25,8 +28,9 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * Produces a new immutable cart object from two lists if Items and Discounts
      * @param items the list of items, must not be empty (as a cart without items makes no sense)
      * @param discounts the list of cart wide discounts, possibly null or empty
+     * @param serviceCharge The applied service charge, possibly null
      */
-    public Cart(List<T> items, List<K> discounts) {
+    public Cart(List<T> items, List<K> discounts, S serviceCharge) {
         if (items == null) {
             items = Collections.emptyList();
         }
@@ -36,8 +40,10 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         this.cartWideDiscountValue = CartUtils.getTotalCartWideDiscountValue(discounts, grossValue);
         this.discountLines = CartUtils.buildDiscountLines(discounts, grossValue, cartWideDiscountValue);
         this.itemLines = CartUtils.buildItemLines(items, grossValue, cartWideDiscountValue);
+        this.serviceChargeLine = CartUtils.buildServiceChargeLine(grossValue, cartWideDiscountValue, serviceCharge);
+        this.serviceChargeValue = CartUtils.getServiceChargeValue(grossValue, cartWideDiscountValue, serviceCharge);
         this.grossVat = CartUtils.summarizeGrossVat(itemLines);
-        this.actualVat = CartUtils.summarizeEffectiveVat(itemLines);
+        this.actualVat = CartUtils.summarizeEffectiveVat(itemLines, serviceChargeLine);
     }
 
     /**
@@ -45,10 +51,12 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * for refunds
      * @return the inversed cart
      */
-    public Cart<T, D, K> inverse() {
+    public Cart<T, D, K, S> inverse() {
         //Copy all items and discounts, but negate the quantities:
         List<T> inverseItems;
         List<K> inverseDiscounts;
+        S inverseServiceCharge;
+
         if (empty(itemLines)) {
             inverseItems = Collections.emptyList();
         } else {
@@ -65,7 +73,14 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
                 inverseDiscounts.add(discountLine.getDiscount().inverse());
             }
         }
-        return new Cart<T, D, K>(inverseItems, inverseDiscounts);
+
+        if (empty(serviceChargeLine)) {
+            inverseServiceCharge = null;
+        } else {
+            inverseServiceCharge = serviceChargeLine.getServiceCharge().inverse();
+        }
+
+        return new Cart<T, D, K, S>(inverseItems, inverseDiscounts, inverseServiceCharge);
     }
 
     /**
@@ -73,7 +88,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @return the actual value of the cart
      */
     public long getValue() {
-        return grossValue - coalesce(cartWideDiscountValue, 0L);
+        return grossValue - coalesce(cartWideDiscountValue, 0L) + coalesce(serviceChargeValue, 0L);
     }
 
     /**
@@ -177,7 +192,15 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @return the map of values by percentage, or empty maps if VAT is not applicable
      */
     public SortedMap<Float, VatGroupValues> groupValuesByVatPercentage() {
-        return CartUtils.groupValuesByVatPercentage(getItemLines());
+        return CartUtils.groupValuesByVatPercentage(getItemLines(), getServiceChargeLine());
+    }
+
+    public ServiceChargeLine<S> getServiceChargeLine() {
+        return serviceChargeLine;
+    }
+
+    public Long getServiceChargeValue() {
+        return serviceChargeValue;
     }
 
     @Override
@@ -199,6 +222,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         sb.append("\t\tValue: ").append(this.getValue()).append("\n");
         sb.append("\t\tDiscount Value: ").append(this.getDiscountValue()).append("\n");
         sb.append("\t\tDiscount Percentage: ").append(this.getActualDiscountPercentage()).append("\n");
+        sb.append("\t\tService Charge Value: ").append(this.getServiceChargeValue()).append("\n");
         sb.append("\t\tVAT: ").append(this.getActualVat()).append("\n");
         sb.append('}');
         return sb.toString();

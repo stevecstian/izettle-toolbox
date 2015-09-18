@@ -48,8 +48,8 @@ class CartUtils {
             retVal = coalesce(retVal, BigDecimal.ZERO).
                 add(
                     totalGrossAmount.abs().
-                    multiply(BigDecimal.valueOf(discount.getPercentage())).
-                    divide(BigDecimal.valueOf(100L))
+                        multiply(BigDecimal.valueOf(discount.getPercentage())).
+                        divide(BigDecimal.valueOf(100L))
                 );
         }
         if (retVal != null) {
@@ -66,7 +66,11 @@ class CartUtils {
      * @param items cart items
      * @return the total rounded discounted value
      */
-    static Long getTotalDiscountValue(List<? extends Discount> discounts, long totalGrossAmount, List<? extends Item> items) {
+    static Long getTotalDiscountValue(
+        List<? extends Discount> discounts,
+        long totalGrossAmount,
+        List<? extends Item> items
+    ) {
 
         Long cartWideDiscount = getTotalCartWideDiscountValue(discounts, totalGrossAmount);
 
@@ -215,7 +219,8 @@ class CartUtils {
         while (remainingDiscountAmountToDistribute != 0) {
             boolean reclaiming = remainingDiscountAmountToDistribute < 0;
             //We've distributed too much. reclaiming one at a time from the discounts with lowest roundingLoss
-            BigDecimal oldRoundingLoss = reclaiming ? discountIdxByRoundingLoss.firstKey() : discountIdxByRoundingLoss.lastKey();
+            BigDecimal oldRoundingLoss =
+                reclaiming ? discountIdxByRoundingLoss.firstKey() : discountIdxByRoundingLoss.lastKey();
             Queue<Integer> discountIdxs = discountIdxByRoundingLoss.remove(oldRoundingLoss);
             Integer discountIdxToChange = discountIdxs.poll();
             //Reinsert remains to queue until next time:
@@ -275,7 +280,10 @@ class CartUtils {
         return totalGrossVat;
     }
 
-    static <T extends Item<T, K>, K extends Discount<K>> Long summarizeEffectiveVat(final List<ItemLine<T, K>> itemLines) {
+    static <T extends Item<T, K>, K extends Discount<K>> Long summarizeEffectiveVat(
+        final List<ItemLine<T, K>> itemLines,
+        ServiceChargeLine serviceChargeLine
+    ) {
         Long effectiveVat = null;
         for (ItemLine<T, K> itemLine : itemLines) {
             Long itemEffectiveVat = itemLine.getActualVat();
@@ -283,6 +291,11 @@ class CartUtils {
                 effectiveVat = coalesce(effectiveVat, 0L) + itemEffectiveVat;
             }
         }
+
+        if (!empty(serviceChargeLine) && !empty(serviceChargeLine.getVat())) {
+            effectiveVat = coalesce(effectiveVat, 0L) + serviceChargeLine.getVat();
+        }
+
         return effectiveVat;
     }
 
@@ -315,7 +328,8 @@ class CartUtils {
                 grossVat,
                 effectivePrice,
                 effectiveVat,
-                ItemUtils.getDiscountValue(item));
+                ItemUtils.getDiscountValue(item)
+            );
 
             retList.add(itemLine);
         }
@@ -329,7 +343,10 @@ class CartUtils {
         return amountIncVat - round((amountIncVat * 100) / (100 + (double) vatPercent));
     }
 
-    static <T extends Item<T, K>, K extends Discount<K>> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(Collection<ItemLine<T, K>> itemLines) {
+    static <T extends Item<T, K>, K extends Discount<K>> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(
+        Collection<ItemLine<T, K>> itemLines,
+        ServiceChargeLine serviceChargeLine
+    ) {
         SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<Float, Long>();
         SortedMap<Float, Long> actualValuePerVatGroup = new TreeMap<Float, Long>();
         SortedMap<Float, VatGroupValues> vatGroupValues = new TreeMap<Float, VatGroupValues>();
@@ -344,10 +361,83 @@ class CartUtils {
                 actualValuePerVatGroup.put(vatPercentage, coalesce(accValueForGroup, 0L) + actualValue);
             }
         }
-        for (Float vatPerc : actualVatValuePerGroup.keySet()) {
-            vatGroupValues.put(vatPerc, new VatGroupValues(vatPerc, actualVatValuePerGroup.get(vatPerc), actualValuePerVatGroup.get(vatPerc)));
+
+        if (!empty(serviceChargeLine) && !empty(serviceChargeLine.getVat())) {
+            Float serviceChargeVatPercentage = serviceChargeLine.getServiceCharge().getVatPercentage();
+            Long accVatAmountForGroup = actualVatValuePerGroup.get(serviceChargeVatPercentage);
+            Long accValueForGroup = actualValuePerVatGroup.get(serviceChargeVatPercentage);
+            actualVatValuePerGroup.put(
+                serviceChargeVatPercentage,
+                coalesce(accVatAmountForGroup, 0L) + serviceChargeLine.getVat()
+            );
+            actualValuePerVatGroup.put(
+                serviceChargeVatPercentage,
+                coalesce(accValueForGroup, 0L) + serviceChargeLine.getValue()
+            );
         }
+
+        for (Float vatPerc : actualVatValuePerGroup.keySet()) {
+            vatGroupValues.put(
+                vatPerc,
+                new VatGroupValues(vatPerc, actualVatValuePerGroup.get(vatPerc), actualValuePerVatGroup.get(vatPerc))
+            );
+        }
+
         return vatGroupValues;
     }
 
+    static <S extends ServiceCharge<S>> ServiceChargeLine<S> buildServiceChargeLine(
+        long grossValue,
+        Long cartWideDiscountValue,
+        S serviceCharge
+    ) {
+        if (null == serviceCharge) {
+            return null;
+        }
+
+        long actualValue = grossValue - coalesce(cartWideDiscountValue, 0L);
+        Long serviceChargeValue = null;
+        Long serviceChargeVat = null;
+
+        if (!empty(serviceCharge.getAmount())) {
+            serviceChargeValue = serviceCharge.getAmount();
+        }
+
+        if (!empty(serviceCharge.getPercentage())) {
+            serviceChargeValue = coalesce(serviceChargeValue, 0L) + round(actualValue * serviceCharge.getPercentage() / 100);
+        }
+
+        if (!empty(serviceCharge.getVatPercentage())) {
+            serviceChargeVat =
+                coalesce(serviceChargeValue, 0L) -
+                round((serviceChargeValue * 100) / (100 + (double) serviceCharge.getVatPercentage()));
+        }
+
+        return new ServiceChargeLine<S>(serviceCharge, serviceChargeValue, serviceChargeVat);
+    }
+
+    static Long getServiceChargeValue(
+        long grossValue,
+        Long cartWideDiscountValue,
+        ServiceCharge serviceCharge
+    ) {
+        if (empty(serviceCharge)) {
+            return null;
+        }
+
+        long actualValue = grossValue - coalesce(cartWideDiscountValue, 0L);
+
+        Long serviceChargeValue = null;
+
+        if (!empty(serviceCharge.getAmount())) {
+            serviceChargeValue = serviceCharge.getAmount();
+        }
+
+        if (!empty(serviceCharge.getPercentage())) {
+            serviceChargeValue =
+                coalesce(serviceChargeValue, 0L) + round(actualValue * serviceCharge.getPercentage() / 100);
+        }
+
+        return serviceChargeValue;
+    }
 }
