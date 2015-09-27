@@ -1,6 +1,7 @@
 package com.izettle.cart;
 
 import static com.izettle.java.ValueChecks.allEmpty;
+import static com.izettle.java.ValueChecks.allNull;
 import static com.izettle.java.ValueChecks.coalesce;
 import static com.izettle.java.ValueChecks.empty;
 
@@ -21,25 +22,23 @@ class CartUtils {
      * @param decimal the value to round
      * @return rounded value
      */
-    static long round(BigDecimal decimal) {
+    static long round(final BigDecimal decimal) {
         return decimal.setScale(0, ROUNDING_MODE).longValue();
     }
 
-    static long round(Double decimal) {
+    static long round(final Double decimal) {
         return round(BigDecimal.valueOf(decimal));
     }
 
-    static <T extends Item> long getGrossValue(List<T> items) {
+    static <T extends Item> long getGrossValue(final List<T> items) {
         long grossPrice = 0;
-        if (!empty(items)) {
-            for (T item : items) {
-                grossPrice += ItemUtils.getValue(item);
-            }
+        for (T item : items) {
+            grossPrice += ItemUtils.getValue(item);
         }
         return grossPrice;
     }
 
-    static BigDecimal getNonRoundedDiscountValue(Discount discount, BigDecimal totalGrossAmount) {
+    static BigDecimal getNonRoundedDiscountValue(final Discount discount, final BigDecimal totalGrossAmount) {
         BigDecimal retVal = null;
         if (discount.getAmount() != null) {
             retVal = BigDecimal.valueOf(discount.getAmount());
@@ -48,8 +47,8 @@ class CartUtils {
             retVal = coalesce(retVal, BigDecimal.ZERO).
                 add(
                     totalGrossAmount.abs().
-                        multiply(BigDecimal.valueOf(discount.getPercentage())).
-                        divide(BigDecimal.valueOf(100L))
+                    multiply(BigDecimal.valueOf(discount.getPercentage())).
+                    divide(BigDecimal.valueOf(100L))
                 );
         }
         if (retVal != null) {
@@ -67,15 +66,15 @@ class CartUtils {
      * @return the total rounded discounted value
      */
     static Long getTotalDiscountValue(
-        List<? extends Discount> discounts,
-        long totalGrossAmount,
-        List<? extends Item> items
+        final List<? extends Discount> discounts,
+        final long totalGrossAmount,
+        final List<? extends Item> items
     ) {
 
-        Long cartWideDiscount = getTotalCartWideDiscountValue(discounts, totalGrossAmount);
+        final Long cartWideDiscount = getTotalCartWideDiscountValue(discounts, totalGrossAmount);
 
         /*
-            Sum up line item discounts.
+         Sum up line item discounts.
          */
         Long lineItemDiscount = null;
 
@@ -100,17 +99,15 @@ class CartUtils {
      * @param totalGrossAmount Cart gross value (after line item discounts).
      * @return Total value of cart-wide discounts if any, null otherwise.
      */
-    static Long getTotalCartWideDiscountValue(List<? extends Discount> discounts, long totalGrossAmount) {
+    static Long getTotalCartWideDiscountValue(final List<? extends Discount> discounts, final long totalGrossAmount) {
         boolean appliedDiscount = false;
         BigDecimal tmpTotalAmount = BigDecimal.valueOf(totalGrossAmount);
 
-        if (!empty(discounts)) {
-            for (Discount discount : discounts) {
-                BigDecimal discountValue = getNonRoundedDiscountValue(discount, tmpTotalAmount);
-                if (discountValue != null) {
-                    tmpTotalAmount = tmpTotalAmount.subtract(discountValue);
-                    appliedDiscount = true;
-                }
+        for (Discount discount : discounts) {
+            final BigDecimal discountValue = getNonRoundedDiscountValue(discount, tmpTotalAmount);
+            if (discountValue != null) {
+                tmpTotalAmount = tmpTotalAmount.subtract(discountValue);
+                appliedDiscount = true;
             }
         }
 
@@ -141,48 +138,42 @@ class CartUtils {
         }
         final double discountFraction = ((double) cartWideDiscountAmount) / grossAmount;
         long remainingDiscountAmountToDistribute = cartWideDiscountAmount;
-        Map<Integer, Long> discountAmountByItemIdx = new HashMap<Integer, Long>();
-        NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
+        final Map<Integer, Long> discountAmountByItemIdx = new HashMap<Integer, Long>();
+        final NavigableMap<Double, Queue<Integer>> itemIdxByRoundingLoss = new TreeMap<Double, Queue<Integer>>();
         for (int itemIdx = 0; itemIdx < items.size(); itemIdx++) {
-            Item item = items.get(itemIdx);
+            final Item item = items.get(itemIdx);
             final double nonRoundedDiscount = ItemUtils.getValue(item) * discountFraction;
             final long roundedDiscount = round(nonRoundedDiscount);
             final double roundingLoss = nonRoundedDiscount - roundedDiscount;
-            Queue<Integer> itemIdxs = itemIdxByRoundingLoss.get(roundingLoss);
-            if (itemIdxs == null) {
-                itemIdxs = new LinkedList<Integer>();
-                itemIdxByRoundingLoss.put(roundingLoss, itemIdxs);
+            if (!itemIdxByRoundingLoss.containsKey(roundingLoss)) {
+                itemIdxByRoundingLoss.put(roundingLoss, new LinkedList<Integer>());
             }
-            itemIdxs.add(itemIdx);
+            itemIdxByRoundingLoss.get(roundingLoss).add(itemIdx);
             discountAmountByItemIdx.put(itemIdx, roundedDiscount);
             remainingDiscountAmountToDistribute -= roundedDiscount;
         }
         while (remainingDiscountAmountToDistribute != 0) {
-            boolean reclaiming = remainingDiscountAmountToDistribute < 0;
+            final boolean reclaiming = remainingDiscountAmountToDistribute < 0;
             //We've distributed too much. reclaiming one at a time from the items with lowest roundingLoss
-            Double oldRoundingLoss = reclaiming ? itemIdxByRoundingLoss.firstKey() : itemIdxByRoundingLoss.lastKey();
-            Queue<Integer> itemIdxs = itemIdxByRoundingLoss.remove(oldRoundingLoss);
-            Integer itemIdxToChange = itemIdxs.poll();
+            final Double oldRoundingLoss = reclaiming ? itemIdxByRoundingLoss.firstKey() : itemIdxByRoundingLoss.lastKey();
+            final Queue<Integer> itemIdxs = itemIdxByRoundingLoss.remove(oldRoundingLoss);
+            final Integer itemIdxToChange = itemIdxs.poll();
             //Reinsert remains to queue until next time:
             if (!itemIdxs.isEmpty()) {
                 itemIdxByRoundingLoss.put(oldRoundingLoss, itemIdxs);
             }
-            Long roundedDiscount = discountAmountByItemIdx.get(itemIdxToChange);
-            Item item = items.get(itemIdxToChange);
-            Double nonRoundedDiscount = ItemUtils.getValue(item) * discountFraction;
+            final Item item = items.get(itemIdxToChange);
+            final Double nonRoundedDiscount = ItemUtils.getValue(item) * discountFraction;
             //reclaim one unit of money:
-            roundedDiscount += reclaiming ? -1L : 1L;
+            final Long roundedDiscount = discountAmountByItemIdx.get(itemIdxToChange) + (reclaiming ? -1L : 1L);
             remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
             //reinsert into collections for next round
-            double newRoundingLoss = nonRoundedDiscount - roundedDiscount;
-            Queue<Integer> newItemIdxs = itemIdxByRoundingLoss.get(newRoundingLoss);
-            if (newItemIdxs == null) {
-                newItemIdxs = new LinkedList<Integer>();
-                itemIdxByRoundingLoss.put(newRoundingLoss, newItemIdxs);
+            final double newRoundingLoss = nonRoundedDiscount - roundedDiscount;
+            if (!itemIdxByRoundingLoss.containsKey(newRoundingLoss)) {
+                itemIdxByRoundingLoss.put(newRoundingLoss, new LinkedList<Integer>());
             }
-            newItemIdxs.add(itemIdxToChange);
+            itemIdxByRoundingLoss.get(newRoundingLoss).add(itemIdxToChange);
             discountAmountByItemIdx.put(itemIdxToChange, roundedDiscount);
-
         }
         return discountAmountByItemIdx;
     }
@@ -196,50 +187,45 @@ class CartUtils {
             return null;
         }
         long remainingDiscountAmountToDistribute = discountAmount;
-        Map<Integer, Long> roundedDiscountAmountByDiscountIdx = new HashMap<Integer, Long>();
-        Map<Integer, BigDecimal> nonRoundedDiscountAmountByDiscountIdx = new HashMap<Integer, BigDecimal>();
-        NavigableMap<BigDecimal, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<BigDecimal, Queue<Integer>>();
+        final Map<Integer, Long> roundedDiscountAmountByDiscountIdx = new HashMap<Integer, Long>();
+        final Map<Integer, BigDecimal> nonRoundedDiscountAmountByDiscountIdx = new HashMap<Integer, BigDecimal>();
+        final NavigableMap<BigDecimal, Queue<Integer>> discountIdxByRoundingLoss = new TreeMap<BigDecimal, Queue<Integer>>();
         BigDecimal tmpTotAmount = BigDecimal.valueOf(totalGrossAmount);
         for (int discountIdx = 0; discountIdx < discounts.size(); discountIdx++) {
-            Discount discount = discounts.get(discountIdx);
+            final Discount discount = discounts.get(discountIdx);
             final BigDecimal nonRoundedDiscount = getNonRoundedDiscountValue(discount, tmpTotAmount);
             final long roundedDiscount = round(nonRoundedDiscount);
             final BigDecimal roundingLoss = nonRoundedDiscount.subtract(BigDecimal.valueOf(roundedDiscount));
-            Queue<Integer> discountIdxs = discountIdxByRoundingLoss.get(roundingLoss);
-            if (discountIdxs == null) {
-                discountIdxs = new LinkedList<Integer>();
-                discountIdxByRoundingLoss.put(roundingLoss, discountIdxs);
+            if (!discountIdxByRoundingLoss.containsKey(roundingLoss)) {
+                discountIdxByRoundingLoss.put(roundingLoss, new LinkedList<Integer>());
             }
-            discountIdxs.add(discountIdx);
+            discountIdxByRoundingLoss.get(roundingLoss).add(discountIdx);
             roundedDiscountAmountByDiscountIdx.put(discountIdx, roundedDiscount);
             nonRoundedDiscountAmountByDiscountIdx.put(discountIdx, nonRoundedDiscount);
             remainingDiscountAmountToDistribute -= roundedDiscount;
             tmpTotAmount = tmpTotAmount.subtract(nonRoundedDiscount);
         }
         while (remainingDiscountAmountToDistribute != 0) {
-            boolean reclaiming = remainingDiscountAmountToDistribute < 0;
+            final boolean reclaiming = remainingDiscountAmountToDistribute < 0;
             //We've distributed too much. reclaiming one at a time from the discounts with lowest roundingLoss
-            BigDecimal oldRoundingLoss =
-                reclaiming ? discountIdxByRoundingLoss.firstKey() : discountIdxByRoundingLoss.lastKey();
-            Queue<Integer> discountIdxs = discountIdxByRoundingLoss.remove(oldRoundingLoss);
-            Integer discountIdxToChange = discountIdxs.poll();
+            final BigDecimal oldRoundingLoss
+                = reclaiming ? discountIdxByRoundingLoss.firstKey() : discountIdxByRoundingLoss.lastKey();
+            final Queue<Integer> discountIdxs = discountIdxByRoundingLoss.remove(oldRoundingLoss);
+            final Integer discountIdxToChange = discountIdxs.poll();
             //Reinsert remains to queue until next time:
             if (!discountIdxs.isEmpty()) {
                 discountIdxByRoundingLoss.put(oldRoundingLoss, discountIdxs);
             }
-            Long roundedDiscount = roundedDiscountAmountByDiscountIdx.get(discountIdxToChange);
-            final BigDecimal nonRoundedDiscount = nonRoundedDiscountAmountByDiscountIdx.get(discountIdxToChange);
             //reclaim one unit of money:
-            roundedDiscount += reclaiming ? -1L : 1L;
+            final Long roundedDiscount = roundedDiscountAmountByDiscountIdx.get(discountIdxToChange) + (reclaiming ? -1L : 1L);
             remainingDiscountAmountToDistribute += reclaiming ? 1L : -1L;
+            final BigDecimal nonRoundedDiscount = nonRoundedDiscountAmountByDiscountIdx.get(discountIdxToChange);
             //reinsert into collections for next round
             final BigDecimal newRoundingLoss = nonRoundedDiscount.subtract(BigDecimal.valueOf(roundedDiscount));
-            Queue<Integer> newDiscountIdxs = discountIdxByRoundingLoss.get(newRoundingLoss);
-            if (newDiscountIdxs == null) {
-                newDiscountIdxs = new LinkedList<Integer>();
-                discountIdxByRoundingLoss.put(newRoundingLoss, newDiscountIdxs);
+            if (!discountIdxByRoundingLoss.containsKey(newRoundingLoss)) {
+                discountIdxByRoundingLoss.put(newRoundingLoss, new LinkedList<Integer>());
             }
-            newDiscountIdxs.add(discountIdxToChange);
+            discountIdxByRoundingLoss.get(newRoundingLoss).add(discountIdxToChange);
             roundedDiscountAmountByDiscountIdx.put(discountIdxToChange, roundedDiscount);
 
         }
@@ -272,7 +258,7 @@ class CartUtils {
     static <T extends Item<T, K>, K extends Discount<K>> Long summarizeGrossVat(final List<ItemLine<T, K>> itemLines) {
         Long totalGrossVat = null;
         for (ItemLine<T, K> itemLine : itemLines) {
-            Long itemGrossVat = itemLine.getGrossVat();
+            final Long itemGrossVat = itemLine.getGrossVat();
             if (itemGrossVat != null) {
                 totalGrossVat = coalesce(totalGrossVat, 0L) + itemGrossVat;
             }
@@ -282,11 +268,11 @@ class CartUtils {
 
     static <T extends Item<T, K>, K extends Discount<K>> Long summarizeEffectiveVat(
         final List<ItemLine<T, K>> itemLines,
-        ServiceChargeLine serviceChargeLine
+        final ServiceChargeLine serviceChargeLine
     ) {
         Long effectiveVat = null;
         for (ItemLine<T, K> itemLine : itemLines) {
-            Long itemEffectiveVat = itemLine.getActualVat();
+            final Long itemEffectiveVat = itemLine.getActualVat();
             if (itemEffectiveVat != null) {
                 effectiveVat = coalesce(effectiveVat, 0L) + itemEffectiveVat;
             }
@@ -311,18 +297,18 @@ class CartUtils {
         );
         final List<ItemLine<T, K>> retList = new ArrayList<ItemLine<T, K>>();
         for (int i = 0; i < items.size(); i++) {
-            T item = items.get(i);
+            final T item = items.get(i);
             final long effectivePrice;
             if (discountAmountByItemIdx != null) {
-                Long discountAmount = discountAmountByItemIdx.get(i);
+                final Long discountAmount = discountAmountByItemIdx.get(i);
                 effectivePrice = ItemUtils.getValue(item) - coalesce(discountAmount, 0L);
             } else {
                 effectivePrice = ItemUtils.getValue(item);
             }
-            Long grossVat = calculateVatFromGrossAmount(ItemUtils.getGrossValue(item), item.getVatPercentage());
-            Long effectiveVat = calculateVatFromGrossAmount(effectivePrice, item.getVatPercentage());
+            final Long grossVat = calculateVatFromGrossAmount(ItemUtils.getGrossValue(item), item.getVatPercentage());
+            final Long effectiveVat = calculateVatFromGrossAmount(effectivePrice, item.getVatPercentage());
 
-            ItemLine<T, K> itemLine = new ItemLine<T, K>(
+            final ItemLine<T, K> itemLine = new ItemLine<T, K>(
                 item,
                 ItemUtils.getGrossValue(item),
                 grossVat,
@@ -344,28 +330,28 @@ class CartUtils {
     }
 
     static <T extends Item<T, K>, K extends Discount<K>> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(
-        Collection<ItemLine<T, K>> itemLines,
-        ServiceChargeLine serviceChargeLine
+        final Collection<ItemLine<T, K>> itemLines,
+        final ServiceChargeLine serviceChargeLine
     ) {
-        SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<Float, Long>();
-        SortedMap<Float, Long> actualValuePerVatGroup = new TreeMap<Float, Long>();
-        SortedMap<Float, VatGroupValues> vatGroupValues = new TreeMap<Float, VatGroupValues>();
+        final SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<Float, Long>();
+        final SortedMap<Float, Long> actualValuePerVatGroup = new TreeMap<Float, Long>();
+        final SortedMap<Float, VatGroupValues> vatGroupValues = new TreeMap<Float, VatGroupValues>();
         for (ItemLine<T, K> itemLine : itemLines) {
-            Long actualVat = itemLine.getActualVat();
-            Long actualValue = itemLine.getActualValue();
-            Float vatPercentage = itemLine.getItem().getVatPercentage();
+            final Long actualVat = itemLine.getActualVat();
+            final Long actualValue = itemLine.getActualValue();
+            final Float vatPercentage = itemLine.getItem().getVatPercentage();
             if (actualVat != null) {
-                Long accVatAmountForGroup = actualVatValuePerGroup.get(vatPercentage);
-                Long accValueForGroup = actualValuePerVatGroup.get(vatPercentage);
+                final Long accVatAmountForGroup = actualVatValuePerGroup.get(vatPercentage);
+                final Long accValueForGroup = actualValuePerVatGroup.get(vatPercentage);
                 actualVatValuePerGroup.put(vatPercentage, coalesce(accVatAmountForGroup, 0L) + actualVat);
                 actualValuePerVatGroup.put(vatPercentage, coalesce(accValueForGroup, 0L) + actualValue);
             }
         }
 
         if (!empty(serviceChargeLine) && !empty(serviceChargeLine.getVat())) {
-            Float serviceChargeVatPercentage = serviceChargeLine.getServiceCharge().getVatPercentage();
-            Long accVatAmountForGroup = actualVatValuePerGroup.get(serviceChargeVatPercentage);
-            Long accValueForGroup = actualValuePerVatGroup.get(serviceChargeVatPercentage);
+            final Float serviceChargeVatPercentage = serviceChargeLine.getServiceCharge().getVatPercentage();
+            final Long accVatAmountForGroup = actualVatValuePerGroup.get(serviceChargeVatPercentage);
+            final Long accValueForGroup = actualValuePerVatGroup.get(serviceChargeVatPercentage);
             actualVatValuePerGroup.put(
                 serviceChargeVatPercentage,
                 coalesce(accVatAmountForGroup, 0L) + serviceChargeLine.getVat()
@@ -387,57 +373,47 @@ class CartUtils {
     }
 
     static <S extends ServiceCharge<S>> ServiceChargeLine<S> buildServiceChargeLine(
-        long grossValue,
-        Long cartWideDiscountValue,
-        S serviceCharge
+        final long grossValue,
+        final Long cartWideDiscountValue,
+        final S serviceCharge
     ) {
         if (null == serviceCharge) {
             return null;
         }
 
-        long actualValue = grossValue - coalesce(cartWideDiscountValue, 0L);
-        Long serviceChargeValue = null;
-        Long serviceChargeVat = null;
-
-        if (!empty(serviceCharge.getAmount())) {
-            serviceChargeValue = serviceCharge.getAmount();
-        }
-
-        if (!empty(serviceCharge.getPercentage())) {
-            serviceChargeValue = coalesce(serviceChargeValue, 0L) + round(actualValue * serviceCharge.getPercentage() / 100);
-        }
-
-        if (!empty(serviceCharge.getVatPercentage())) {
-            serviceChargeVat =
-                coalesce(serviceChargeValue, 0L) -
-                round((serviceChargeValue * 100) / (100 + (double) serviceCharge.getVatPercentage()));
+        final Long serviceChargeValue = getServiceChargeValue(grossValue, cartWideDiscountValue, serviceCharge);
+        final Long serviceChargeVat;
+        if (empty(serviceCharge.getVatPercentage())) {
+            serviceChargeVat = null;
+        } else {
+            serviceChargeVat
+                = coalesce(serviceChargeValue, 0L)
+                - round((serviceChargeValue * 100) / (100 + (double) serviceCharge.getVatPercentage()));
         }
 
         return new ServiceChargeLine<S>(serviceCharge, serviceChargeValue, serviceChargeVat);
     }
 
     static Long getServiceChargeValue(
-        long grossValue,
-        Long cartWideDiscountValue,
-        ServiceCharge serviceCharge
+        final long grossValue,
+        final Long cartWideDiscountValue,
+        final ServiceCharge serviceCharge
     ) {
-        if (empty(serviceCharge)) {
+        if (null == serviceCharge) {
             return null;
         }
 
-        long actualValue = grossValue - coalesce(cartWideDiscountValue, 0L);
+        final long actualValue = grossValue - coalesce(cartWideDiscountValue, 0L);
 
-        Long serviceChargeValue = null;
-
-        if (!empty(serviceCharge.getAmount())) {
-            serviceChargeValue = serviceCharge.getAmount();
+        final Long serviceChargeFromPercent;
+        if (empty(serviceCharge.getPercentage())) {
+            serviceChargeFromPercent = null;
+        } else {
+            serviceChargeFromPercent = round(actualValue * serviceCharge.getPercentage() / 100);
         }
 
-        if (!empty(serviceCharge.getPercentage())) {
-            serviceChargeValue =
-                coalesce(serviceChargeValue, 0L) + round(actualValue * serviceCharge.getPercentage() / 100);
-        }
-
-        return serviceChargeValue;
+        return allNull(serviceChargeFromPercent, serviceCharge.getAmount())
+            ? null
+            : (coalesce(serviceCharge.getAmount(), 0L) + coalesce(serviceChargeFromPercent, 0L));
     }
 }
