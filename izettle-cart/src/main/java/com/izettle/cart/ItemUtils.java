@@ -14,8 +14,8 @@ class ItemUtils {
      *
      * @return the gross value
      */
-    static long getGrossValue(Item item) {
-        BigDecimal valueBeforeDiscounts = getExactGrossValue(item);
+    static long getGrossValue(final Item item) {
+        final BigDecimal valueBeforeDiscounts = getExactGrossValue(item);
         return round(valueBeforeDiscounts);
     }
 
@@ -26,7 +26,7 @@ class ItemUtils {
      *
      * @return the value
      */
-    static long getValue(Item item) {
+    static long getValue(final Item item) {
         return getGrossValue(item) - coalesce(getDiscountValue(item), 0L);
     }
 
@@ -35,7 +35,7 @@ class ItemUtils {
      *
      * @return the line item discount value.
      */
-    static Long getDiscountValue(Item item) {
+    static Long getDiscountValue(final Item item) {
         Discount discount = item.getDiscount();
         if (!empty(discount)) {
             BigDecimal valueBeforeDiscounts = getExactGrossValue(item);
@@ -45,7 +45,7 @@ class ItemUtils {
     }
 
 
-    private static BigDecimal getExactGrossValue(Item item) {
+    private static BigDecimal getExactGrossValue(final Item item) {
         return item.getQuantity().multiply(BigDecimal.valueOf(item.getUnitPrice()));
     }
 }
