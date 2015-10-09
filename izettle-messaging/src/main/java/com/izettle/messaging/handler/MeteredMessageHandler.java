@@ -12,17 +12,17 @@ import com.izettle.messaging.RetryableMessageHandlerException;
  */
 public class MeteredMessageHandler<M> implements MessageHandler<M> {
     private final MessageHandler<M> actualHandler;
-    private final Meter meterAll;
     private final Meter meterError;
     private final Meter meterRetryable;
     private final Timer timer;
 
-    public MeteredMessageHandler(MessageHandler<M> actualHandler, MetricRegistry metricRegistry, String metricsName) {
+    public MeteredMessageHandler(MessageHandler<M> actualHandler, MetricRegistry metricRegistry) {
         this.actualHandler = actualHandler;
-        this.meterAll = metricRegistry.meter(metricsName + ".all");
+
+        String metricsName = actualHandler.getClass().getName() + ".handle";
         this.meterRetryable = metricRegistry.meter(metricsName + ".retryable");
         this.meterError = metricRegistry.meter(metricsName + ".error");
-        timer = metricRegistry.timer(metricsName);
+        this.timer = metricRegistry.timer(metricsName);
     }
 
     @Override
@@ -30,7 +30,6 @@ public class MeteredMessageHandler<M> implements MessageHandler<M> {
 
         Timer.Context timerContext = timer.time();
         try {
-            meterAll.mark();
             actualHandler.handle(message);
         } catch (RetryableMessageHandlerException e) {
             meterRetryable.mark();
