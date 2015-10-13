@@ -1,6 +1,6 @@
 package com.izettle.cart;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import java.math.BigDecimal;

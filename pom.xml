@@ -52,11 +52,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <astyanax.version>1.56.37</astyanax.version>
+        <astyanax.version>3.8.0</astyanax.version>
+        <guava.version>18.0</guava.version>
         <aws.version>1.9.30</aws.version>
         <bouncycastle.version>1.47</bouncycastle.version>
         <jackson.version>2.2.3</jackson.version>
-        <slf4j.version>1.7.2</slf4j.version>
+        <slf4j.version>1.7.12</slf4j.version>
         <metrics.version>3.1.1</metrics.version>
     </properties>
 
@@ -74,9 +75,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.easytesting</groupId>
-            <artifactId>fest-assert-core</artifactId>
-            <version>2.0M10</version>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.1.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
