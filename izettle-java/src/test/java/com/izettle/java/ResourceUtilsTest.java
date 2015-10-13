@@ -3,7 +3,7 @@ package com.izettle.java;
 import static com.izettle.java.ResourceUtils.getResourceAsBytes;
 import static com.izettle.java.ResourceUtils.getResourceAsStream;
 import static com.izettle.java.ResourceUtils.getResourceListing;
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStream;
 import org.junit.Test;

@@ -1,6 +1,7 @@
 package com.izettle.cassandra;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
