@@ -8,7 +8,6 @@ import com.amazonaws.services.sns.model.PublishRequest;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.messaging.serialization.DefaultMessageSerializer;
 import com.izettle.messaging.serialization.MessageSerializer;
-import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -83,7 +82,7 @@ public class PublisherService implements MessagePublisher {
             String encryptedBody = messageSerializer.encrypt(jsonBody);
             PublishRequest publishRequest = new PublishRequest(topicArn, encryptedBody, eventName);
             amazonSNS.publish(publishRequest);
-        } catch (IOException | CryptographyException e) {
+        } catch (Exception e) {
             throw new MessagingException("Failed to publish message " + eventName, e);
         }
     }
