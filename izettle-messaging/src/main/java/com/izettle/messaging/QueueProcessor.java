@@ -12,6 +12,7 @@ import com.izettle.messaging.handler.MessageHandler;
 import com.izettle.messaging.handler.MessageHandlerForSingleMessageType;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,7 +155,12 @@ public class QueueProcessor implements MessageQueueProcessor {
             List<Message> messages = amazonSQS.receiveMessage(messageRequest).getMessages();
             if (!empty(messages)) {
                 if (executorService != null) {
-                    executorService.submit(() -> handleMessages(messages, messageQueueUrl));
+                    try {
+                        executorService.submit(() -> handleMessages(messages, messageQueueUrl));
+                    } catch (RejectedExecutionException e) {
+                        LOG.warn("Use executorService but been rejected!", e);
+                        handleMessages(messages, messageQueueUrl);
+                    }
                 } else {
                     handleMessages(messages, messageQueueUrl);
                 }
