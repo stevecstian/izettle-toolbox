@@ -28,10 +28,10 @@ public class ServiceChargeLine<S extends ServiceCharge<S>> implements Serializab
 
     @Override
     public String toString() {
-        return "ServiceChargeLine {" +
-            "serviceCharge=" + serviceCharge +
-            ", value=" + value +
-            ", vat=" + vat +
-            '}';
+        return "ServiceChargeLine {"
+            + "serviceCharge=" + serviceCharge
+            + ", value=" + value
+            + ", vat=" + vat
+            + '}';
     }
 }
