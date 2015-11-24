@@ -18,11 +18,11 @@ public class CartTest {
 
     @Test
     public void itShouldCalculateCorrectVatAndEffectivePrice() {
-        final List<TestItem> items = new LinkedList<TestItem>();
+        List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(1299L, 25f, new BigDecimal("1.0")));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
         discounts.add(new TestDiscount(0L, 0D, BigDecimal.ONE));
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(1299L, cart.getValue());
         assertEquals(0D, cart.getActualDiscountPercentage(), 0D);
         assEq(260L, cart.getActualVat());
@@ -30,11 +30,11 @@ public class CartTest {
 
     @Test
     public void itShouldCalculateCorrectVatAndEffectivePriceWithServiceChargePercentage() {
-        final List<TestItem> items = new LinkedList<TestItem>();
+        List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(1299L, 25f, new BigDecimal("1.0")));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
-        final TestServiceCharge serviceCharge = new TestServiceCharge(20f, null, 10D);
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        TestServiceCharge serviceCharge = new TestServiceCharge(20f, null, 10D);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
         assertEquals(1429, cart.getValue());
         assEq(130L, cart.getServiceChargeValue());
         assEq(282L, cart.getActualVat());
@@ -42,11 +42,11 @@ public class CartTest {
 
     @Test
     public void itShouldCalculateCorrectVatAndEffectivePriceWithServiceChargeFixedAmount() {
-        final List<TestItem> items = new LinkedList<TestItem>();
+        List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(1299L, 25f, new BigDecimal("1.0")));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
-        final TestServiceCharge serviceCharge = new TestServiceCharge(20f, 130L, null);
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        TestServiceCharge serviceCharge = new TestServiceCharge(20f, 130L, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
         assertEquals(1429L, cart.getValue());
         assEq(130L, cart.getServiceChargeValue());
         assEq(282L, cart.getActualVat());
@@ -55,11 +55,11 @@ public class CartTest {
 
     @Test
     public void itShouldCalculateCorrectVatAndEffectivePriceWithServiceChargeFixedAmountAndPercentage() {
-        final List<TestItem> items = new LinkedList<TestItem>();
+        List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(1299L, 25f, new BigDecimal("1.0")));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
-        final TestServiceCharge serviceCharge = new TestServiceCharge(20f, 130L, 10D);
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        TestServiceCharge serviceCharge = new TestServiceCharge(20f, 130L, 10D);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
         assertEquals(1559L, cart.getValue());
         assEq(260L, cart.getServiceChargeValue());
         assEq(303L, cart.getActualVat());
@@ -67,10 +67,10 @@ public class CartTest {
 
     @Test
     public void itShouldHandleNullVatProperly() {
-        final List<TestItem> items = new LinkedList<TestItem>();
+        List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(1299L, null, new BigDecimal("1.0")));
-        final TestServiceCharge serviceCharge = new TestServiceCharge(null, 130L, null);
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, null, serviceCharge);
+        TestServiceCharge serviceCharge = new TestServiceCharge(null, 130L, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, null, serviceCharge);
         assertEquals(1429L, cart.getValue());
         assertNull(cart.getActualDiscountPercentage());
         assertNull(cart.getActualVat());
@@ -78,11 +78,11 @@ public class CartTest {
 
     @Test
     public void itShouldHandleFixedDiscounts() {
-        final List<TestItem> items = new LinkedList<TestItem>();
+        List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(1299L, 25f, new BigDecimal("1.0")));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
         discounts.add(new TestDiscount(10L, 0D, BigDecimal.ONE));
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(1289L, cart.getValue());
         assEq(258L, cart.getActualVat());
         assertEquals(0.77d, cart.getActualDiscountPercentage(), 0.001d);
@@ -90,22 +90,22 @@ public class CartTest {
 
     @Test
     public void itShouldDistributeVats() {
-        final List<TestItem> items = new LinkedList<TestItem>();
+        List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(500L, 10f, new BigDecimal("2.0")));
         items.add(new TestItem(100L, 50f, new BigDecimal("1.0")));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart1 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart1 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(1100L, cart1.getValue());
         assertEquals(1100L, cart1.getGrossValue());
 
         discounts.add(new TestDiscount(110L, 0D, BigDecimal.ONE));
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart2 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart2 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(10d, cart2.getActualDiscountPercentage(), 0.01d);
         assEq(990L, cart2.getValue());
         assEq(1100L, cart2.getGrossValue());
 
-        final List<ItemLine<TestItem, TestDiscount, ItemType>> lineItems = cart2.getItemLines();
+        List<ItemLine<TestItem, TestDiscount, ItemType>> lineItems = cart2.getItemLines();
         assertEquals(2, lineItems.size());
         ItemLine<TestItem, TestDiscount, ItemType> lineItem = lineItems.get(0);
         assEq(82L, lineItem.getActualVat());
@@ -116,39 +116,39 @@ public class CartTest {
 
     @Test
     public void itShouldReclaimDiscountsAfterRoundingError() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(33L, 10f, new BigDecimal("1.0")));
         items.add(new TestItem(33L, 10f, new BigDecimal("1.0")));
         items.add(new TestItem(32L, 50f, new BigDecimal("1.0")));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
         //one fixed discount of 8
         discounts.add(new TestDiscount(8L, 0D, BigDecimal.ONE));
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assEq(8L, cart.getDiscountValue());
         assEq(33L + 33L + 32L - 8L, cart.getValue());
     }
 
     @Test
     public void itShouldDistributeMoreAfterRoundingError() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(33L, 10f, new BigDecimal("1.0")));
         items.add(new TestItem(33L, 10f, new BigDecimal("1.0")));
         items.add(new TestItem(32L, 50f, new BigDecimal("1.0")));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
         //one fixed discount of 10
         discounts.add(new TestDiscount(10L, 0D, BigDecimal.ONE));
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assEq(10L, cart.getDiscountValue());
         assEq(33L + 33L + 32L - 10L, cart.getValue());
     }
 
     @Test
     public void itShouldDistributeDiscountValueOverDiscounts() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(93L, null, BigDecimal.ONE));
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
         /*
          Adding 9 discounts with 10% each will give a rounding error on each discount line
          A naive implementation would then take these 9 for each discount, summarizing up to 37 in total discount, which
@@ -157,14 +157,14 @@ public class CartTest {
         for (int i = 0; i < 9; i++) {
             discounts.add(new TestDiscount(null, 10d, BigDecimal.ONE));
         }
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         //Verify that totals add up, and that we're as close as possible to a total discount of 90%
         assEq(36L, cart.getValue());
         assEq(57L, cart.getDiscountValue());
         assertEquals(61d, cart.getActualDiscountPercentage(), 1d);
         ////Verify that the sum of all discount items discount value equals the total discount:
         long totDiscountAmnt = 0L;
-        for (final DiscountLine<TestDiscount> discountLine : cart.getDiscountLines()) {
+        for (DiscountLine<TestDiscount> discountLine : cart.getDiscountLines()) {
             totDiscountAmnt += discountLine.getValue();
         }
         assEq(cart.getDiscountValue(), totDiscountAmnt);
@@ -172,16 +172,16 @@ public class CartTest {
 
     @Test
     public void itShouldCreateAProperInverse() {
-        final List<TestItem> items = new ArrayList<TestItem>();
-        final Random rnd = new Random();
-        final int iter = rnd.nextInt(100);
+        List<TestItem> items = new ArrayList<TestItem>();
+        Random rnd = new Random();
+        int iter = rnd.nextInt(100);
         for (int i = 0; i < iter; i++) {
             items.add(new TestItem(rnd.nextInt(10000), rnd.nextFloat() * 30f, new BigDecimal("" + rnd.nextFloat())));
         }
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
         discounts.add(new TestDiscount(2L, 0D, BigDecimal.TEN));
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> inversedCart = cart.inverse();
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> inversedCart = cart.inverse();
         assEq(-1 * cart.getValue(), inversedCart.getValue());
         assEq(-1 * cart.getDiscountValue(), inversedCart.getDiscountValue());
         assEq(-1 * cart.getActualVat(), inversedCart.getActualVat());
@@ -190,18 +190,18 @@ public class CartTest {
 
     @Test
     public void itShouldCreateAProperInverseWithServiceCharge() {
-        final List<TestItem> items = new ArrayList<TestItem>();
-        final Random rnd = new Random();
-        final int iter = rnd.nextInt(100);
+        List<TestItem> items = new ArrayList<TestItem>();
+        Random rnd = new Random();
+        int iter = rnd.nextInt(100);
         for (int i = 0; i < iter; i++) {
             items.add(new TestItem(rnd.nextInt(10000), rnd.nextFloat() * 30f, new BigDecimal("" + rnd.nextFloat())));
         }
 
-        final List<TestDiscount> discounts = new LinkedList<TestDiscount>();
+        List<TestDiscount> discounts = new LinkedList<TestDiscount>();
         discounts.add(new TestDiscount(2L, 0D, BigDecimal.TEN));
-        final TestServiceCharge serviceCharge = new TestServiceCharge(20f, null, 10D);
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> inversedCart = cart.inverse();
+        TestServiceCharge serviceCharge = new TestServiceCharge(20f, null, 10D);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> inversedCart = cart.inverse();
 
         assEq(-1 * cart.getValue(), inversedCart.getValue());
         assEq(-1 * cart.getDiscountValue(), inversedCart.getDiscountValue());
@@ -254,13 +254,13 @@ public class CartTest {
 
     @Test
     public void itShouldGroupVatsProperly() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(2000l, 10f, new BigDecimal(3d)));
         items.add(new TestItem(3500l, 12f, new BigDecimal(4d)));
         items.add(new TestItem(1200l, 25f, BigDecimal.ONE));
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, null, null);
-        final SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart.groupValuesByVatPercentage();
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, null, null);
+        SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart.groupValuesByVatPercentage();
         assEq(545L, valuesGroupedByVatPercentage.get(10f).getActualVatValue());
         assEq(1500L, valuesGroupedByVatPercentage.get(12f).getActualVatValue());
         assEq(240L, valuesGroupedByVatPercentage.get(25f).getActualVatValue());
@@ -273,26 +273,26 @@ public class CartTest {
 
     @Test
     public void itShouldGroupVatWithDiscount() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(2000l, 10f, new BigDecimal(3d)));
         items.add(new TestItem(3500l, 12f, new BigDecimal(4d)));
         items.add(new TestItem(1200l, 25f, BigDecimal.ONE));
         items.add(new TestItem(999999l, 98f, new BigDecimal(3d)));
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart1 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, null, null);
-        final Long totVatWithoutDiscount = cart1.getActualVat();
-        final long totAmountWithoutDiscount = cart1.getValue();
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart1 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, null, null);
+        Long totVatWithoutDiscount = cart1.getActualVat();
+        long totAmountWithoutDiscount = cart1.getValue();
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
         discounts.add(new TestDiscount(null, 1d, BigDecimal.ONE));
         discounts.add(new TestDiscount(999999l, null, BigDecimal.ONE));
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart2 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
-        final Long totVatWithDiscount = cart2.getActualVat();
-        final long totAmountWithDiscount = cart2.getValue();
-        final long discountAmount = totAmountWithoutDiscount - totAmountWithDiscount;
-        final double discountFrac = ((double) discountAmount) / totAmountWithoutDiscount;
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart2 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Long totVatWithDiscount = cart2.getActualVat();
+        long totAmountWithDiscount = cart2.getValue();
+        long discountAmount = totAmountWithoutDiscount - totAmountWithDiscount;
+        double discountFrac = ((double) discountAmount) / totAmountWithoutDiscount;
         long totAmountVatWithDiscount = 0;
-        final SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart2.groupValuesByVatPercentage();
-        for (final Map.Entry<Float, VatGroupValues> entry : valuesGroupedByVatPercentage.entrySet()) {
+        SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart2.groupValuesByVatPercentage();
+        for (Map.Entry<Float, VatGroupValues> entry : valuesGroupedByVatPercentage.entrySet()) {
             totAmountVatWithDiscount += entry.getValue().getActualVatValue();
         }
         assEq(totVatWithDiscount, totAmountVatWithDiscount);
@@ -306,28 +306,28 @@ public class CartTest {
 
     @Test
     public void itShouldGroupVatWithDiscountAndServiceCharge() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(2000l, 10f, new BigDecimal(3d)));
         items.add(new TestItem(3500l, 12f, new BigDecimal(4d)));
         items.add(new TestItem(1200l, 25f, BigDecimal.ONE));
         items.add(new TestItem(999999l, 98f, new BigDecimal(3d)));
-        final TestServiceCharge serviceCharge = new TestServiceCharge(20f, null, 10D);
+        TestServiceCharge serviceCharge = new TestServiceCharge(20f, null, 10D);
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart1 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, null, serviceCharge);
-        final Long totVatWithoutDiscount = cart1.getActualVat();
-        final long totAmountWithoutDiscount = cart1.getValue();
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart1 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, null, serviceCharge);
+        Long totVatWithoutDiscount = cart1.getActualVat();
+        long totAmountWithoutDiscount = cart1.getValue();
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
         discounts.add(new TestDiscount(null, 1d, BigDecimal.ONE));
         discounts.add(new TestDiscount(999999l, null, BigDecimal.ONE));
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart2 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
-        final Long totVatWithDiscount = cart2.getActualVat();
-        final long totAmountWithDiscount = cart2.getValue();
-        final long discountAmount = totAmountWithoutDiscount - totAmountWithDiscount;
-        final double discountFrac = ((double) discountAmount) / totAmountWithoutDiscount;
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart2 = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, serviceCharge);
+        Long totVatWithDiscount = cart2.getActualVat();
+        long totAmountWithDiscount = cart2.getValue();
+        long discountAmount = totAmountWithoutDiscount - totAmountWithDiscount;
+        double discountFrac = ((double) discountAmount) / totAmountWithoutDiscount;
         long totAmountVatWithDiscount = 0;
-        final SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart2.groupValuesByVatPercentage();
-        for (final Map.Entry<Float, VatGroupValues> entry : valuesGroupedByVatPercentage.entrySet()) {
+        SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart2.groupValuesByVatPercentage();
+        for (Map.Entry<Float, VatGroupValues> entry : valuesGroupedByVatPercentage.entrySet()) {
             totAmountVatWithDiscount += entry.getValue().getActualVatValue();
         }
         assEq(totVatWithDiscount, totAmountVatWithDiscount);
@@ -344,18 +344,18 @@ public class CartTest {
      */
     @Test
     public void itShouldSumUpAfterDiscount() {
-        final int nrIterations = 1000;
+        int nrIterations = 1000;
         for (int iterIdx = 0; iterIdx < nrIterations; iterIdx++) {
-            final Random rnd = new Random();
-            final int nrProducts = rnd.nextInt(10) + 1;
-            final int nrDiscounts = rnd.nextInt(3);
-            final float[] vatGroups = {3 + rnd.nextInt(3), 6 + rnd.nextInt(3), 9 + rnd.nextInt(3), 12 + rnd.nextInt(3)};
+            Random rnd = new Random();
+            int nrProducts = rnd.nextInt(10) + 1;
+            int nrDiscounts = rnd.nextInt(3);
+            float[] vatGroups = {3 + rnd.nextInt(3), 6 + rnd.nextInt(3), 9 + rnd.nextInt(3), 12 + rnd.nextInt(3)};
             /*
              * Create products
              */
-            final List<TestItem> products = new ArrayList<TestItem>();
+            List<TestItem> products = new ArrayList<TestItem>();
             for (int i = 0; i < nrProducts; i++) {
-                final int nrItems = rnd.nextInt(3) + 1;
+                int nrItems = rnd.nextInt(3) + 1;
                 products.add(new TestItem(
                     rnd.nextInt(10000) + 100L,
                     vatGroups[rnd.nextInt(vatGroups.length)],
@@ -366,14 +366,14 @@ public class CartTest {
              * Create discounts. As they are randomly generated, they might actually create negative total amounts but
              * this doesn't matter for this check
              */
-            final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+            List<TestDiscount> discounts = new ArrayList<TestDiscount>();
             for (int i = 0; i < nrDiscounts; i++) {
                 discounts.add(new TestDiscount((long) rnd.nextInt(4000), (double) rnd.nextInt(40), BigDecimal.ONE));
             }
-            final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(products, discounts, null);
-            final SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart.groupValuesByVatPercentage();
+            Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(products, discounts, null);
+            SortedMap<Float, VatGroupValues> valuesGroupedByVatPercentage = cart.groupValuesByVatPercentage();
             long totVat = 0;
-            for (final Float key : valuesGroupedByVatPercentage.keySet()) {
+            for (Float key : valuesGroupedByVatPercentage.keySet()) {
                 totVat += valuesGroupedByVatPercentage.get(key).getActualVatValue();
             }
             assEq(cart.getActualVat(), totVat);
@@ -382,40 +382,40 @@ public class CartTest {
 
     @Test
     public void totalAmountShouldBeCorrectForAmountDiscounts() {
-        final Random rnd = new Random();
-        final long itemPrice = rnd.nextInt(Integer.MAX_VALUE);
-        final long discountAmount = rnd.nextInt((int) itemPrice);
-        final List<TestItem> items = new ArrayList<TestItem>();
+        Random rnd = new Random();
+        long itemPrice = rnd.nextInt(Integer.MAX_VALUE);
+        long discountAmount = rnd.nextInt((int) itemPrice);
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(itemPrice, null, BigDecimal.ONE));
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
         discounts.add(new TestDiscount(discountAmount, null, BigDecimal.ONE));
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(itemPrice - discountAmount, cart.getValue());
     }
 
     @Test
     public void totalAmountShouldBeCorrectForPercentageDiscounts() {
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
         discounts.add(new TestDiscount(null, 99d, BigDecimal.ONE));
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(10736439L, null, BigDecimal.ONE));
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(107364, cart.getValue());
     }
 
     @Test
     public void shouldNotBlowUpIfGrossValueIsZeroAndHaveDiscount() {
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
         discounts.add(new TestDiscount(null, 15d, BigDecimal.ONE));
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(0L, null, BigDecimal.ONE));
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(0l, cart.getValue());
     }
 
     @Test
     public void anEmptyCartIsAlsoACart() {
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(Collections.<TestItem>emptyList(), null, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(Collections.<TestItem>emptyList(), null, null);
         assertThat(cart.getValue()).isEqualTo(0);
         assertThat(cart.getActualVat()).isEqualTo(null);
         assertThat(cart.getGrossValue()).isEqualTo(0);
@@ -423,37 +423,37 @@ public class CartTest {
 
     @Test
     public void itShouldHandleDiscountsPerItemFixed() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem("First", 100L, 25f, BigDecimal.ONE, new TestDiscount(10L, null, BigDecimal.ONE)));
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(90L, cart.getValue());
         assEq(18L, cart.getActualVat());
     }
 
     @Test
     public void itShouldHandleDiscountsPerItemPercentage() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem("First", 100L, 25f, BigDecimal.ONE, new TestDiscount(null, 50d, BigDecimal.ONE)));
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(50L, cart.getValue());
         assEq(10L, cart.getActualVat());
     }
 
     @Test
     public void itShouldHandleDiscountsPerItemPercentageAndFixed() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem("First", 100L, 25f, BigDecimal.ONE, new TestDiscount(10L, 50d, BigDecimal.ONE)));
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(40L, cart.getValue());
         assEq(8L, cart.getActualVat());
     }
 
     @Test
     public void itShouldHandleBothGlobalAndPerItemDiscount() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         //Gives $100 - $1 - 10% -> 100 - 11% = 89, with 1% vat -> $1 VAT
         items.add(new TestItem("First", 100L, 1f, BigDecimal.ONE, new TestDiscount(1L, 10d, BigDecimal.ONE)));
         //Gives $400 - $4 - 40% -> 400 - 41% = 236, with 50% VAT -> $79 VAT
@@ -461,7 +461,7 @@ public class CartTest {
             "Second", 200L, 50f, BigDecimal.valueOf(2),
             new TestDiscount(2L, 20d, BigDecimal.valueOf(2))
         ));
-        final List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
         //First verify the non-global discount scenario, as it's already quite complex:
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
         assertEquals(325L, cart.getValue());
@@ -481,7 +481,7 @@ public class CartTest {
 
     @Test
     public void itShouldHandleSurcharge() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(100L, null, BigDecimal.ONE));
         List<TestDiscount> discounts;
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart;
@@ -501,7 +501,7 @@ public class CartTest {
 
     @Test
     public void itShouldHandleConsecutiveSurchargeAndDiscount() {
-        final List<TestItem> items = new ArrayList<TestItem>();
+        List<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem(100L, null, BigDecimal.ONE));
         List<TestDiscount> discounts;
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart;
@@ -535,13 +535,13 @@ public class CartTest {
 
     @Test
     public void testTotalDiscount() {
-        final ArrayList<TestItem> items = new ArrayList<TestItem>();
+        ArrayList<TestItem> items = new ArrayList<TestItem>();
         items.add(new TestItem("", 100L, 10f, new BigDecimal(2), new TestDiscount(100L, null, BigDecimal.ONE)));
 
-        final ArrayList<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        ArrayList<TestDiscount> discounts = new ArrayList<TestDiscount>();
         discounts.add(new TestDiscount(null, 50d, BigDecimal.ONE));
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, ItemType>(items, discounts, null);
 
         assertThat(cart.getDiscountValue()).isEqualTo(150);
         assertThat(cart.getNumberOfDiscounts()).isEqualTo(2);
@@ -549,7 +549,7 @@ public class CartTest {
     }
 
     //Dummy method for bypassing ambiguity against two similar Assert.assertEqual methods
-    private void assEq(final Long one, final Long two) {
+    private void assEq(Long one, Long two) {
         assertEquals(one, two);
     }
 }
