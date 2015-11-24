@@ -2,7 +2,7 @@ package com.izettle.cart;
 
 import java.math.BigDecimal;
 
-public class TestItem implements Item<TestItem, TestDiscount> {
+public class TestItem implements Item<TestItem, TestDiscount, ItemType> {
 
     private final long unitPrice;
     private final Float vatPercentage;
@@ -56,6 +56,16 @@ public class TestItem implements Item<TestItem, TestDiscount> {
     @Override
     public TestDiscount getDiscount() {
         return discount;
+    }
+
+    @Override
+    public ItemType getItemType() {
+        return new ItemType() {
+            @Override
+            public boolean acceptsDiscounts() {
+                return true;
+            }
+        };
     }
 }
 

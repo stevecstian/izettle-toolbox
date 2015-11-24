@@ -44,8 +44,19 @@ class ItemUtils {
         return null;
     }
 
-
     private static BigDecimal getExactGrossValue(final Item item) {
         return item.getQuantity().multiply(BigDecimal.valueOf(item.getUnitPrice()));
+    }
+
+    /**
+     * Discounts can by applied to this item
+     * @return
+     */
+    static boolean itemAcceptsDiscounts(Item item) {
+        // We need to check for null here for backwards compatibility.
+        // However we need to make sure that no app will ever send a null
+        // ProductType for a Charity product, otherwise it will be interpreted
+        // as a regular product and will be payed out to the customer.
+        return item.getItemType() == null || item.getItemType().acceptsDiscounts();
     }
 }

@@ -7,7 +7,7 @@ import java.math.BigDecimal;
  * @param <T> The type of the item itself
  * @param <K> The type of the optional item local discount
  */
-public interface Item<T, K extends Discount<?>> {
+public interface Item<T, K extends Discount<?>, P extends ItemType> {
 
     /**
      * The quantity, or the number of units that this item represents
@@ -26,6 +26,8 @@ public interface Item<T, K extends Discount<?>> {
      * @return the vat percentage
      */
     Float getVatPercentage();
+
+    P getItemType();
 
     /**
      * Utility method that subclasses need to implement. Inverse here, means the concept of negating the line, which

@@ -1,5 +1,6 @@
 package com.izettle.cart;
 
+import static com.izettle.cart.ItemUtils.itemAcceptsDiscounts;
 import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.coalesce;
 import static com.izettle.java.ValueChecks.empty;
@@ -10,10 +11,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 
-public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>>
+public class Cart<T extends Item<T, D, P>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>, P extends ItemType>
     implements Serializable {
 
-    private final List<ItemLine<T, D>> itemLines;
+    private final List<ItemLine<T, D, P>> itemLines;
     private final List<DiscountLine<K>> discountLines;
     private final ServiceChargeLine<S> serviceChargeLine;
     private final long grossValue;
@@ -33,12 +34,30 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     public Cart(final List<T> items, final List<K> discounts, final S serviceCharge) {
         final List<T> itemList = coalesce(items, Collections.<T>emptyList());
         final List<K> discountList = coalesce(discounts, Collections.<K>emptyList());
+
+        final List<T> discountableItems = new ArrayList<T>();
+        for (T item : items) {
+            if (itemAcceptsDiscounts(item)) {
+                discountableItems.add(item);
+            }
+        }
+        final long discountableGrossValue = CartUtils.getGrossValue(discountableItems);
+
+        final List<T> undiscountableItems = new ArrayList<T>();
+        for (T item : items) {
+            if (!itemAcceptsDiscounts(item)) {
+                undiscountableItems.add(item);
+            }
+        }
+        final long undiscountableGrossValue = CartUtils.getGrossValue(undiscountableItems);
+
         this.grossValue = CartUtils.getGrossValue(itemList);
-        this.discountValue = CartUtils.getTotalDiscountValue(discountList, grossValue, itemList);
-        this.actualDiscountPercentage = CartUtils.getDiscountPercentage(grossValue, discountValue);
-        this.cartWideDiscountValue = CartUtils.getTotalCartWideDiscountValue(discountList, grossValue);
-        this.discountLines = CartUtils.buildDiscountLines(discountList, grossValue, cartWideDiscountValue);
-        this.itemLines = CartUtils.buildItemLines(itemList, grossValue, cartWideDiscountValue);
+        this.discountValue = CartUtils.getTotalDiscountValue(discountList, discountableGrossValue, discountableItems);
+        this.actualDiscountPercentage = CartUtils.getDiscountPercentage(discountableGrossValue, discountValue);
+        this.cartWideDiscountValue = CartUtils.getTotalCartWideDiscountValue(discountList, discountableGrossValue);
+        this.discountLines = CartUtils.buildDiscountLines(discountList, discountableGrossValue, cartWideDiscountValue);
+        this.itemLines = CartUtils.buildItemLines(discountableItems, discountableGrossValue, cartWideDiscountValue);
+        this.itemLines.addAll(CartUtils.buildItemLines(undiscountableItems, undiscountableGrossValue, null));
         this.serviceChargeLine = CartUtils.buildServiceChargeLine(grossValue, cartWideDiscountValue, serviceCharge);
         this.serviceChargeValue = CartUtils.getServiceChargeValue(grossValue, cartWideDiscountValue, serviceCharge);
         this.grossVat = CartUtils.summarizeGrossVat(itemLines);
@@ -50,14 +69,14 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * for refunds
      * @return the inversed cart
      */
-    public Cart<T, D, K, S> inverse() {
+    public Cart<T, D, K, S, P> inverse() {
         //Copy all items and discounts, but negate the quantities:
         final List<T> inverseItems;
         if (empty(itemLines)) {
             inverseItems = Collections.emptyList();
         } else {
             inverseItems = new ArrayList<T>(itemLines.size());
-            for (ItemLine<T, D> itemLine : itemLines) {
+            for (ItemLine<T, D, P> itemLine : itemLines) {
                 inverseItems.add(itemLine.getItem().inverse());
             }
         }
@@ -78,7 +97,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             inverseServiceCharge = serviceChargeLine.getServiceCharge().inverse();
         }
 
-        return new Cart<T, D, K, S>(inverseItems, inverseDiscounts, inverseServiceCharge);
+        return new Cart<T, D, K, S, P>(inverseItems, inverseDiscounts, inverseServiceCharge);
     }
 
     /**
@@ -94,7 +113,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * contain additional information, specific to the context of this cart, such as actual amounts and VATs
      * @return an immutable list of item lines
      */
-    public List<ItemLine<T, D>> getItemLines() {
+    public List<ItemLine<T, D, P>> getItemLines() {
         return Collections.unmodifiableList(itemLines);
     }
 
@@ -134,7 +153,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             numberOfDiscounts = discountLines.size();
         }
 
-        for (ItemLine<T, D> itemLine : itemLines) {
+        for (ItemLine<T, D, P> itemLine : itemLines) {
             if (itemLine.getItem().getDiscount() != null) {
                 numberOfDiscounts++;
             }
@@ -206,7 +225,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         StringBuilder sb = new StringBuilder();
         sb.append("Cart {\n");
         sb.append("\tItemLines:\n");
-        for (ItemLine<T, D> itemLine : itemLines) {
+        for (ItemLine<T, D, P> itemLine : itemLines) {
             sb.append("\t\t").append(itemLine).append("\n");
         }
         sb.append("\tDiscountLines:\n");
