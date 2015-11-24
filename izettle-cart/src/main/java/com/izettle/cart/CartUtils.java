@@ -330,7 +330,7 @@ class CartUtils {
     }
 
     static <T extends Item<T, K, P>, K extends Discount<K>, P extends ItemType> SortedMap<Float, VatGroupValues> groupValuesByVatPercentage(
-        Collection<ItemLine<T, K, P>> itemLines,
+        final Collection<ItemLine<T, K, P>> itemLines,
         final ServiceChargeLine serviceChargeLine
     ) {
         final SortedMap<Float, Long> actualVatValuePerGroup = new TreeMap<Float, Long>();
