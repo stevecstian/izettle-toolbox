@@ -8,6 +8,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.PGPUtil;
+import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 
 public final class KeyUtil {
 
@@ -74,7 +75,7 @@ public final class KeyUtil {
 
         public PublicKeyReader(InputStream input) throws IOException, PGPException {
             super(input);
-            this.keyring = new PGPPublicKeyRingCollection(this.input);
+            this.keyring = new PGPPublicKeyRingCollection(this.input, new BcKeyFingerprintCalculator());
         }
 
         @Override

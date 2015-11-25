@@ -14,6 +14,7 @@ import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.bcpg.CompressionAlgorithmTags;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactoryBuilder;
@@ -88,7 +89,10 @@ public class PGP {
 
     @SuppressWarnings("unchecked")
     private static Iterator<PGPPublicKeyEncryptedData> getEncryptedObjects(final byte[] data) throws IOException {
-        final PGPObjectFactory factory = new PGPObjectFactory(PGPUtil.getDecoderStream(new ByteArrayInputStream(data)));
+        final PGPObjectFactory factory = new PGPObjectFactory(
+            PGPUtil.getDecoderStream(new ByteArrayInputStream(data)),
+            new BcKeyFingerprintCalculator()
+        );
         final Object first = factory.nextObject();
         final Object list = (first instanceof PGPEncryptedDataList) ? first : factory.nextObject();
         return ((PGPEncryptedDataList) list).getEncryptedDataObjects();
@@ -100,7 +104,8 @@ public class PGP {
             final String passphrase) throws IOException, PGPException {
         PGPPrivateKey key = null;
         PGPPublicKeyEncryptedData encrypted = null;
-        final PGPSecretKeyRingCollection keys = new PGPSecretKeyRingCollection(new ArmoredInputStream(keyfile));
+        final PGPSecretKeyRingCollection keys =
+            new PGPSecretKeyRingCollection(new ArmoredInputStream(keyfile), new BcKeyFingerprintCalculator());
         for (final Iterator<PGPPublicKeyEncryptedData> i = getEncryptedObjects(data); key == null && i.hasNext();) {
             encrypted = i.next();
             key = findSecretKey(keys, encrypted.getKeyID(), passphrase);
@@ -116,11 +121,12 @@ public class PGP {
     }
 
     private static PGPLiteralData asLiteral(final InputStream clear) throws IOException, PGPException {
-        final PGPObjectFactory plainFact = new PGPObjectFactory(clear);
+        BcKeyFingerprintCalculator bcKeyFingerprintCalculator = new BcKeyFingerprintCalculator();
+        final PGPObjectFactory plainFact = new PGPObjectFactory(clear, bcKeyFingerprintCalculator);
         final Object message = plainFact.nextObject();
         if (message instanceof PGPCompressedData) {
             final PGPCompressedData cData = (PGPCompressedData) message;
-            final PGPObjectFactory pgpFact = new PGPObjectFactory(cData.getDataStream());
+            final PGPObjectFactory pgpFact = new PGPObjectFactory(cData.getDataStream(), bcKeyFingerprintCalculator);
             // Find the first PGPLiteralData object
             Object object = null;
             for (int safety = 0; safety++ < 1000 && !(object instanceof PGPLiteralData); object = pgpFact.nextObject()) {

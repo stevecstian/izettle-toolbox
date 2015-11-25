@@ -55,7 +55,7 @@
         <astyanax.version>3.8.0</astyanax.version>
         <guava.version>18.0</guava.version>
         <aws.version>1.10.32</aws.version>
-        <bouncycastle.version>1.47</bouncycastle.version>
+        <bouncycastle.version>1.52</bouncycastle.version>
         <jackson.version>2.5.1</jackson.version>
         <slf4j.version>1.7.12</slf4j.version>
         <metrics.version>3.1.2</metrics.version>
