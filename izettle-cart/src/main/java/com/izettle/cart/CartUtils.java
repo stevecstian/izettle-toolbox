@@ -44,11 +44,12 @@ class CartUtils {
             retVal = BigDecimal.valueOf(discount.getAmount());
         }
         if (discount.getPercentage() != null) {
-            retVal = coalesce(retVal, BigDecimal.ZERO).
-                add(
-                    totalGrossAmount.abs().
-                    multiply(BigDecimal.valueOf(discount.getPercentage())).
-                    divide(BigDecimal.valueOf(100L))
+            retVal = coalesce(retVal, BigDecimal.ZERO)
+                .add(
+                    totalGrossAmount
+                    .abs()
+                    .multiply(BigDecimal.valueOf(discount.getPercentage()))
+                    .divide(BigDecimal.valueOf(100L))
                 );
         }
         if (retVal != null) {
