@@ -8,8 +8,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,6 +28,23 @@ public class ValueChecksSpec {
         Object[] noObjects = null;
         assertTrue(ValueChecks.anyNull(noObjects));
         assertFalse(ValueChecks.anyNull("Foo", 2));
+    }
+
+    @Test
+    public void noneNull() {
+        assertTrue( ValueChecks.noneNull("hej", "svejs", "hallo"));
+        assertTrue( ValueChecks.noneNull("", "", ""));
+        assertFalse( ValueChecks.noneNull("hej", null, "hallo"));
+        assertFalse( ValueChecks.noneNull(null, null, null));
+    }
+
+    @Test
+    public void noneEmpty() {
+        assertTrue( ValueChecks.noneEmpty("hej", "svejs", "hallo"));
+        assertFalse( ValueChecks.noneEmpty("5", "BANANER!", ""));
+        assertFalse( ValueChecks.noneEmpty(null, null, "hallo"));
+        assertFalse( ValueChecks.noneEmpty("", "", null));
+
     }
 
     @Test
@@ -107,5 +127,137 @@ public class ValueChecksSpec {
         one = "one";
         assertEquals(one, ValueChecks.ifEmpty(one, two));
         Assert.assertNull(ValueChecks.ifEmpty("", null));
+    }
+
+    @Test
+    public void testIsTrue() {
+        ValueChecks.assertTrue(true, "should be true");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIsNotTrue() {
+        ValueChecks.assertTrue(false, "should be true");
+    }
+
+    @Test
+    public void testNotNull() {
+        final String bananas = ValueChecks.assertNotNull("Bananas", "Bananas must not be null");
+        org.junit.Assert.assertEquals(bananas, "Bananas");
+    }
+
+    @Test
+    public void testNotNullEmptyString() {
+        final String bananas = ValueChecks.assertNotNull("", "Bananas must not be null");
+        org.junit.Assert.assertEquals(bananas, "");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNotNullButIs() {
+        ValueChecks.assertNotNull(null, "Bananas must not be null");
+    }
+
+    @Test
+    public void testNotEmpty() {
+        final String bananas = ValueChecks.assertNotEmpty("Bananas", "Bananas must not be Empty");
+        org.junit.Assert.assertEquals(bananas, "Bananas");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNotEmptyEmptyString() {
+        ValueChecks.assertNotEmpty("", "Bananas must not be Empty");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNotEmptyWhiteSpace() {
+        ValueChecks.assertNotEmpty(" ", "Bananas must not be Empty");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNotEmptyNull() {
+        final String nullBanana = null;
+        ValueChecks.assertNotEmpty(nullBanana, "Bananas must not be Empty");
+    }
+
+    @Test
+    public void testNotEmptyForArrayMessage() {
+        final String[] fruits = new String[]{"Banana", "Apple"};
+        final String[] result = ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
+        org.junit.Assert.assertArrayEquals(fruits, result);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNotEmptyForArrayMessageEmpty() {
+        final String[] fruits = null;
+        ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
+    }
+
+    @Test
+    public void testNoNullElements() {
+        final String[] fruits = new String[]{"Banana", "Apple"};
+        final String[] result = ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");
+        org.junit.Assert.assertArrayEquals(fruits, result);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNoNullElementsWithNullElements() {
+        final String[] fruits = new String[]{"Banana", "Apple", null};
+        ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNoNullElementsInCollectionWithNullElements() {
+        final List<String> fruits = Arrays.asList("Banana", "Apple", null);
+        ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNoNullElementsInCollectionIsNull() {
+        final List<String> fruits = null;
+        ValueChecks.assertNoNulls(fruits, "Fruitbasket must not be null and not contain null elements");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNotEmptyCollectionWithEmptyCollection() {
+        final List<String> fruits = Collections.emptyList();
+        ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
+    }
+
+    @Test
+    public void testNoNullElementsInCollectionWithEmptyCollection() {
+        final List<String> fruits = Collections.emptyList();
+        final Collection<String>
+            result = ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");
+        org.junit.Assert.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testNotEmptyForCollectionMessage() {
+        final List<String> fruits = Arrays.asList("Banana", "Apple", null);
+        final Collection<String> result = ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
+        org.junit.Assert.assertArrayEquals(fruits.toArray(), result.toArray());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNotEmptyForMapMessageEmpty() {
+        Map<String, String> fruits = new HashMap<String, String>();
+        ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
+    }
+
+    @Test
+    public void testNotEmptyForMapMessage() {
+        Map<String, String> fruits = new HashMap<String, String>();
+        fruits.put("Banana", "10");
+        fruits.put("Apple", "5");
+        final Map<String, String> result = ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
+        org.junit.Assert.assertEquals(fruits, result);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testIllegalState() {
+        ValueChecks.assertState(true == false, "Invalid assertState!!");
+    }
+
+    public void testValidState() {
+        ValueChecks.assertState(true == true, "Invalid assertState!!");
     }
 }
