@@ -148,4 +148,141 @@ public class ValueChecks {
     public static <T, S extends T> T ifEmpty(T subject, S fallback) {
         return empty(subject) ? fallback : subject;
     }
+
+    /**
+     * Assert a boolean expression, throwing {@code IllegalArgumentException}
+     * if the test result is {@code false}.
+     * <pre class="code">Assert.assertTrue(i &gt; 0, "The value must be greater than zero");</pre>
+     * @param expression a boolean expression
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if expression is {@code false}
+     */
+    public static void assertTrue(boolean expression, String message) {
+        if (!expression) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    /**
+     * Assert that an object is not {@code null} .
+     * <pre class="code">Assert.assertNotNull(clazz, "The class must not be null");</pre>
+     * @param object the object to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object is {@code null}
+     */
+    public static <T> T assertNotNull(T object, String message) {
+        if (object == null) {
+            throw new IllegalArgumentException(message);
+        }
+        return object;
+    }
+
+    /**
+     * Assert that the given String has valid text content; that is, it must not
+     * be {@code null} and must contain at least one non-whitespace character.
+     * <pre class="code">Assert.hasText(name, "'name' must not be empty");</pre>
+     * @param text the String to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the text does not contain valid text content
+     */
+    public static String assertNotEmpty(String text, String message) {
+        if (empty(text)) {
+            throw new IllegalArgumentException(message);
+        }
+        return text;
+    }
+
+    /**
+     * Assert that an array has elements; that is, it must not be
+     * {@code null} and must have at least one element.
+     * <pre class="code">Assert.assertNotEmpty(array, "The array must have elements");</pre>
+     * @param array the array to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object array is {@code null} or has no elements
+     */
+    public static <T> T[] assertNotEmpty(T[] array, String message) {
+        if (empty(array)) {
+            throw new IllegalArgumentException(message);
+        }
+        return array;
+    }
+
+    /**
+     * Assert that an array is not null and has no null elements.
+     * Note: Does not complain if the array is empty!
+     * <pre class="code">Assert.assertNoNulls(array, "The array must have non-null elements");</pre>
+     * @param array the array to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object array contains a {@code null} element
+     */
+    public static <T> T[] assertNoNulls(T[] array, String message) {
+        if (anyNull(array)) {
+            throw new IllegalArgumentException(message);
+        }
+        return array;
+    }
+
+    /**
+     * Assert that an Collection is not null and has no null elements.
+     * Note: Does not complain if the Collection is empty!
+     * <pre class="code">Assert.assertNoNulls(array, "The Collection must have non-null elements");</pre>
+     * @param collection the Collection to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object Collection contains a {@code null} element
+     */
+    public static <T> Collection<T> assertNoNulls(Collection<T> collection, String message) {
+        assertNotNull(collection, message);
+        for (Object element : collection) {
+            if (element == null) {
+                throw new IllegalArgumentException(message);
+            }
+        }
+        return collection;
+    }
+
+    /**
+     * Assert that a collection has elements; that is, it must not be
+     * {@code null} and must have at least one element.
+     * <pre class="code">Assert.assertNotEmpty(collection, "Collection must have elements");</pre>
+     * @param collection the collection to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the collection is {@code null} or has no elements
+     */
+    public static <T> Collection<T> assertNotEmpty(Collection<T> collection, String message) {
+        if (empty(collection)) {
+            throw new IllegalArgumentException(message);
+        }
+        return collection;
+    }
+
+    /**
+     * Assert that a Map has entries; that is, it must not be {@code null}
+     * and must have at least one entry.
+     * <pre class="code">Assert.assertNotEmpty(map, "Map must have entries");</pre>
+     * @param map the map to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the map is {@code null} or has no entries
+     */
+    public static <V, K> Map<V, K> assertNotEmpty(Map<V, K> map, String message) {
+        if (empty(map)) {
+            throw new IllegalArgumentException(message);
+        }
+        return map;
+    }
+
+    /**
+     * Assert a boolean expression, throwing {@code IllegalStateException}
+     * if the test result is {@code false}. Call assertTrue if you wish to
+     * throw IllegalArgumentException on an assertion failure.
+     * <pre class="code">Assert.assertState(id == null, "The id property must not already be initialized");</pre>
+     * @param expression a boolean expression
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalStateException if expression is {@code false}
+     */
+    public static void assertState(boolean expression, String message) {
+        if (!expression) {
+            throw new IllegalStateException(message);
+        }
+    }
+
 }
