@@ -1,12 +1,22 @@
-izettle-toolbox
-===============
+# izettle-toolbox
 
 Libraries built and used internally at iZettle.
 
+## Releasing
+When you have made a change to the `izettle-toolbox` you need to publish it to our internal Artifactory. This is done through the _Maven release_ plugin.
 
-License
--------
-   Copyright 2013-2014 iZettle AB
+### Prerequsite
+* `settings.xml` file with credentials to our internal Artifactory, you'll find it in [izettle-documents](https://github.com/iZettle/izettle-documents/blob/master/system/local/settings.xml).
+
+### Steps
+1. `mvn release:prepare`
+2. `mvn release:perform`
+3. `git push`
+
+
+## License
+
+   Copyright 2013-2016 iZettle AB
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
