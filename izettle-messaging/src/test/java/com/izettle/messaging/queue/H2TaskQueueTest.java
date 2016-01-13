@@ -23,14 +23,17 @@ import org.junit.Test;
 public class H2TaskQueueTest {
 
     private H2TaskQueue publisher;
-    private final Connection connection = H2ConnectionProvider.inMemory(UUIDFactory.createUUID4AsString());
-    private final PushbackStrategy pushbackStrategy = mock(PushbackStrategy.class);
+    private final RetryStrategy retryStrategy = mock(RetryStrategy.class);
 
     @Before
     public void setup() {
-        publisher = new H2TaskQueue(() -> connection, new StatementManager(), pushbackStrategy);
+        publisher = new H2TaskQueue(
+            H2ConnectionProvider.inMemory(UUIDFactory.createUUID4AsString()),
+            new H2StatementManager(),
+            retryStrategy
+        );
 
-        when(pushbackStrategy.decide(anyCollection())).then(a -> a.getArguments()[0]);
+        when(retryStrategy.decide(anyCollection())).then(a -> a.getArguments()[0]);
     }
 
     @After
@@ -60,7 +63,7 @@ public class H2TaskQueueTest {
         final QueuedTask item2 = new QueuedTask(2, "SomeMessage", "hello moto1", 0);
         final QueuedTask item3 = new QueuedTask(3, "This Is Sparta", "hello moto2", 0);
 
-        publisher.add(Arrays.asList(item1, item2, item3));
+        publisher.addAll(Arrays.asList(item1, item2, item3));
 
         final List<QueuedTask> all = publisher.peek(3);
 
@@ -75,7 +78,7 @@ public class H2TaskQueueTest {
         final QueuedTask item2 = new QueuedTask(2, "SomeMessage", "hello moto1", 0);
         final QueuedTask item3 = new QueuedTask(3, "This Is Sparta", "hello moto2", 0);
 
-        publisher.add(Arrays.asList(item1, item2, item3));
+        publisher.addAll(Arrays.asList(item1, item2, item3));
 
         final List<QueuedTask> all = publisher.peek(2);
 
@@ -114,7 +117,7 @@ public class H2TaskQueueTest {
         final QueuedTask item2 = new QueuedTask(2, "SomeMessage", "hello moto1", 0);
         final QueuedTask item3 = new QueuedTask(3, "This Is Sparta", "hello moto2", 0);
 
-        publisher.add(Arrays.asList(item1, item2, item3));
+        publisher.addAll(Arrays.asList(item1, item2, item3));
 
         // Peek to get the list of items
         List<QueuedTask> all = publisher.peek(3);
@@ -149,7 +152,7 @@ public class H2TaskQueueTest {
     @Test(expected = NullPointerException.class)
     public void itShouldThrowExceptionWhenAddingNullTasks() {
         List<Task> t = null;
-        publisher.add(t);
+        publisher.addAll(t);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -168,7 +171,7 @@ public class H2TaskQueueTest {
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(connection.createStatement()).thenReturn(statement);
 
-        publisher = new H2TaskQueue(() -> connection, new StatementManager(), pushbackStrategy);
+        publisher = new H2TaskQueue(() -> connection, new H2StatementManager(), retryStrategy);
 
         addTasks();
     }
@@ -178,11 +181,11 @@ public class H2TaskQueueTest {
         addTasks();
 
         List<QueuedTask> all = publisher.peek(3);
-        publisher.pushBack(all);
+        publisher.retry(all);
 
         all = publisher.peek(3);
 
-        assertThat(all.get(0).getPushbackCount()).isEqualTo(1);
+        assertThat(all.get(0).getRetryCount()).isEqualTo(1);
     }
 
     @Test
@@ -190,30 +193,30 @@ public class H2TaskQueueTest {
         addTasks();
 
         List<QueuedTask> all = publisher.peek(3);
-        publisher.pushBack(all);
+        publisher.retry(all);
         all = publisher.peek(3);
-        publisher.pushBack(all);
+        publisher.retry(all);
         all = publisher.peek(3);
-        publisher.pushBack(all);
+        publisher.retry(all);
         all = publisher.peek(3);
 
-        assertThat(all.get(1).getPushbackCount()).isEqualTo(3);
+        assertThat(all.get(1).getRetryCount()).isEqualTo(3);
     }
 
     @Test
-    public void itShouldPutPushbackItemsAtTheEndOfTheQueue() {
+    public void itShouldKeepOrderingWhenIncreasingRetryCount() {
         final QueuedTask item1 = new QueuedTask(1, "SimpleMessage", "hello moto", 0);
         final QueuedTask item2 = new QueuedTask(2, "SomeMessage", "hello moto1", 0);
         final QueuedTask item3 = new QueuedTask(3, "This Is Sparta", "hello moto2", 0);
 
-        publisher.add(Arrays.asList(item1, item2, item3));
+        publisher.addAll(Arrays.asList(item1, item2, item3));
 
         List<QueuedTask> all = publisher.peek(3);
-        publisher.pushBack(all);
+        publisher.retry(all);
         all = publisher.peek(3);
-        publisher.pushBack(all);
+        publisher.retry(all);
         all = publisher.peek(3);
-        publisher.pushBack(all);
+        publisher.retry(all);
 
         final QueuedTask item4 = new QueuedTask(4, "This Is Sparta", "hello moto2", 0);
 
@@ -221,37 +224,36 @@ public class H2TaskQueueTest {
 
         all = publisher.peek(4);
 
-        assertThat(all.get(0)).isEqualToComparingOnlyGivenFields(item4, "id");
-        assertThat(all.get(1)).isEqualToComparingOnlyGivenFields(item1, "id");
-        assertThat(all.get(2)).isEqualToComparingOnlyGivenFields(item2, "id");
-        assertThat(all.get(3)).isEqualToComparingOnlyGivenFields(item3, "id");
-    }
-
-    @Test
-    public void itShouldOrderPushedbackItemsInAscendingOrderSuchThatItemsThatHaveBeenPushedBackTheMostComeLast() {
-        final QueuedTask item1 = new QueuedTask(1, "SimpleMessage", "hello moto", 0);
-        final QueuedTask item2 = new QueuedTask(2, "SomeMessage", "hello moto1", 0);
-        final QueuedTask item3 = new QueuedTask(3, "This Is Sparta", "hello moto2", 0);
-
-        publisher.add(Arrays.asList(item1, item2, item3));
-
-        List<QueuedTask> all = publisher.peek(3);
-        publisher.pushBack(all);
-        all = publisher.peek(1); // pushback item 1
-        publisher.pushBack(all);
-        all = publisher.peek(3); // pushback item 2, 3, 1
-        publisher.pushBack(all);
-
-        final QueuedTask item4 = new QueuedTask(4, "This Is Sparta", "hello moto2", 0);
-
-        publisher.add(item4);
-
-        all = publisher.peek(4);
-
-        assertThat(all.get(0)).isEqualToComparingOnlyGivenFields(item4, "id");
+        assertThat(all.get(0)).isEqualToComparingOnlyGivenFields(item1, "id");
         assertThat(all.get(1)).isEqualToComparingOnlyGivenFields(item2, "id");
         assertThat(all.get(2)).isEqualToComparingOnlyGivenFields(item3, "id");
-        assertThat(all.get(3)).isEqualToComparingOnlyGivenFields(item1, "id");
+        assertThat(all.get(3)).isEqualToComparingOnlyGivenFields(item4, "id");
+    }
+
+    @Test
+    public void itShouldIncreaseRetryCount() {
+        final QueuedTask item1 = new QueuedTask(1, "SimpleMessage", "hello moto", 0);
+        final QueuedTask item2 = new QueuedTask(2, "SomeMessage", "hello moto1", 0);
+        final QueuedTask item3 = new QueuedTask(3, "This Is Sparta", "hello moto2", 0);
+
+        publisher.addAll(Arrays.asList(item1, item2, item3));
+
+        List<QueuedTask> all = publisher.peek(3);
+        publisher.retry(all);
+        all = publisher.peek(1); // pushback item 1
+        publisher.retry(all);
+        all = publisher.peek(2); // pushback item 2, 3, 1
+        publisher.retry(all);
+
+        final QueuedTask item4 = new QueuedTask(4, "This Is Sparta", "hello moto2", 0);
+
+        publisher.add(item4);
+
+        all = publisher.peek(4);
+
+        assertThat(all.get(0).getRetryCount()).isEqualTo(3);
+        assertThat(all.get(1).getRetryCount()).isEqualTo(2);
+        assertThat(all.get(2).getRetryCount()).isEqualTo(1);
     }
 
     @Test
@@ -299,7 +301,7 @@ public class H2TaskQueueTest {
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(connection.createStatement()).thenReturn(statement);
 
-        publisher = new H2TaskQueue(() -> connection, new StatementManager(), pushbackStrategy);
+        publisher = new H2TaskQueue(() -> connection, new H2StatementManager(), retryStrategy);
 
         try {
             addTasks();
@@ -314,6 +316,6 @@ public class H2TaskQueueTest {
         final QueuedTask item2 = new QueuedTask(2, "SomeMessage", "hello moto1", 0);
         final QueuedTask item3 = new QueuedTask(3, "This Is Sparta", "hello moto2", 0);
 
-        publisher.add(Arrays.asList(item1, item2, item3));
+        publisher.addAll(Arrays.asList(item1, item2, item3));
     }
 }

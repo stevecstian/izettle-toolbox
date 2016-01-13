@@ -1,12 +1,12 @@
 package com.izettle.messaging.queue;
 
-public class StatementManager {
+public class H2StatementManager {
 
     private static final String CREATE_DATABASE_STMT = ""
         + "CREATE TABLE IF NOT EXISTS queue "
         + "("
         + "id IDENTITY PRIMARY KEY"
-        + ", pushback_cnt BIGINT"
+        + ", retry_cnt BIGINT"
         + ", type VARCHAR(255)"
         + ", payload CLOB"
         + ")";
@@ -14,7 +14,7 @@ public class StatementManager {
     private static final String INSERT_STMT = ""
         + "INSERT INTO queue"
         + "("
-        + "  pushback_cnt"
+        + "  retry_cnt"
         + "  , type"
         + "  , payload"
         + ") "
@@ -28,11 +28,11 @@ public class StatementManager {
     private static final String SELECT_STMT = ""
         + "SELECT "
         + "id"
-        + ", pushback_cnt"
+        + ", retry_cnt"
         + ", type"
         + ", payload "
         + "FROM queue"
-        + " ORDER BY pushback_cnt ASC, id ASC"
+        + " ORDER BY id ASC"
         + " LIMIT ?";
 
     private static final String DELETE_STMT = ""
@@ -40,7 +40,7 @@ public class StatementManager {
         + " WHERE id = ?";
 
     private static final String INC_PUSHBACK_STMT = ""
-        + "UPDATE queue SET pushback_cnt = ?"
+        + "UPDATE queue SET retry_cnt = ?"
         + " WHERE id = ?";
 
     private static final String RESET_ID_STMT = ""

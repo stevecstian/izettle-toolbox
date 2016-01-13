@@ -18,20 +18,22 @@ import java.util.function.Consumer;
 public class TaskQueueBackedMessagePublisher implements MessagePublisher {
 
     private final TaskQueue taskQueue;
-    private final MessagePublisherTaskFactory taskFactory;
+    private final TaskSerializationConverter taskSerializationConverter;
     private final MessagePublisher destination;
     private final Consumer<Exception> exceptionHandler;
 
-    public TaskQueueBackedMessagePublisher(MessagePublisher destination, TaskQueue taskQueue,
-        MessagePublisherTaskFactory taskFactory, Consumer<Exception> exceptionHandler) {
+    public TaskQueueBackedMessagePublisher(
+        MessagePublisher destination, TaskQueue taskQueue,
+        TaskSerializationConverter taskSerializationConverter, Consumer<Exception> exceptionHandler
+    ) {
         requireNonNull(exceptionHandler);
         requireNonNull(taskQueue);
-        requireNonNull(taskFactory);
+        requireNonNull(taskSerializationConverter);
         requireNonNull(destination);
 
         this.exceptionHandler = exceptionHandler;
         this.destination = destination;
-        this.taskFactory = taskFactory;
+        this.taskSerializationConverter = taskSerializationConverter;
         this.taskQueue = taskQueue;
     }
 
@@ -45,7 +47,7 @@ public class TaskQueueBackedMessagePublisher implements MessagePublisher {
         }
 
         try {
-            taskQueue.add(taskFactory.create(message, eventName));
+            taskQueue.add(taskSerializationConverter.convert(message, eventName));
         } catch (IllegalStateException e) {
             throw new MessagingException("Unable to add message to task queue, queue not accepting task", e);
         } catch (JsonProcessingException e) {
@@ -56,14 +58,14 @@ public class TaskQueueBackedMessagePublisher implements MessagePublisher {
     @Override
     public <M> void postBatch(Collection<M> messages, String eventName) throws MessagingException {
         try {
-            destination.post(messages, eventName);
+            destination.postBatch(messages, eventName);
             return;
         } catch (MessagingException e) {
             exceptionHandler.accept(e);
         }
 
         try {
-            taskQueue.add(taskFactory.create(messages, eventName));
+            taskQueue.addAll(taskSerializationConverter.convert(messages, eventName));
         } catch (IllegalStateException e) {
             throw new MessagingException("Unable to add message to task queue, queue not accepting task", e);
         } catch (JsonProcessingException e) {
@@ -71,3 +73,4 @@ public class TaskQueueBackedMessagePublisher implements MessagePublisher {
         }
     }
 }
+

@@ -29,20 +29,20 @@ import java.util.stream.Collectors;
 public class H2TaskQueue implements TaskQueue {
 
     private final Supplier<Connection> connectionSupplier;
-    private final StatementManager stmtManager;
-    private final PushbackStrategy pushbackStrategy;
+    private final H2StatementManager stmtManager;
+    private final RetryStrategy retryStrategy;
     private long queueCnt;
 
     public H2TaskQueue(
         Supplier<Connection> connectionSupplier,
-        StatementManager stmtManager,
-        PushbackStrategy pushbackStrategy
+        H2StatementManager stmtManager,
+        RetryStrategy retryStrategy
     ) {
-        requireNonNull(pushbackStrategy);
         requireNonNull(connectionSupplier);
         requireNonNull(stmtManager);
+        requireNonNull(retryStrategy);
 
-        this.pushbackStrategy = pushbackStrategy;
+        this.retryStrategy = retryStrategy;
         this.stmtManager = stmtManager;
         this.connectionSupplier = connectionSupplier;
 
@@ -69,6 +69,7 @@ public class H2TaskQueue implements TaskQueue {
      * Get the sie of the queue
      * @return
      */
+    @Override
     public long size() {
         return queueCnt;
     }
@@ -81,7 +82,7 @@ public class H2TaskQueue implements TaskQueue {
     public void add(Task task) {
         requireNonNull(task);
 
-        add(Collections.singletonList(task));
+        addAll(Collections.singletonList(task));
     }
 
     /**
@@ -91,22 +92,22 @@ public class H2TaskQueue implements TaskQueue {
      * @throws IllegalStateException if task cannot be added to queue.
      */
     @Override
-    public void add(Collection<Task> tasks) {
+    public void addAll(Collection<? extends Task> tasks) {
         requireNonNull(tasks);
 
-        final Connection connection = connectionSupplier.get();
+        try (Connection connection = connectionSupplier.get()) {
+            try (PreparedStatement insertStmt = connection.prepareStatement(stmtManager.getInsertStmt())) {
+                connection.setAutoCommit(false);
 
-        try (PreparedStatement insertStmt = connection.prepareStatement(stmtManager.getInsertStmt())) {
-            connection.setAutoCommit(false);
+                for (Task task : tasks) {
+                    insertOne(task, insertStmt);
+                }
 
-            for (Task task : tasks) {
-                insertOne(task, insertStmt);
+                connection.commit();
+
+                queueCnt += tasks.size();
             }
-
-            connection.commit();
-
-            queueCnt += tasks.size();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             final StringJoiner joiner = new StringJoiner("\n");
             tasks.forEach(
                 i -> {
@@ -119,17 +120,12 @@ public class H2TaskQueue implements TaskQueue {
                 String.format("Unable to add tasks to queue: [%s]", joiner.toString()),
                 e
             );
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-            }
         }
     }
 
     private void insertOne(Task task, PreparedStatement insertStmt)
         throws SQLException {
-        insertStmt.setInt(1, 0); // push back cnt
+        insertStmt.setInt(1, 0); // retry cnt
         insertStmt.setString(2, task.getType());
         insertStmt.setString(3, task.getPayload());
         insertStmt.executeUpdate();
@@ -146,18 +142,20 @@ public class H2TaskQueue implements TaskQueue {
     public List<QueuedTask> peek(int num) {
         final List<QueuedTask> payloads = new LinkedList<>();
 
-        try (PreparedStatement stmt = connectionSupplier.get().prepareStatement(stmtManager.getSelectStmt())) {
-            stmt.setInt(1, num);
+        try (Connection connection = connectionSupplier.get()) {
+            try (PreparedStatement stmt = connection.prepareStatement(stmtManager.getSelectStmt())) {
+                stmt.setInt(1, num);
 
-            final ResultSet resultSet = stmt.executeQuery();
+                final ResultSet resultSet = stmt.executeQuery();
 
-            while (resultSet.next()) {
-                final long id = resultSet.getLong(1);
-                final int pushbackCnt = resultSet.getInt(2);
-                final String eventName = resultSet.getString(3);
-                final String payload = resultSet.getString(4);
+                while (resultSet.next()) {
+                    final long id = resultSet.getLong(1);
+                    final int pushbackCnt = resultSet.getInt(2);
+                    final String eventName = resultSet.getString(3);
+                    final String payload = resultSet.getString(4);
 
-                payloads.add(new QueuedTask(id, eventName, payload, pushbackCnt));
+                    payloads.add(new QueuedTask(id, eventName, payload, pushbackCnt));
+                }
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Unable to peek into queue", e);
@@ -174,8 +172,7 @@ public class H2TaskQueue implements TaskQueue {
      */
     @Override
     public void remove(Collection<QueuedTask> tasks) {
-        final Connection connection = connectionSupplier.get();
-        try {
+        try (Connection connection = connectionSupplier.get()) {
             connection.setAutoCommit(false);
 
             try (PreparedStatement stmt = connection.prepareStatement(stmtManager.getDeleteStmt())) {
@@ -209,36 +206,30 @@ public class H2TaskQueue implements TaskQueue {
                 ),
                 e
             );
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-            }
         }
     }
 
     /**
-     * Push back will push back tasks that are early in the queue backwards. Items that have been pushed backed
-     * multiple times will come after tasks that have been pushed back less when performing a peek.
+     * Retry will keep the tasks on the queue and increase their retry count. The messages are kept in the same
+     * position in the queue and will most likely be fetched the next time a client calls peek.
      * @param tasks
      */
     @Override
-    public void pushBack(Collection<QueuedTask> tasks) {
+    public void retry(Collection<QueuedTask> tasks) {
         requireNonNull(tasks);
 
-        final Collection<QueuedTask> tasksToPushBack = pushbackStrategy.decide(tasks);
+        final Collection<QueuedTask> tasksToRetry = retryStrategy.decide(tasks);
         final Collection<QueuedTask> tasksToRemove = tasks
             .stream()
-            .filter(t -> !tasksToPushBack.contains(t))
+            .filter(t -> !tasksToRetry.contains(t))
             .collect(Collectors.toList());
 
-        final Connection connection = connectionSupplier.get();
-        try {
+        try (Connection connection = connectionSupplier.get()) {
             connection.setAutoCommit(false);
 
             try (PreparedStatement stmt = connection.prepareStatement(stmtManager.getIncPushbackStmt())) {
-                for (QueuedTask item : tasksToPushBack) {
-                    stmt.setInt(1, item.getPushbackCount() + 1);
+                for (QueuedTask item : tasksToRetry) {
+                    stmt.setInt(1, item.getRetryCount() + 1);
                     stmt.setLong(2, item.getID());
                     stmt.executeUpdate();
                 }
@@ -247,7 +238,7 @@ public class H2TaskQueue implements TaskQueue {
             connection.commit();
         } catch (SQLException e) {
             final StringJoiner joiner = new StringJoiner("\n");
-            tasksToPushBack.forEach(
+            tasksToRetry.forEach(
                 i -> {
                     joiner.add(i.getType());
                     joiner.add(i.getPayload());
@@ -261,11 +252,6 @@ public class H2TaskQueue implements TaskQueue {
                 ),
                 e
             );
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-            }
         }
 
         try {

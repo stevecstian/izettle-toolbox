@@ -1,6 +1,7 @@
 package com.izettle.messaging.queue;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -12,6 +13,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.izettle.messaging.MessagePublisher;
 import com.izettle.messaging.MessagingException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.Before;
@@ -21,7 +24,7 @@ import org.mockito.Matchers;
 public class TaskQueueBackedMessagePublisherTest {
 
     private final TaskQueue taskQueue = mock(H2TaskQueue.class);
-    private final MessagePublisherTaskFactory taskFactory = mock(MessagePublisherTaskFactory.class);
+    private final TaskSerializationConverter taskSerializationConverter = mock(TaskSerializationConverter.class);
     private final MessagePublisher destination = mock(MessagePublisher.class);
     private final Consumer<Exception> exceptionHandler = (Consumer<Exception>) mock(Consumer.class);
     private final MessagingException messagingException = new MessagingException("event wrongly");
@@ -32,7 +35,8 @@ public class TaskQueueBackedMessagePublisherTest {
     public void setup() throws MessagingException {
         doThrow(messagingException).when(destination).post(any(SimpleMessage.class), anyString());
 
-        publisher = new TaskQueueBackedMessagePublisher(destination, taskQueue, taskFactory, exceptionHandler);
+        publisher = new TaskQueueBackedMessagePublisher(destination, taskQueue,
+            taskSerializationConverter, exceptionHandler);
     }
 
     @Test
@@ -40,7 +44,7 @@ public class TaskQueueBackedMessagePublisherTest {
         final SimpleMessage message = new SimpleMessage(10);
         final QueuedTask task = new QueuedTask(1L, "event", "some payload", 0);
 
-        when(taskFactory.create(message, "event")).thenReturn(task);
+        when(taskSerializationConverter.convert(message, "event")).thenReturn(task);
 
         publisher.post(message, "event");
 
@@ -50,7 +54,7 @@ public class TaskQueueBackedMessagePublisherTest {
     @Test(expected = MessagingException.class)
     public void itShouldThrowMessagingExceptionWhenSerializeDoesNotWork()
         throws JsonProcessingException, MessagingException {
-        when(taskFactory.create(any(Object.class), anyString())).thenThrow(JsonProcessingException.class);
+        when(taskSerializationConverter.convert(any(Object.class), anyString())).thenThrow(JsonProcessingException.class);
 
         publisher.post(new SimpleMessage(10), "event");
 
@@ -58,25 +62,26 @@ public class TaskQueueBackedMessagePublisherTest {
     }
 
     @Test
-    public void itShouldAddMessagesToQueueWhenPosting() throws MessagingException, JsonProcessingException {
+    public void itShouldAddMessagesToQueueWhenPostingAndTheMessageHandlerCannotAcceptIt() throws MessagingException, JsonProcessingException {
         final List<SimpleMessage> messages = Arrays.asList(new SimpleMessage(10));
         final List<Task> tasks = Arrays.asList(new QueuedTask(1L, "event", "some payload", 0));
 
-        when(taskFactory.create(messages, "event")).thenReturn(tasks);
+        doThrow(MessagingException.class).when(destination).postBatch(anyCollection(), anyString());
+        when(taskSerializationConverter.convert(messages, "event")).thenReturn(tasks);
 
         publisher.postBatch(messages, "event");
 
-        verify(taskQueue).add(tasks);
+        verify(taskQueue).addAll(tasks);
     }
 
     @Test(expected = MessagingException.class)
     public void itShouldThrowMessagingExceptionWhenSerializeDoesNotWorkWhenPostingBatch()
         throws JsonProcessingException, MessagingException {
-        when(taskFactory.create(any(Object.class), anyString())).thenThrow(JsonProcessingException.class);
+        when(taskSerializationConverter.convert(any(Object.class), anyString())).thenThrow(JsonProcessingException.class);
 
         publisher.post(Arrays.asList(new SimpleMessage(10)), "event");
 
-        verify(taskQueue, never()).add(Matchers.<List<Task>>any());
+        verify(taskQueue, never()).addAll(Matchers.<List<Task>>any());
     }
 
     @Test
@@ -85,11 +90,22 @@ public class TaskQueueBackedMessagePublisherTest {
         final SimpleMessage message = new SimpleMessage(10);
         final QueuedTask task = new QueuedTask(1L, "event", "some payload", 0);
 
-        when(taskFactory.create(message, "event")).thenReturn(task);
+        when(taskSerializationConverter.convert(message, "event")).thenReturn(task);
 
         publisher.post(message, "event");
 
         verify(exceptionHandler).accept(messagingException);
+    }
+
+    @Test(expected = MessagingException.class)
+    public void itShouldThrowExceptionWhenTaskQueueCannotHandleTask() throws MessagingException,
+        JsonProcessingException {
+        when(taskSerializationConverter.convert(anyCollection(), anyString())).thenReturn(new LinkedList());
+
+        doThrow(MessagingException.class).when(destination).postBatch(anyCollection(), anyString());
+        doThrow(IllegalStateException.class).when(taskQueue).addAll(anyCollection());
+
+        publisher.postBatch(mock(Collection.class), "event");
     }
 
     private class SimpleMessage {

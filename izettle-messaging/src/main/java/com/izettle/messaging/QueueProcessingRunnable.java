@@ -13,12 +13,16 @@ public class QueueProcessingRunnable implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(QueueProcessingRunnable.class);
     private final String name;
     private final MessageQueueProcessor queueProcessor;
+    private final TimeUnit sleepDurationTimeUnit;
+    private final long sleepDuration;
     private volatile boolean alive;
     private volatile Thread executingThread;
 
-    public QueueProcessingRunnable(MessageQueueProcessor queueProcessor) {
+    public QueueProcessingRunnable(MessageQueueProcessor queueProcessor, long sleepDuration, TimeUnit sleepDurationTimeUnit) {
         this.name = queueProcessor.getName();
         this.queueProcessor = queueProcessor;
+        this.sleepDuration = sleepDuration;
+        this.sleepDurationTimeUnit = sleepDurationTimeUnit;
     }
 
     @Override
@@ -37,7 +41,7 @@ public class QueueProcessingRunnable implements Runnable {
                     break;
                 }
                 try {
-                    sleep(TimeUnit.MINUTES.toMillis(1));
+                    sleep(sleepDurationTimeUnit.toMillis(sleepDuration));
                 } catch (InterruptedException e1) {
                     break;
                 }

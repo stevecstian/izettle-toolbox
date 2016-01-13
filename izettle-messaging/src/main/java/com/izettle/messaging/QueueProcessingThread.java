@@ -1,18 +1,26 @@
 package com.izettle.messaging;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of a thread that keeps on polling a message queue until interrupted.
  */
 public class QueueProcessingThread extends Thread {
-    private static final Logger LOG = LoggerFactory.getLogger(QueueProcessingThread.class);
+
     private final QueueProcessingRunnable runnable;
 
     public QueueProcessingThread(MessageQueueProcessor queueProcessor) {
         super(queueProcessor.getName());
-        this.runnable = new QueueProcessingRunnable(queueProcessor);
+        this.runnable = new QueueProcessingRunnable(queueProcessor, 1, TimeUnit.MINUTES);
+    }
+
+    public QueueProcessingThread(
+        MessageQueueProcessor queueProcessor,
+        long sleepDuration,
+        TimeUnit sleepDurationTimeUnit
+    ) {
+        super(queueProcessor.getName());
+        this.runnable = new QueueProcessingRunnable(queueProcessor, sleepDuration, sleepDurationTimeUnit);
     }
 
     @Override

@@ -4,13 +4,15 @@ import java.util.Collection;
 
 public interface TaskQueue {
 
+    long size();
+
     void add(Task task);
 
-    void add(Collection<Task> tasks);
+    void addAll(Collection<? extends Task> tasks);
 
     Collection<QueuedTask> peek(int num);
 
     void remove(Collection<QueuedTask> tasks);
 
-    void pushBack(Collection<QueuedTask> items);
+    void retry(Collection<QueuedTask> items);
 }

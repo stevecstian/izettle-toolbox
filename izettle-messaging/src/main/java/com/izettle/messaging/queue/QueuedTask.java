@@ -8,15 +8,15 @@ import static java.util.Objects.requireNonNull;
 public class QueuedTask extends Task {
 
     private final long id;
-    private int pushbackCount;
+    private int retryCount;
 
-    QueuedTask(long id, String type, String payload, int pushbackCount) {
+    QueuedTask(long id, String type, String payload, int retryCount) {
         super(type, payload);
 
         requireNonNull(id);
-        requireNonNull(pushbackCount);
+        requireNonNull(retryCount);
 
-        this.pushbackCount = pushbackCount;
+        this.retryCount = retryCount;
         this.id = id;
     }
 
@@ -24,7 +24,7 @@ public class QueuedTask extends Task {
         return id;
     }
 
-    public int getPushbackCount() {
-        return pushbackCount;
+    public int getRetryCount() {
+        return retryCount;
     }
 }
