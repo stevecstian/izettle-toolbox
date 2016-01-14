@@ -4,7 +4,7 @@ import java.util.Collection;
 
 public interface TaskQueue {
 
-    long size();
+    int size();
 
     void add(Task task);
 
@@ -14,5 +14,5 @@ public interface TaskQueue {
 
     void remove(Collection<QueuedTask> tasks);
 
-    void retry(Collection<QueuedTask> items);
+    void retry(Collection<QueuedTask> tasks);
 }

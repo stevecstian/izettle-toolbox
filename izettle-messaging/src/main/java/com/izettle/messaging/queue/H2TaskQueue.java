@@ -31,7 +31,7 @@ public class H2TaskQueue implements TaskQueue {
     private final Supplier<Connection> connectionSupplier;
     private final H2StatementManager stmtManager;
     private final RetryStrategy retryStrategy;
-    private long queueCnt;
+    private int queueCnt;
 
     public H2TaskQueue(
         Supplier<Connection> connectionSupplier,
@@ -58,7 +58,7 @@ public class H2TaskQueue implements TaskQueue {
             final ResultSet resultSet = connection.createStatement().executeQuery(stmtManager.getCountStmt());
 
             if (resultSet.next()) {
-                queueCnt = resultSet.getLong(1);
+                queueCnt = resultSet.getInt(1);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Unable to setup queue", e);
@@ -70,7 +70,7 @@ public class H2TaskQueue implements TaskQueue {
      * @return
      */
     @Override
-    public long size() {
+    public int size() {
         return queueCnt;
     }
 
