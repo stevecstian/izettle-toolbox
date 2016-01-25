@@ -4,6 +4,7 @@ import static com.izettle.java.CollectionUtils.partition;
 import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
@@ -157,7 +158,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
                 allEntries.add(new SendMessageBatchRequestEntry(String.valueOf(messageIdInBatch), messageBody));
             }
             sendMessageBatch(allEntries);
-        } catch (IOException | CryptographyException e) {
+        } catch (AmazonServiceException | IOException | CryptographyException e) {
             throw new MessagingException("Failed to post messages: " + messages.getClass().toString(), e);
         }
     }
