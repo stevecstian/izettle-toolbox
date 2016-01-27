@@ -118,7 +118,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
                     new SendMessageRequest(queueUrl, encryptedBody)
             );
             return new MessageReceipt(sendMessageResult.getMessageId(), jsonBody);
-        } catch (IOException | CryptographyException e) {
+        } catch (AmazonServiceException | IOException | CryptographyException e) {
             throw new MessagingException("Failed to post message: " + message.getClass().toString(), e);
         }
     }
