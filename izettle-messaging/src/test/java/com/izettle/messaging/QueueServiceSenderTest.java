@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.EmptyBatchRequestException;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
@@ -45,11 +44,8 @@ public class QueueServiceSenderTest {
     }
 
     @Test
-    public void shouldNotSendEmptyBatch() throws Exception {
+    public void shouldSendBatchesInSizeOfTen() throws Exception {
         ArgumentCaptor<SendMessageBatchRequest> captor = ArgumentCaptor.forClass(SendMessageBatchRequest.class);
-
-        SendMessageBatchRequest emptyRequest = new SendMessageBatchRequest("queue-url-can-be-anything", new ArrayList<SendMessageBatchRequestEntry>());
-        when(mockAmazonSQS.sendMessageBatch(emptyRequest)).thenThrow(new EmptyBatchRequestException("Empty yo"));
 
         messagePublisher.postBatch(messageBatch(10), subject);
         verify(mockAmazonSQS, times(1)).sendMessageBatch(captor.capture());
