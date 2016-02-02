@@ -1,7 +1,5 @@
 package com.izettle.tlv;
 
-import com.izettle.java.ArrayUtils;
-import com.izettle.java.Hex;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

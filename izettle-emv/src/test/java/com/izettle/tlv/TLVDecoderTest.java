@@ -1,6 +1,5 @@
 package com.izettle.tlv;
 
-import com.izettle.java.Hex;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;

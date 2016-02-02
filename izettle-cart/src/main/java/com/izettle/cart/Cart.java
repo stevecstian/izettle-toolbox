@@ -1,7 +1,6 @@
 package com.izettle.cart;
 
 import static com.izettle.cart.CartUtils.coalesce;
-import static com.izettle.cart.CartUtils.empty;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -52,7 +51,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     public Cart<T, D, K, S> inverse() {
         //Copy all items and discounts, but negate the quantities:
         final List<T> inverseItems;
-        if (empty(itemLines)) {
+        if (itemLines.isEmpty()) {
             inverseItems = Collections.emptyList();
         } else {
             inverseItems = new ArrayList<T>(itemLines.size());
@@ -61,7 +60,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             }
         }
         final List<K> inverseDiscounts;
-        if (empty(discountLines)) {
+        if (discountLines.isEmpty()) {
             inverseDiscounts = Collections.emptyList();
         } else {
             inverseDiscounts = new ArrayList<K>(discountLines.size());

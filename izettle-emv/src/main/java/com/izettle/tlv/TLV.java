@@ -1,9 +1,7 @@
 package com.izettle.tlv;
 
-import static com.izettle.java.ValueChecks.anyNull;
+import static java.util.Objects.requireNonNull;
 
-import com.izettle.java.ArrayUtils;
-import com.izettle.java.Hex;
 import java.util.Arrays;
 
 /**
@@ -16,12 +14,9 @@ public class TLV {
     private final byte[] value;
 
     public TLV(byte[] tag, byte[] length, byte[] value) {
-        if (anyNull(tag, length, value)) {
-            throw new IllegalStateException("No null arguments");
-        }
-        this.tag = tag;
-        this.length = length;
-        this.value = value;
+        this.tag = requireNonNull(tag, "Tag cannot be null");
+        this.length = requireNonNull(length, "Length cannot be null");
+        this.value = requireNonNull(value, "Value cannot be null");
     }
 
     public byte[] getTag() {

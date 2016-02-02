@@ -239,7 +239,7 @@ class CartUtils {
             grossValue
         );
         final List<DiscountLine<K>> retList = new ArrayList<DiscountLine<K>>();
-        if (!empty(discounts)) {
+        if (!discounts.isEmpty()) {
             for (int i = 0; i < discounts.size(); i++) {
                 K discount = discounts.get(i);
                 Long discountAmount = discountAmountByDiscountIdx.get(i);
@@ -415,10 +415,6 @@ class CartUtils {
 
     public static <T, S extends T> T coalesce(T subject, S fallback) {
         return subject != null ? subject : fallback;
-    }
-
-    public static boolean empty(Collection o) {
-        return o == null || o.isEmpty();
     }
 
 }
