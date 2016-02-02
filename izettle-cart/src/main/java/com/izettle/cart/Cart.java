@@ -1,8 +1,7 @@
 package com.izettle.cart;
 
-import static com.izettle.java.ValueChecks.anyEmpty;
-import static com.izettle.java.ValueChecks.coalesce;
-import static com.izettle.java.ValueChecks.empty;
+import static com.izettle.cart.CartUtils.coalesce;
+import static com.izettle.cart.CartUtils.empty;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -72,7 +71,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         }
 
         final S inverseServiceCharge;
-        if (empty(serviceChargeLine)) {
+        if (serviceChargeLine == null) {
             inverseServiceCharge = null;
         } else {
             inverseServiceCharge = serviceChargeLine.getServiceCharge().inverse();
@@ -166,7 +165,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @return the discount VAT, or null if VAT is not applicable
      */
     public Long getDiscountVat() {
-        if (anyEmpty(grossVat, actualVat, discountValue)) {
+        if (grossVat == null || actualVat == null || discountValue == null) {
             return null;
         }
         return grossVat - actualVat;

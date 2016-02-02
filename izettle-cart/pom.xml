@@ -10,14 +10,6 @@
 
     <artifactId>izettle-cart</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.izettle.toolbox</groupId>
-            <artifactId>izettle-java</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>

@@ -1,10 +1,5 @@
 package com.izettle.cart;
 
-import static com.izettle.java.ValueChecks.allEmpty;
-import static com.izettle.java.ValueChecks.allNull;
-import static com.izettle.java.ValueChecks.coalesce;
-import static com.izettle.java.ValueChecks.empty;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -86,7 +81,7 @@ class CartUtils {
             }
         }
 
-        if (!allEmpty(lineItemDiscount, cartWideDiscount)) {
+        if (lineItemDiscount != null || cartWideDiscount != null) {
             return coalesce(cartWideDiscount, 0L) + coalesce(lineItemDiscount, 0L);
         }
 
@@ -279,7 +274,7 @@ class CartUtils {
             }
         }
 
-        if (!empty(serviceChargeLine) && !empty(serviceChargeLine.getVat())) {
+        if (serviceChargeLine != null && serviceChargeLine.getVat() != null) {
             effectiveVat = coalesce(effectiveVat, 0L) + serviceChargeLine.getVat();
         }
 
@@ -349,7 +344,7 @@ class CartUtils {
             }
         }
 
-        if (!empty(serviceChargeLine) && !empty(serviceChargeLine.getVat())) {
+        if (serviceChargeLine != null && serviceChargeLine.getVat() != null) {
             final Float serviceChargeVatPercentage = serviceChargeLine.getServiceCharge().getVatPercentage();
             final Long accVatAmountForGroup = actualVatValuePerGroup.get(serviceChargeVatPercentage);
             final Long accValueForGroup = actualValuePerVatGroup.get(serviceChargeVatPercentage);
@@ -384,7 +379,7 @@ class CartUtils {
 
         final Long serviceChargeValue = getServiceChargeValue(grossValue, cartWideDiscountValue, serviceCharge);
         final Long serviceChargeVat;
-        if (empty(serviceCharge.getVatPercentage())) {
+        if (serviceCharge.getVatPercentage() == null) {
             serviceChargeVat = null;
         } else {
             serviceChargeVat
@@ -407,14 +402,23 @@ class CartUtils {
         final long actualValue = grossValue - coalesce(cartWideDiscountValue, 0L);
 
         final Long serviceChargeFromPercent;
-        if (empty(serviceCharge.getPercentage())) {
+        if (serviceCharge.getPercentage() == null) {
             serviceChargeFromPercent = null;
         } else {
             serviceChargeFromPercent = round(actualValue * serviceCharge.getPercentage() / 100);
         }
 
-        return allNull(serviceChargeFromPercent, serviceCharge.getAmount())
+        return (serviceChargeFromPercent == null && serviceCharge.getAmount() == null)
             ? null
             : (coalesce(serviceCharge.getAmount(), 0L) + coalesce(serviceChargeFromPercent, 0L));
     }
+
+    public static <T, S extends T> T coalesce(T subject, S fallback) {
+        return subject != null ? subject : fallback;
+    }
+
+    public static boolean empty(Collection o) {
+        return o == null || o.isEmpty();
+    }
+
 }
