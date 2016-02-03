@@ -2,7 +2,6 @@ package com.izettle.tlv;
 
 import static com.izettle.tlv.TLVEncoder.encodeLength;
 
-import com.izettle.java.Hex;
 import org.junit.Assert;
 import org.junit.Test;
 

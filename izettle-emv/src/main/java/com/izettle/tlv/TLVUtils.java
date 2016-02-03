@@ -1,7 +1,5 @@
 package com.izettle.tlv;
 
-import static com.izettle.java.ValueChecks.empty;
-
 /**
  * Created by fidde on 17/12/14.
  */
@@ -27,7 +25,7 @@ public class TLVUtils {
 
     static void validateTag(byte[] tag) throws TLVException {
 
-        if (empty(tag)) {
+        if (tag == null || tag.length == 0) {
             throw new TLVException("Malformed tag: empty");
         }
 
