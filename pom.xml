@@ -41,6 +41,7 @@
 
     <modules>
         <module>izettle-java</module>
+        <module>izettle-java-compat</module>
         <module>izettle-messaging</module>
         <module>izettle-cryptography</module>
         <module>izettle-cassandra</module>
