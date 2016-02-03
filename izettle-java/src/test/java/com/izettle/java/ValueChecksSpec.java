@@ -57,8 +57,8 @@ public class ValueChecksSpec {
         assertTrue("empty string", empty(""));
         assertTrue("empty array", empty(new Object[0]));
         assertTrue("empty array", empty(new byte[0]));
-        assertTrue("empty array list", empty(new ArrayList<String>()));
-        assertTrue("empty map", empty(new HashMap<String, String>()));
+        assertTrue("empty array list", empty(new ArrayList<>()));
+        assertTrue("empty map", empty(new HashMap<>()));
     }
 
     @Test
@@ -77,7 +77,7 @@ public class ValueChecksSpec {
         assertTrue(anyEmpty(99, ""));
         assertTrue(anyEmpty(99, null));
         assertTrue(anyEmpty(null, "test"));
-        assertTrue(anyEmpty(new Object(), new HashMap<String, String>()));
+        assertTrue(anyEmpty(new Object(), new HashMap<>()));
     }
 
     @Test
@@ -239,13 +239,13 @@ public class ValueChecksSpec {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNotEmptyForMapMessageEmpty() {
-        Map<String, String> fruits = new HashMap<String, String>();
+        Map<String, String> fruits = new HashMap<>();
         ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
     }
 
     @Test
     public void testNotEmptyForMapMessage() {
-        Map<String, String> fruits = new HashMap<String, String>();
+        Map<String, String> fruits = new HashMap<>();
         fruits.put("Banana", "10");
         fruits.put("Apple", "5");
         final Map<String, String> result = ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
