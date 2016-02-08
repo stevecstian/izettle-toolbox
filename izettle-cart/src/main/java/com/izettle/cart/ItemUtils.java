@@ -5,8 +5,13 @@ import static com.izettle.cart.CartUtils.getNonRoundedDiscountValue;
 import static com.izettle.cart.CartUtils.round;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 
 class ItemUtils {
+
+    private ItemUtils() {
+    }
+
     /**
      * Returns the gross value of the item. Gross is the quantity multiplied with unit price
      * and rounded to a long using {@link com.izettle.cart.CartUtils#round(java.math.BigDecimal)}, VAT is included.
@@ -43,8 +48,25 @@ class ItemUtils {
         return null;
     }
 
-
     private static BigDecimal getExactGrossValue(final Item item) {
         return item.getQuantity().multiply(BigDecimal.valueOf(item.getUnitPrice()));
+    }
+
+    static <T extends Item> void validateItems(final Collection<T> items) {
+        if (items == null) {
+            return;
+        }
+        for (T item : items) {
+            validateItem(item);
+        }
+    }
+
+    static <T extends Item> void validateItem(final T item) {
+        if (item.getQuantity() == null) {
+            throw new IllegalArgumentException("Item cannot have null quantity: " + item);
+        }
+        if (item.getQuantity().compareTo(BigDecimal.ZERO) == 0) {
+            throw new IllegalArgumentException("Item cannot have ZERO quantity: " + item);
+        }
     }
 }

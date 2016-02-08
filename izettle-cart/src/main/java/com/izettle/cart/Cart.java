@@ -29,7 +29,9 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @param serviceCharge The applied service charge, possibly null
      */
     public Cart(final List<T> items, final List<K> discounts, final S serviceCharge) {
+        ItemUtils.validateItems(items);
         final List<T> itemList = coalesce(items, Collections.<T>emptyList());
+        DiscountUtils.validateDiscounts(discounts);
         final List<K> discountList = coalesce(discounts, Collections.<K>emptyList());
         this.grossValue = CartUtils.getGrossValue(itemList);
         this.discountValue = CartUtils.getTotalDiscountValue(discountList, grossValue, itemList);

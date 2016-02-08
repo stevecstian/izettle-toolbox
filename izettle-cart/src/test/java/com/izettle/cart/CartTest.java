@@ -548,6 +548,22 @@ public class CartTest {
         assertThat(cart.getDiscountVat()).isEqualTo(13L);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void itShouldThrowWhenDiscountsInvalid() {
+        ArrayList<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        BigDecimal quantity = null;
+        discounts.add(new TestDiscount(null, 50d, quantity));
+        new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(null, discounts, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void itShouldThrowWhenItemsInvalid() {
+        ArrayList<TestItem> items = new ArrayList<TestItem>();
+        BigDecimal quantity = null;
+        items.add(new TestItem("", 100L, 10f, quantity, new TestDiscount(100L, null, BigDecimal.ONE)));
+        new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, null, null);
+    }
+
     //Dummy method for bypassing ambiguity against two similar Assert.assertEqual methods
     private void assEq(Long one, Long two) {
         assertEquals(one, two);
