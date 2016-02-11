@@ -47,6 +47,7 @@
         <module>izettle-cart</module>
         <module>izettle-emv</module>
         <module>izettle-jdbi</module>
+        <module>datastax-cassandra-mapper</module>
     </modules>
 
     <properties>
