@@ -1,5 +1,6 @@
 package com.izettle.java;
 
+import java.time.ZoneId;
 import java.util.TimeZone;
 
 /**
@@ -623,6 +624,14 @@ public enum TimeZoneId {
     PACIFIC_ENDERBURY("Pacific/Enderbury"),
     PACIFIC_TONGATAPU("Pacific/Tongatapu"),
     ETC_GMT_MINUS14("Etc/GMT-14"),
+    ANTARCTICA_TROLL("Antarctica/Troll"),
+    ASIA_UST_NERA("Asia/Ust-Nera"),
+    ASIA_KHANDYGA("Asia/Khandyga"),
+    ASIA_CHITA("Asia/Chita"),
+    PACIFIC_BOUGAINVILLE("Pacific/Bougainville"),
+    ASIA_SREDNEKOLYMSK("Asia/Srednekolymsk"),
+    EUROPE_BUSINGEN("Europe/Busingen"),
+    AMERICA_CRESTON("America/Creston"),
     PACIFIC_KIRITIMATI("Pacific/Kiritimati");
     private final String stringId;
 
@@ -632,5 +641,9 @@ public enum TimeZoneId {
 
     public TimeZone getTimeZone() {
         return TimeZone.getTimeZone(this.stringId);
+    }
+
+    public ZoneId toZoneId() {
+        return ZoneId.of(stringId);
     }
 }
