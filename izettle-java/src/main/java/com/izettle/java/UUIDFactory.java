@@ -2,8 +2,9 @@ package com.izettle.java;
 
 import static com.izettle.java.ValueChecks.empty;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -16,7 +17,8 @@ public final class UUIDFactory {
      * Used to transform UNIX timestamps to UUID timestamps (100ns
      * unit offset from the beginning of Gregorian calendar).
      */
-    private static final long CLOCK_MULTIPLIER = 10000L;
+    private static final int CLOCK_RESOLUTION_NANOS = 100;
+    private static final long CLOCK_STEPS_PER_SECOND = Duration.ofSeconds(1L).toNanos() / CLOCK_RESOLUTION_NANOS;
     /**
      * Used to transform UNIX timestamps to UUID timestamps (100ns
      * unit offset from the beginning of Gregorian calendar).
@@ -47,7 +49,7 @@ public final class UUIDFactory {
      * @return The encoded UUID as string.
      */
     public static String createUUID1AsString() {
-        return toBase64String(UUID1Generator.generate());
+        return toBase64String(createUUID1());
     }
 
     /**
@@ -56,7 +58,11 @@ public final class UUIDFactory {
      * @return The UUID.
      */
     public static UUID createUUID1() {
-        return UUID1Generator.generate();
+        return UUID1Generator.generate(Instant.now());
+    }
+
+    public static UUID createUUID1(Instant instant) {
+        return UUID1Generator.generate(instant);
     }
 
     /**
@@ -236,22 +242,20 @@ public final class UUIDFactory {
      *     https://github.com/cowtowncoder/java-uuid-generator
      *     </a>
      */
-    private static class UUID1Generator {
+    static class UUID1Generator {
 
         private UUID1Generator() {
         }
 
-        public static UUID generate() {
-            long systemTime = System.currentTimeMillis();
+        public static UUID generate(final Instant instant) {
+            final long stepsFromSeconds = instant.getEpochSecond() * CLOCK_STEPS_PER_SECOND;
+            final int stepsFromNanos = instant.getNano() / CLOCK_RESOLUTION_NANOS;
 
-            systemTime *= CLOCK_MULTIPLIER;
-            systemTime += CLOCK_OFFSET;
-
-            final long rawTimestamp = systemTime;
+            final long systemTime = CLOCK_OFFSET + stepsFromSeconds + stepsFromNanos;
 
             // Time field components are kind of shuffled, need to slice:
-            int clockHi = (int) (rawTimestamp >>> 32);
-            int clockLo = (int) rawTimestamp;
+            int clockHi = (int) (systemTime >>> 32);
+            int clockLo = (int) systemTime;
             // and dice
             int midhi = (clockHi << 16) | (clockHi >>> 16);
             // need to squeeze in type (4 MSBs in byte 6, clock hi)
@@ -266,7 +270,10 @@ public final class UUIDFactory {
         }
     }
 
-    public static Date getDateFromUUID1(UUID uuid1) {
-        return new Date((uuid1.timestamp() - CLOCK_OFFSET) / CLOCK_MULTIPLIER);
+    public static Instant getInstantFromUUID1(final UUID uuid1) {
+        long timestamp = uuid1.timestamp() - CLOCK_OFFSET;
+        long seconds = timestamp / CLOCK_STEPS_PER_SECOND;
+        long nanos = CLOCK_RESOLUTION_NANOS * (timestamp % CLOCK_STEPS_PER_SECOND);
+        return Instant.ofEpochSecond(seconds, nanos);
     }
 }
