@@ -54,7 +54,7 @@ public class ArrayUtilsSpec {
     @Test
     public void testConcat_List() {
 
-        List<byte[]> byteArrays = new ArrayList<byte[]>();
+        List<byte[]> byteArrays = new ArrayList<>();
         byteArrays.add(new byte[]{(byte) 0xA5, (byte) 0xB2, (byte) 0xFF, (byte) 0xD0});
         byteArrays.add(new byte[]{(byte) 0xA5, (byte) 0xB2, (byte) 0xFF, (byte) 0xD0});
 
