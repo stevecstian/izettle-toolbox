@@ -644,6 +644,6 @@ public enum TimeZoneId {
     }
 
     public ZoneId toZoneId() {
-        return ZoneId.of(stringId);
+        return getTimeZone().toZoneId();
     }
 }
