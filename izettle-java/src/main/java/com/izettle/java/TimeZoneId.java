@@ -635,7 +635,7 @@ public enum TimeZoneId {
     PACIFIC_KIRITIMATI("Pacific/Kiritimati");
     private final String stringId;
 
-    private TimeZoneId(String stringId) {
+    TimeZoneId(String stringId) {
         this.stringId = stringId;
     }
 
