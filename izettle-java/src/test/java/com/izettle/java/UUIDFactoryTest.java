@@ -2,7 +2,6 @@ package com.izettle.java;
 
 import static com.izettle.java.UUIDFactory.parse;
 import static com.izettle.java.UUIDFactory.toBase64String;
-import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -10,7 +9,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Random;
 import java.util.UUID;
 import org.junit.Test;
@@ -146,20 +146,21 @@ public class UUIDFactoryTest {
     }
 
     @Test
-    public void shouldExtractDateFromUUID1Successfully() throws InterruptedException {
-        Date recentCurrentDate = new Date();
+    public void shouldExtractInstantFromUUID1Successfully() throws Exception {
+        final Instant instant = Instant.now();
+        final UUID uuid = UUIDFactory.UUID1Generator.generate(instant);
+        final Instant uuidInstant = UUIDFactory.getInstantFromUUID1(uuid);
+        // Assert that the UUID instant is within 100ns of the original time
+        assertEquals(uuidInstant.getEpochSecond(), instant.getEpochSecond());
+        assertEquals(uuidInstant.getNano(), instant.getNano(), 100);
 
-        // Make sure that at least 1 ms have passed so the dates will differ
-        sleep(1);
-
-        String uuidAsString = UUIDFactory.createUUID1AsString();
-        byte[] uuidBytes = UUIDFactory.uuidToByteArray(uuidAsString);
-
-        UUID uuid = createUUID1(uuidBytes);
-        Date uuidDate = UUIDFactory.getDateFromUUID1(uuid);
-
-        // Assert that the UUID date is after the recent current date
-        assertTrue(uuidDate.compareTo(recentCurrentDate) > 0);
+        //Also test a fixed time:
+        final Instant instant1 = ZonedDateTime.of(1995, 3, 25, 10, 12, 15, 2345, TimeZoneId.EUROPE_STOCKHOLM.toZoneId()).toInstant();
+        final UUID uuid1 = UUIDFactory.UUID1Generator.generate(instant1);
+        final Instant uuid1Instant = UUIDFactory.getInstantFromUUID1(uuid1);
+        // Assert that the UUID instant is within 100ns of the original time
+        assertEquals(uuid1Instant.getEpochSecond(), instant1.getEpochSecond());
+        assertEquals(instant1.getNano(), uuid1Instant.getNano(), 100);
     }
 
     @Test
