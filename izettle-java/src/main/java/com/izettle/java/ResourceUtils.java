@@ -30,7 +30,7 @@ public abstract class ResourceUtils {
      * @throws IOException On resource not found
      */
     public static byte[] getResourceAsBytes(String resourceName)
-            throws IOException {
+        throws IOException {
         ResourceLoader resourceLoader = new ResourceLoader();
         return resourceLoader.getBytesFromResource(resourceName);
     }
@@ -44,7 +44,7 @@ public abstract class ResourceUtils {
      * @throws IOException On resource not found
      */
     public static byte[] getResourceAsBytes(Class<?> contextClass, String resourceName)
-            throws IOException {
+        throws IOException {
         return getBytesFromStream(getResource(contextClass, resourceName).openStream());
     }
 
@@ -76,8 +76,9 @@ public abstract class ResourceUtils {
     private static class ResourceLoader {
 
         private byte[] getBytesFromResource(String resourceName) throws IOException {
-            InputStream inputStream = getInputStream(resourceName);
-            return getBytesFromStream(inputStream);
+            try (InputStream inputStream = getInputStream(resourceName)) {
+                return getBytesFromStream(inputStream);
+            }
         }
 
         public InputStream getInputStream(String resourceName) throws IOException {
@@ -115,21 +116,18 @@ public abstract class ResourceUtils {
     }
 
     public static byte[] getBytesFromStream(InputStream inputStream) throws IOException {
-        byte[] outputBytes;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[1024];
             int read;
             while ((read = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, read);
             }
-            outputBytes = outputStream.toByteArray();
+            return outputStream.toByteArray();
         } finally {
             if (inputStream != null) {
                 inputStream.close();
             }
         }
-        return outputBytes;
     }
 
     /**
@@ -139,6 +137,7 @@ public abstract class ResourceUtils {
      *
      * @throws NullPointerException if resource is not found
      */
+
     public static URL getResource(String resourceName) {
         URL url = ResourceUtils.class.getClassLoader().getResource(resourceName);
         requireNonNull(url, format("resource %s not found.", resourceName));
@@ -214,23 +213,24 @@ public abstract class ResourceUtils {
         if (dirURL != null && "jar".equals(dirURL.getProtocol())) {
             /* A JAR path */
             String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
-            JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
-            Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
-            Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory
-            while (entries.hasMoreElements()) {
-                String name = entries.nextElement().getName();
-                if (name.startsWith(path)) { //filter according to the path
-                    String filename = name.substring(path.length());
-                    while (filename.startsWith("/")) {
-                        filename = filename.substring(1);
+            try (JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"))) {
+                Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+                Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory
+                while (entries.hasMoreElements()) {
+                    String name = entries.nextElement().getName();
+                    if (name.startsWith(path)) { //filter according to the path
+                        String filename = name.substring(path.length());
+                        while (filename.startsWith("/")) {
+                            filename = filename.substring(1);
+                        }
+                        if (empty(filename)) {
+                            continue;
+                        }
+                        result.add(filename);
                     }
-                    if (empty(filename)) {
-                        continue;
-                    }
-                    result.add(filename);
                 }
+                return result.toArray(new String[result.size()]);
             }
-            return result.toArray(new String[result.size()]);
         }
 
         throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);

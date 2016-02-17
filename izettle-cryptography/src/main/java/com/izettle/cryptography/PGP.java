@@ -53,9 +53,8 @@ public class PGP {
             final PGPPublicKey... keys)
             throws CryptographyException {
         final ByteArrayOutputStream out;
-        try {
-            final ByteArrayInputStream in = new ByteArrayInputStream(secret);
-            final ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+        try (ByteArrayInputStream in = new ByteArrayInputStream(secret);
+            ByteArrayOutputStream bOut = new ByteArrayOutputStream()) {
             final PGPLiteralDataGenerator literal = new PGPLiteralDataGenerator();
             final PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(CompressionAlgorithmTags.UNCOMPRESSED);
             final OutputStream pOut = literal.open(

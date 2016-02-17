@@ -16,7 +16,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,12 +105,7 @@ public class SchemaVersionUpdater {
         }
 
         // Sort in ascending sequence nr order
-        Collections.sort(scripts, new Comparator<SchemaUpdatingScript>() {
-            @Override
-            public int compare(SchemaUpdatingScript a, SchemaUpdatingScript b) {
-                return a.sequenceNr - b.sequenceNr;
-            }
-        });
+        Collections.sort(scripts, Comparator.comparing(SchemaUpdatingScript::getSequenceNr));
 
         for (SchemaUpdatingScript script : scripts) {
             apply(script);
@@ -156,6 +159,10 @@ public class SchemaVersionUpdater {
             try (InputStream is = url.openStream()) {
                 return new String(getBytesFromStream(is));
             }
+        }
+
+        public int getSequenceNr() {
+            return sequenceNr;
         }
 
         @Override

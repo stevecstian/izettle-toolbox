@@ -75,7 +75,7 @@ public class CalendarTruncator {
         return formatter.parse(dateString);
     }
 
-    public static enum CalendarField {
+    public enum CalendarField {
 
         SECOND,
         MINUTE,
