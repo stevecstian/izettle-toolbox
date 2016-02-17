@@ -27,9 +27,7 @@ public class MeteredMessageHandler<M> implements MessageHandler<M> {
 
     @Override
     public void handle(M message) throws Exception {
-
-        Timer.Context timerContext = timer.time();
-        try {
+        try (Timer.Context timerContext = timer.time()) {
             actualHandler.handle(message);
         } catch (RetryableMessageHandlerException e) {
             meterRetryable.mark();
@@ -37,8 +35,6 @@ public class MeteredMessageHandler<M> implements MessageHandler<M> {
         } catch (Exception e) {
             meterError.mark();
             throw e;
-        } finally {
-            timerContext.stop();
         }
     }
 }

@@ -54,10 +54,7 @@ public class QueueProcessingRunnable implements Runnable {
             return false;
         }
         final Thread thread = this.executingThread;
-        if (thread != null && thread.isInterrupted()) {
-            return false;
-        }
-        return true;
+        return !(thread != null && thread.isInterrupted());
     }
 
     /**

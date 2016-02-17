@@ -1,6 +1,7 @@
 package com.izettle.jdbi;
 
 import java.sql.Array;
+import java.sql.Connection;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.Argument;
 import org.skife.jdbi.v2.tweak.ArgumentFactory;
@@ -20,8 +21,10 @@ public class PostgresArrayArgumentFactory implements ArgumentFactory<SqlArray<?>
 
     public Argument build(final Class<?> expectedType, final SqlArray<?> value, final StatementContext ctx) {
         return (position, statement, ctx1) -> {
-            final Array elements = ctx.getConnection().createArrayOf(getTypeName(value), value.getElements());
-            statement.setArray(position, elements);
+            try (Connection connection = ctx.getConnection()) {
+                final Array elements = connection.createArrayOf(getTypeName(value), value.getElements());
+                statement.setArray(position, elements);
+            }
         };
     }
 

@@ -4,9 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
 
-/**
- * Created by fidde on 16/12/14.
- */
 public class TLV {
 
     private final byte[] tag;
@@ -42,5 +39,5 @@ public class TLV {
             Hex.toHexString(tag),
             Hex.toHexString(length),
             Hex.toHexString(value));
-    };
+    }
 }

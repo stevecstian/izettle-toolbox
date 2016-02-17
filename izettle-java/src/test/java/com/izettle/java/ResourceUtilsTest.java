@@ -13,38 +13,39 @@ public class ResourceUtilsTest {
     public void testGetResourceBytes() throws Exception {
         byte[] bytes = getResourceAsBytes("resourceloadertestfile.txt");
         assertThat(new String(bytes))
-                .isNotEmpty()
-                .isEqualTo("test file for resource loading");
+            .isNotEmpty()
+            .isEqualTo("test file for resource loading");
 
         bytes = getResourceAsBytes("/resourceloadertestfile.txt");
         assertThat(new String(bytes))
-                .isNotEmpty()
-                .isEqualTo("test file for resource loading");
+            .isNotEmpty()
+            .isEqualTo("test file for resource loading");
     }
 
     @Test
     public void testGetResourceAsStream() throws Exception {
-        InputStream inputStream = getResourceAsStream("resourceloadertestfile.txt");
-        assertThat(inputStream).isNotNull();
-        inputStream.close();
+        try (InputStream inputStream = getResourceAsStream("resourceloadertestfile.txt")) {
+            assertThat(inputStream).isNotNull();
+        }
 
-        inputStream = getResourceAsStream("/resourceloadertestfile.txt");
-        assertThat(inputStream).isNotNull();
-        inputStream.close();
+        try (InputStream inputStream = getResourceAsStream("/resourceloadertestfile.txt")) {
+            assertThat(inputStream).isNotNull();
+        }
     }
 
     @Test
     public void testGetResourceAsBytesWithContextClass() throws Exception {
         byte[] resource = getResourceAsBytes(ResourceUtilsTest.class, "resourcewithcontexttestfile.txt");
         assertThat(new String(resource))
-                .isNotEmpty()
-                .isEqualTo("test file for resource loading given a context class");
+            .isNotEmpty()
+            .isEqualTo("test file for resource loading given a context class");
     }
 
     @Test
     public void testGetResourceAsStreamWithContextClass() throws Exception {
-        InputStream stream = getResourceAsStream(ResourceUtilsTest.class, "resourcewithcontexttestfile.txt");
-        assertThat(stream).isNotNull();
+        try (InputStream stream = getResourceAsStream(ResourceUtilsTest.class, "resourcewithcontexttestfile.txt")) {
+            assertThat(stream).isNotNull();
+        }
     }
 
     @Test

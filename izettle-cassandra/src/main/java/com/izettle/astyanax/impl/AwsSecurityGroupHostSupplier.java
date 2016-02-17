@@ -45,7 +45,8 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
 
     private static final int DEFAULT_TIMEOUT = 5000;
     private static final Region DEFAULT_REGION = Region.getRegion(Regions.EU_WEST_1);
-    private static final String METADATA_ENDPOINT = "http://169.254.169.254/latest/meta-data/placement/availability-zone";
+    private static final String METADATA_ENDPOINT =
+        "http://169.254.169.254/latest/meta-data/placement/availability-zone";
 
     /**
      * Constructor with a specific region. Can run on non-AWS installations.
@@ -90,20 +91,18 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
             conn.setConnectTimeout(DEFAULT_TIMEOUT); // 5 seconds
             conn.setReadTimeout(DEFAULT_TIMEOUT); // 5 seconds
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                String zone = br.readLine();
 
-            String zone = br.readLine();
-
-            br.close();
-
-            if (zone != null && zone.length() > 0) {
-                zone = zone.substring(0, zone.length() - 1);
-                return Region.getRegion(Regions.fromName(zone));
+                if (zone != null && zone.length() > 0) {
+                    zone = zone.substring(0, zone.length() - 1);
+                    return Region.getRegion(Regions.fromName(zone));
+                }
             }
 
         } catch (IOException e) {
             LOG.warn("Could not get the Region information, is this instance even running on AWS? "
-                    + "Will try again next time", e);
+                + "Will try again next time", e);
         }
 
         return null;
@@ -150,9 +149,11 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
             if (previousHosts == null) {
                 throw new RuntimeException(ex);
             }
-            LOG.warn("Failed to get hosts for sg: {} in region: {}.  Will use previously known hosts instead",
-                    Arrays.toString(filter.getValues().toArray()),
-                    region == null ? DEFAULT_REGION.toString() : region.toString());
+            LOG.warn(
+                "Failed to get hosts for sg: {} in region: {}.  Will use previously known hosts instead",
+                Arrays.toString(filter.getValues().toArray()),
+                region == null ? DEFAULT_REGION.toString() : region.toString()
+            );
             return previousHosts;
         }
     }
