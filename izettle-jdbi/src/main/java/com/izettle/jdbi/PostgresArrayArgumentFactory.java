@@ -1,7 +1,6 @@
 package com.izettle.jdbi;
 
 import java.sql.Array;
-import java.sql.Connection;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.Argument;
 import org.skife.jdbi.v2.tweak.ArgumentFactory;
