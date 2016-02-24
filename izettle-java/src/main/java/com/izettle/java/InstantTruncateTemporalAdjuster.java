@@ -1,9 +1,8 @@
 package com.izettle.java;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAdjuster;
@@ -21,12 +20,12 @@ import java.time.temporal.WeekFields;
  */
 public class InstantTruncateTemporalAdjuster implements TemporalAdjuster {
 
-    private static ZoneId ZONE_ID = ZoneId.of("UTC");
-
+    private ZoneId zoneId;
     private ChronoUnit chronoUnit;
 
-    public InstantTruncateTemporalAdjuster(ChronoUnit chronoUnit) {
+    public InstantTruncateTemporalAdjuster(ChronoUnit chronoUnit, ZoneId zoneId) {
         this.chronoUnit = chronoUnit;
+        this.zoneId = zoneId;
 
         if (chronoUnit.compareTo(ChronoUnit.YEARS) > 0) {
             throw new UnsupportedTemporalTypeException("Only ChronoUnits equal or smaller than ChronoUnit.YEARS are supported");
@@ -35,27 +34,27 @@ public class InstantTruncateTemporalAdjuster implements TemporalAdjuster {
 
     @Override
     public Temporal adjustInto(Temporal temporal) {
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.from(temporal), ZONE_ID);
+        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.from(temporal), zoneId);
 
         if (chronoUnit.compareTo(ChronoUnit.DAYS) <= 0) {
-            localDateTime = localDateTime.truncatedTo(chronoUnit);
+            zonedDateTime = zonedDateTime.truncatedTo(chronoUnit);
         } else {
-            localDateTime = localDateTime.truncatedTo(ChronoUnit.DAYS);
+            zonedDateTime = zonedDateTime.truncatedTo(ChronoUnit.DAYS);
 
             if (chronoUnit.compareTo(ChronoUnit.WEEKS) == 0) {
-                localDateTime = localDateTime.with(WeekFields.ISO.dayOfWeek(), 1);
+                zonedDateTime = zonedDateTime.with(WeekFields.ISO.dayOfWeek(), 1);
             }
 
             if (chronoUnit.compareTo(ChronoUnit.MONTHS) >= 0) {
-                localDateTime = localDateTime.with(TemporalAdjusters.firstDayOfMonth());
+                zonedDateTime = zonedDateTime.with(TemporalAdjusters.firstDayOfMonth());
             }
 
             if (chronoUnit.compareTo(ChronoUnit.YEARS) == 0) {
-                localDateTime = localDateTime.with(TemporalAdjusters.firstDayOfYear());
+                zonedDateTime = zonedDateTime.with(TemporalAdjusters.firstDayOfYear());
             }
         }
 
-        return temporal.with(localDateTime.toInstant(ZoneOffset.UTC));
+        return temporal.with(zonedDateTime.toInstant());
     }
 
 }
