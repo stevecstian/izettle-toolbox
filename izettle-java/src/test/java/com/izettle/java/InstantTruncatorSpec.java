@@ -9,31 +9,7 @@ import org.junit.Test;
 
 public class InstantTruncatorSpec {
 
-    final TimeZoneId TIME_ZONE_ID = TimeZoneId.UTC;
-
-    @Test
-    public void itShouldTruncateHours() throws Exception {
-        final Instant instant = Instant.parse("2016-02-01T20:50:01Z");
-        final Instant truncated = InstantTruncator.truncate(instant, TIME_ZONE_ID, ChronoUnit.HOURS);
-        final Instant expected = Instant.parse("2016-02-01T20:00:00Z");
-        assertEquals(expected, truncated);
-    }
-
-    @Test
-    public void itShouldTruncateWeeks() throws Exception {
-        final Instant instant = Instant.parse("2016-02-03T20:50:01Z");
-        final Instant truncated = InstantTruncator.truncate(instant, TIME_ZONE_ID, ChronoUnit.WEEKS);
-        final Instant expected = Instant.parse("2016-02-01T00:00:00Z");
-        assertEquals(expected, truncated);
-    }
-
-    @Test
-    public void itShouldTruncateYears() throws Exception {
-        final Instant instant = Instant.parse("2016-02-03T20:50:01Z");
-        final Instant truncated = InstantTruncator.truncate(instant, TIME_ZONE_ID, ChronoUnit.YEARS);
-        final Instant expected = Instant.parse("2016-01-01T00:00:00Z");
-        assertEquals(expected, truncated);
-    }
+    private static final TimeZoneId TIME_ZONE_ID = TimeZoneId.UTC;
 
     @Test
     public void itShouldAddWeeks() throws Exception {
@@ -56,5 +32,4 @@ public class InstantTruncatorSpec {
             .toInstant();
         assertEquals(expected, result);
     }
-
 }
