@@ -16,7 +16,7 @@ import java.time.temporal.WeekFields;
  * <br>
  * Adjusting an instant weeks will use the ISO-8601 standard where weeks start on Mondays
  */
-public class InstantTruncateAdjusters {
+public class InstantAdjusters {
 
     public static TemporalAdjuster truncationBy(ChronoUnit chronoUnit, ZoneId zoneId) {
         return temporal -> {

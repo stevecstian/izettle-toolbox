@@ -1,6 +1,6 @@
 package com.izettle.java;
 
-import static com.izettle.java.InstantTruncateAdjusters.truncationBy;
+import static com.izettle.java.InstantAdjusters.truncationBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
@@ -9,7 +9,7 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import org.junit.Test;
 
-public class InstantTruncateAdjustersTest {
+public class InstantAdjustersTest {
 
     private static ZoneId zoneId = ZoneId.of("UTC");
 
