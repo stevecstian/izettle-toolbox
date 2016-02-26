@@ -8,16 +8,16 @@ import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 
-/**
- * Truncates an instant to the supplied ChronoUnit.<br>
- * <br>
- * For example creating an instance with {@link java.time.temporal.ChronoUnit#HOURS} and using it to adjust the
- * instant 2016-02-24T12:12:55.854Z will adjust the instant into 2016-02-24T12:00:00.000Z <br>
- * <br>
- * Adjusting an instant weeks will use the ISO-8601 standard where weeks start on Mondays
- */
 public class InstantAdjusters {
 
+    /**
+     * Truncates an instant to the supplied ChronoUnit.<br>
+     * <br>
+     * For example calling method with {@link java.time.temporal.ChronoUnit#HOURS} and using it to adjust the
+     * instant 2016-02-24T12:12:55.854Z will adjust the instant into 2016-02-24T12:00:00.000Z <br>
+     * <br>
+     * Adjusting an instant weeks will use the ISO-8601 standard where weeks start on Mondays
+     */
     public static TemporalAdjuster truncationBy(ChronoUnit chronoUnit, ZoneId zoneId) {
         return temporal -> {
             ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.from(temporal), zoneId);
