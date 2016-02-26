@@ -2,11 +2,13 @@ package com.izettle.java;
 
 import static com.izettle.java.InstantAdjusters.truncationBy;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.StrictAssertions.catchThrowable;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import org.junit.Test;
 
 public class InstantAdjustersTest {
@@ -83,6 +85,13 @@ public class InstantAdjustersTest {
         final Instant expected = Instant.parse("2016-01-01T00:00:00Z");
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    public void itShouldThrowExceptionWhenChronoUnitIsNotSupported() {
+        final Throwable thrown = catchThrowable(() -> truncationBy(ChronoUnit.MILLENNIA, zoneId));
+
+        assertThat(thrown).isInstanceOf(UnsupportedTemporalTypeException.class);
     }
 
 }

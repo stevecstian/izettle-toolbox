@@ -2,12 +2,14 @@ package com.izettle.java;
 
 import static java.time.temporal.TemporalAdjusters.firstDayOfMonth;
 import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
+import static java.util.Objects.requireNonNull;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import java.time.temporal.WeekFields;
 
 public class InstantAdjusters {
@@ -21,6 +23,13 @@ public class InstantAdjusters {
      * Adjusting an instant weeks will use the ISO-8601 standard where weeks start on Mondays
      */
     public static TemporalAdjuster truncationBy(ChronoUnit chronoUnit, ZoneId zoneId) {
+        requireNonNull(zoneId);
+        requireNonNull(chronoUnit);
+
+        if (chronoUnit.compareTo(ChronoUnit.YEARS) > 0) {
+            throw new UnsupportedTemporalTypeException("Only ChronoUnits equal or smaller than ChronoUnit.YEARS are supported");
+        }
+
         return temporal -> {
             ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.from(temporal), zoneId);
 
