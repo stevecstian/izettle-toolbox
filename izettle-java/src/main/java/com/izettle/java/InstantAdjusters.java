@@ -1,11 +1,13 @@
 package com.izettle.java;
 
+import static java.time.temporal.TemporalAdjusters.firstDayOfMonth;
+import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
-import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 
 public class InstantAdjusters {
@@ -32,11 +34,11 @@ public class InstantAdjusters {
                 }
 
                 if (chronoUnit.compareTo(ChronoUnit.MONTHS) >= 0) {
-                    zonedDateTime = zonedDateTime.with(TemporalAdjusters.firstDayOfMonth());
+                    zonedDateTime = zonedDateTime.with(firstDayOfMonth());
                 }
 
                 if (chronoUnit.compareTo(ChronoUnit.YEARS) == 0) {
-                    zonedDateTime = zonedDateTime.with(TemporalAdjusters.firstDayOfYear());
+                    zonedDateTime = zonedDateTime.with(firstDayOfYear());
                 }
             }
 
