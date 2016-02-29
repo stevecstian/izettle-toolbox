@@ -82,7 +82,7 @@ public abstract class ResourceUtils {
         }
 
         public InputStream getInputStream(String resourceName) throws IOException {
-            final ClassLoader[] classLoaders = new ClassLoader[]{
+            final ClassLoader[] classLoaders = {
                 getClass().getClassLoader(),
                 ResourceUtils.class.getClassLoader(),
                 Thread.currentThread().getContextClassLoader(),
@@ -212,7 +212,7 @@ public abstract class ResourceUtils {
 
         if (dirURL != null && "jar".equals(dirURL.getProtocol())) {
             /* A JAR path */
-            String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
+            String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf('!')); //strip out only the JAR file
             try (JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"))) {
                 Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
                 Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory

@@ -38,13 +38,13 @@ import org.slf4j.LoggerFactory;
  * Example: Let's say we have some scripts in a resource directory called "update-scripts" in our
  * program. Then we can make sure that all of those scripts have been executed when starting our
  * program by calling this:
- * <code>
+ * {@code
  *     public static void main(String[] args) {
  *         Keyspace myKeyspace = ..
  *         SchemaVersionUpdater updater = new SchemaVersionUpdater(myKeyspace);
  *         updater.applyFromResources(MyProgram.class, "update-scripts");
  *     }
- * </code>
+ * }
  *
  * This class will create a column family called 'schema_scripts_version', that will contain
  * a row per script filename with a column 'executed' containing the date of when that
@@ -99,7 +99,7 @@ public class SchemaVersionUpdater {
         while (iterator.hasNext()) {
             SchemaUpdatingScript script = iterator.next();
             if (alreadyExecutedScripts.contains(script.name)) {
-                LOG.debug("Script " + script.name + " has already been applied (1st check), skipping.");
+                LOG.debug("Script {} has already been applied (1st check), skipping.", script.name);
                 iterator.remove();
             }
         }
@@ -119,17 +119,17 @@ public class SchemaVersionUpdater {
         }
 
         LOG.info("Creating versioning column family.");
-        keyspace.createColumnFamily(columnFamily, new HashMap<String, Object>());
+        keyspace.createColumnFamily(columnFamily, new HashMap<>());
         LOG.debug("Versioning column family created.");
     }
 
     private void apply(SchemaUpdatingScript script) throws ConnectionException, IOException {
         if (isAlreadyApplied(script)) {
-            LOG.debug("Script " + script + " has already been applied (2nd check), skipping.");
+            LOG.debug("Script {} has already been applied (2nd check), skipping.", script);
             return;
         }
 
-        LOG.info("Applying script " + script);
+        LOG.info("Applying script {}", script);
         keyspace.prepareCqlStatement()
                 .withCql(script.readCQLContents())
                 .execute();
@@ -137,7 +137,7 @@ public class SchemaVersionUpdater {
         MutationBatch mutation = keyspace.prepareMutationBatch().withConsistencyLevel(ConsistencyLevel.CL_ALL);
         mutation.withRow(columnFamily, script.name).putColumn("executed", new Date());
         mutation.execute();
-        LOG.debug("Script " + script + " successfully applied.");
+        LOG.debug("Script {} successfully applied.", script);
     }
 
     private boolean isAlreadyApplied(SchemaUpdatingScript script) throws ConnectionException {

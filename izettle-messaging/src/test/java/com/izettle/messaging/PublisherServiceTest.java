@@ -1,5 +1,6 @@
 package com.izettle.messaging;
 
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -11,11 +12,15 @@ import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import com.izettle.messaging.serialization.MessageSerializer;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 
 public class PublisherServiceTest {
     private final AmazonSNSClient snsClient = mock(AmazonSNSClient.class);
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public final void before() throws Exception {
@@ -68,10 +73,10 @@ public class PublisherServiceTest {
         final String encryptedMessage = "{\"message\":\"encrypted message\"}";
         when(messageSerializer.serialize(message)).thenReturn(serializedMessage);
         when(messageSerializer.encrypt(serializedMessage)).thenReturn(encryptedMessage);
-        final MessagePublisher messagePublisher  = PublisherService.nonEncryptedPublisherService(
-                snsClient,
-                "topicArn",
-                messageSerializer
+        final MessagePublisher messagePublisher = PublisherService.nonEncryptedPublisherService(
+            snsClient,
+            "topicArn",
+            messageSerializer
         );
 
         // Act
@@ -88,18 +93,24 @@ public class PublisherServiceTest {
         assertEquals(encryptedMessage, argumentCaptor.getValue().getMessage());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void itShouldFailToConstructWithEmptySNSClient() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(startsWith("None of client, topicArn or messageSerializer can be empty!"));
         PublisherService.nonEncryptedPublisherService(null, "topicArn");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void itShouldFailToConstructWithEmptyTopicArn() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(startsWith("None of client, topicArn or messageSerializer can be empty!"));
         PublisherService.nonEncryptedPublisherService(snsClient, "");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void itShouldFailToConstructWithEmptyMessageSerializer() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(startsWith("None of client, topicArn or messageSerializer can be empty!"));
         PublisherService.nonEncryptedPublisherService(snsClient, "topicArn", null);
     }
 }

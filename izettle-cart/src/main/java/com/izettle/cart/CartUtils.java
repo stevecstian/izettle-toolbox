@@ -12,7 +12,7 @@ class CartUtils {
     }
 
     /**
-     * Rounds the value to a long using {@link java.math.RoundingMode#HALF_UP}
+     * Rounds the value to a long using {@link RoundingMode#HALF_UP}
      *
      * @param decimal the value to round
      * @return rounded value
@@ -117,7 +117,7 @@ class CartUtils {
         if (discountValue == null) {
             return null;
         } else {
-            return 100d * discountValue / grossValue;
+            return 100.0d * discountValue / grossValue;
         }
     }
 
@@ -243,7 +243,7 @@ class CartUtils {
             for (int i = 0; i < discounts.size(); i++) {
                 K discount = discounts.get(i);
                 Long discountAmount = discountAmountByDiscountIdx.get(i);
-                Double linePercentage = 100d * discountAmount / grossValue;
+                Double linePercentage = 100.0d * discountAmount / grossValue;
                 DiscountLine<K> discountLine = new DiscountLine<K>(discount, linePercentage, discountAmount);
                 retList.add(discountLine);
             }
@@ -358,10 +358,14 @@ class CartUtils {
             );
         }
 
-        for (Float vatPerc : actualVatValuePerGroup.keySet()) {
+        for (Map.Entry<Float, Long> floatLongEntry : actualVatValuePerGroup.entrySet()) {
             vatGroupValues.put(
-                vatPerc,
-                new VatGroupValues(vatPerc, actualVatValuePerGroup.get(vatPerc), actualValuePerVatGroup.get(vatPerc))
+                floatLongEntry.getKey(),
+                new VatGroupValues(
+                    floatLongEntry.getKey(),
+                    floatLongEntry.getValue(),
+                    actualValuePerVatGroup.get(floatLongEntry.getKey())
+                )
             );
         }
 

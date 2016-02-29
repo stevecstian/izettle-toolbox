@@ -36,7 +36,7 @@ public class PostgresArrayArgumentFactoryTest {
 
     @Test
     public void testBuildInteger() throws Exception {
-        Integer[] intArray = new Integer[]{1, 2, 3};
+        Integer[] intArray = {1, 2, 3};
         List<Integer> ints = Arrays.asList(intArray);
         SqlArray<Integer> value = new SqlArray<>(Integer.class, ints);
         given(connection.createArrayOf("integer", intArray)).willReturn(array);
@@ -47,7 +47,7 @@ public class PostgresArrayArgumentFactoryTest {
 
     @Test
     public void testBuildLong() throws Exception {
-        Long[] longArray = new Long[]{1L, 2L, 3L};
+        Long[] longArray = {1L, 2L, 3L};
         List<Long> longs = Arrays.asList(longArray);
         SqlArray<Long> value = new SqlArray<>(Long.class, longs);
         given(connection.createArrayOf("bigint", longArray)).willReturn(array);
@@ -58,7 +58,7 @@ public class PostgresArrayArgumentFactoryTest {
 
     @Test
     public void testBuildFloat() throws Exception {
-        Float[] floatArray = new Float[]{1.1F, 2.2F, 3.3F};
+        Float[] floatArray = {1.1F, 2.2F, 3.3F};
         List<Float> floats = Arrays.asList(floatArray);
         SqlArray<Float> value = new SqlArray<>(Float.class, floats);
         given(connection.createArrayOf("float4", floatArray)).willReturn(array);
@@ -69,7 +69,7 @@ public class PostgresArrayArgumentFactoryTest {
 
     @Test
     public void testBuildDouble() throws Exception {
-        Double[] doubleArray = new Double[]{1.1D, 2.2D, 3.3D};
+        Double[] doubleArray = {1.1D, 2.2D, 3.3D};
         List<Double> doubles = Arrays.asList(doubleArray);
         SqlArray<Double> value = new SqlArray<>(Double.class, doubles);
         given(connection.createArrayOf("float8", doubleArray)).willReturn(array);
@@ -80,7 +80,7 @@ public class PostgresArrayArgumentFactoryTest {
 
     @Test
     public void testBuildString() throws Exception {
-        String[] stringArray = new String[]{"aa", "bb", "cc"};
+        String[] stringArray = {"aa", "bb", "cc"};
         List<String> strings = Arrays.asList(stringArray);
         SqlArray<String> value = new SqlArray<>(String.class, strings);
         given(connection.createArrayOf("text", stringArray)).willReturn(array);
@@ -91,12 +91,12 @@ public class PostgresArrayArgumentFactoryTest {
 
     @Test
     public void testBuildZero() throws Exception {
-        Integer[] intArray = new Integer[]{1, 2, 3};
+        Integer[] intArray = {1, 2, 3};
         List<Integer> ints = Arrays.asList(intArray);
         SqlArray<Integer> value = new SqlArray<>(Integer.class, ints);
         given(connection.createArrayOf("integer", intArray)).willReturn(null);
         Argument result = sut.build(Integer.class, value, ctx);
-        result.apply(0, preparedStatement, ctx);
-        verify(preparedStatement).setArray(0, null);
+        result.apply(1, preparedStatement, ctx);
+        verify(preparedStatement).setArray(1, null);
     }
 }

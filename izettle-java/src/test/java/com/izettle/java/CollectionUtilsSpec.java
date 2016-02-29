@@ -4,7 +4,6 @@ import static com.izettle.java.CollectionUtils.partition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,35 +14,34 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeSet;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.internal.util.collections.Sets;
 
-/**
- *
- * @author adam
- */
 public class CollectionUtilsSpec {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void shouldPartition() {
         Set<String> set = Sets.newSet("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
-        List<Collection<String>> partitions = partition(set, 1);
-        assertTrue(partitions.size() == 11);
-        assertTrue(partitions.get(0).size() == 1);
-        partitions = partition(set, 7);
-        assertTrue(partitions.size() == 2);
-        assertTrue(partitions.get(0).size() == 7);
-        assertTrue(partitions.get(1).size() == 4);
+        List<Collection<String>> partitions1 = partition(set, 1);
+        assertTrue(partitions1.size() == 11);
+        assertTrue(partitions1.get(0).size() == 1);
+        List<Collection<String>> partitions2 = partition(set, 7);
+        assertTrue(partitions2.size() == 2);
+        assertTrue(partitions2.get(0).size() == 7);
+        assertTrue(partitions2.get(1).size() == 4);
     }
 
     @Test
     public void testPartition_badSize() {
         Set<Integer> source = Sets.newSet(1);
-        try {
-            partition(source, 0);
-            fail("bad size");
-        } catch (IllegalArgumentException expected) {
-        }
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Illegal partitionSize, was: 0");
+        partition(source, 0);
     }
 
     @Test
@@ -104,36 +102,38 @@ public class CollectionUtilsSpec {
 
     @Test
     public void itShouldPartitionCorrectCollectionClass() {
-        Collection<Integer> collection = new HashSet<>(Arrays.asList(6, 5, 4, 3));
+        Collection<Integer> collection1 = new HashSet<>(Arrays.asList(6, 5, 4, 3));
         //Just verify that the result is a set
-        List<Collection<Integer>> parts = partition(collection, 2);
-        assertTrue(parts.get(0) instanceof Set);
+        List<Collection<Integer>> parts1 = partition(collection1, 2);
+        assertTrue(parts1.get(0) instanceof Set);
 
-        collection = new TreeSet<>(Arrays.asList(6, 5, 4, 3));
+        Collection<Integer> collection2 = new TreeSet<>(Arrays.asList(6, 5, 4, 3));
         //Verify that the result is a set
-        parts = partition(collection, 2);
-        assertTrue(parts.get(0) instanceof Set);
+        List<Collection<Integer>> parts2 = partition(collection2, 2);
+        assertTrue(parts2.get(0) instanceof Set);
         //Also verify that the natural ordering is respected
-        assertTrue(parts.get(0).iterator().next() == 3);
-        assertTrue(parts.get(1).iterator().next() == 5);
+        assertTrue(parts2.get(0).iterator().next() == 3);
+        assertTrue(parts2.get(1).iterator().next() == 5);
 
-        collection = new ArrayList<>(Arrays.asList(6, 5, 4, 3));
-        collection.add(6);
-        collection.add(5);
-        collection.add(4);
-        collection.add(3);
+        Collection<Integer> collection3 = new ArrayList<>(Arrays.asList(6, 5, 4, 3));
+        collection3.add(6);
+        collection3.add(5);
+        collection3.add(4);
+        collection3.add(3);
         //Verify that the result is a list
-        parts = partition(collection, 2);
-        assertTrue(parts.get(0) instanceof List);
+        List<Collection<Integer>> parts3 = partition(collection3, 2);
+        assertTrue(parts3.get(0) instanceof List);
         //Also verify that the original ordering is respected
-        assertTrue(parts.get(0).iterator().next() == 6);
-        assertTrue(parts.get(1).iterator().next() == 4);
+        assertTrue(parts3.get(0).iterator().next() == 6);
+        assertTrue(parts3.get(1).iterator().next() == 4);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void itShouldThrowExceptionForUnhandledCollectionType() {
         Collection<Integer> collection = new PriorityQueue<>(Arrays.asList(6, 5, 4, 3));
-        List<Collection<Integer>> parts = partition(collection, 2);
+        thrown.expect(UnsupportedOperationException.class);
+        thrown.expectMessage("Not prepared for this type of collection: class java.util.PriorityQueue");
+        partition(collection, 2);
     }
 
     @Test

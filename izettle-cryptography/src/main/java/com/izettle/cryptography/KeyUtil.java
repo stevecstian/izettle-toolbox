@@ -51,7 +51,7 @@ public final class KeyUtil {
 
         public abstract boolean isValid(Object key);
 
-        public KeyReader(final InputStream input) throws IOException {
+        KeyReader(final InputStream input) throws IOException {
             this.input = PGPUtil.getDecoderStream(input);
         }
 
@@ -73,7 +73,7 @@ public final class KeyUtil {
 
         private final PGPPublicKeyRingCollection keyring;
 
-        public PublicKeyReader(InputStream input) throws IOException, PGPException {
+        PublicKeyReader(InputStream input) throws IOException, PGPException {
             super(input);
             this.keyring = new PGPPublicKeyRingCollection(this.input, new BcKeyFingerprintCalculator());
         }

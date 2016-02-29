@@ -14,7 +14,7 @@ class ItemUtils {
 
     /**
      * Returns the gross value of the item. Gross is the quantity multiplied with unit price
-     * and rounded to a long using {@link com.izettle.cart.CartUtils#round(java.math.BigDecimal)}, VAT is included.
+     * and rounded to a long using {@link CartUtils#round(BigDecimal)}, VAT is included.
      *
      * @return the gross value
      */

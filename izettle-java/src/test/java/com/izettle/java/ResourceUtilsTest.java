@@ -11,13 +11,13 @@ import org.junit.Test;
 public class ResourceUtilsTest {
     @Test
     public void testGetResourceBytes() throws Exception {
-        byte[] bytes = getResourceAsBytes("resourceloadertestfile.txt");
-        assertThat(new String(bytes))
+        byte[] bytes1 = getResourceAsBytes("resourceloadertestfile.txt");
+        assertThat(new String(bytes1))
             .isNotEmpty()
             .isEqualTo("test file for resource loading");
 
-        bytes = getResourceAsBytes("/resourceloadertestfile.txt");
-        assertThat(new String(bytes))
+        byte[] bytes2 = getResourceAsBytes("/resourceloadertestfile.txt");
+        assertThat(new String(bytes2))
             .isNotEmpty()
             .isEqualTo("test file for resource loading");
     }

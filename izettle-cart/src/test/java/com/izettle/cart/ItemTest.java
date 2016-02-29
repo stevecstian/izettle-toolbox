@@ -28,7 +28,7 @@ public class ItemTest {
             1000L,
             null,
             BigDecimal.ONE,
-            new TestDiscount(null, 50d, BigDecimal.ONE)
+            new TestDiscount(null, 50.0d, BigDecimal.ONE)
         ));
 
         items.add(new TestItem(
@@ -70,7 +70,7 @@ public class ItemTest {
             1000L,
             null,
             BigDecimal.ONE,
-            new TestDiscount(null, 25d, BigDecimal.ONE)
+            new TestDiscount(null, 25.0d, BigDecimal.ONE)
         ));
         cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, null, null);
         inverse = cart.inverse();

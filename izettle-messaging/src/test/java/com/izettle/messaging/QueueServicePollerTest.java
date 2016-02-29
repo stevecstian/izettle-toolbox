@@ -33,15 +33,15 @@ public class QueueServicePollerTest {
         when(receiveMessageResult.getMessages()).thenReturn(Arrays.asList(message));
         when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(receiveMessageResult);
 
-        List<PolledMessage<TestMessage>> receivedMessages = queueServicePoller.poll();
+        List<PolledMessage<TestMessage>> receivedMessages1 = queueServicePoller.poll();
 
-        assertThat(receivedMessages).hasSize(1);
+        assertThat(receivedMessages1).hasSize(1);
 
         when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(mock(ReceiveMessageResult.class));
 
-        queueServicePoller.delete(receivedMessages.get(0));
-        receivedMessages = queueServicePoller.poll();
-        assertThat(receivedMessages).isEmpty();
+        queueServicePoller.delete(receivedMessages1.get(0));
+        List<PolledMessage<TestMessage>> receivedMessages2 = queueServicePoller.poll();
+        assertThat(receivedMessages2).isEmpty();
     }
 
     @Test
@@ -53,16 +53,15 @@ public class QueueServicePollerTest {
         when(receiveMessageResult.getMessages()).thenReturn(Arrays.asList(message, message));
         when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(receiveMessageResult);
 
+        List<PolledMessage<TestMessage>> receivedMessages1 = queueServicePoller.poll();
 
-        List<PolledMessage<TestMessage>> receivedMessages = queueServicePoller.poll();
-
-        assertEquals(2, receivedMessages.size());
+        assertEquals(2, receivedMessages1.size());
 
         when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(mock(ReceiveMessageResult.class));
 
-        queueServicePoller.delete(receivedMessages.get(0));
-        queueServicePoller.delete(receivedMessages.get(1));
-        receivedMessages = queueServicePoller.poll();
-        assertEquals(0, receivedMessages.size());
+        queueServicePoller.delete(receivedMessages1.get(0));
+        queueServicePoller.delete(receivedMessages1.get(1));
+        List<PolledMessage<TestMessage>> receivedMessages2 = queueServicePoller.poll();
+        assertEquals(0, receivedMessages2.size());
     }
 }

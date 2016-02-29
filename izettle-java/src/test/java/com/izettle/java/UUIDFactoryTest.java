@@ -13,9 +13,13 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Random;
 import java.util.UUID;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class UUIDFactoryTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     private static final String UNENCODED_UUID4_STRING = "cdaed56d-8712-414d-b346-01905d0026fe";
     private static final String ENCODED_UUID4_STRING = "za7VbYcSQU2zRgGQXQAm_g";
@@ -34,8 +38,10 @@ public class UUIDFactoryTest {
         assertEquals(ENCODED_UUID1_STRING, toBase64String(parse(UNENCODED_UUID1_STRING)));
     }
 
-    @Test(expected = java.lang.IllegalArgumentException.class)
+    @Test
     public void shouldThrowWhenParsingInvalidString() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Cannot parse a UUID from an empty string");
         UUIDFactory.parse("");
     }
 
@@ -155,7 +161,8 @@ public class UUIDFactoryTest {
         assertEquals(uuidInstant.getNano(), instant.getNano(), 100);
 
         //Also test a fixed time:
-        final Instant instant1 = ZonedDateTime.of(1995, 3, 25, 10, 12, 15, 2345, TimeZoneId.EUROPE_STOCKHOLM.toZoneId()).toInstant();
+        final Instant instant1 =
+            ZonedDateTime.of(1995, 3, 25, 10, 12, 15, 2345, TimeZoneId.EUROPE_STOCKHOLM.toZoneId()).toInstant();
         final UUID uuid1 = UUIDFactory.UUID1Generator.generate(instant1);
         final Instant uuid1Instant = UUIDFactory.getInstantFromUUID1(uuid1);
         // Assert that the UUID instant is within 100ns of the original time
@@ -191,7 +198,7 @@ public class UUIDFactoryTest {
      * for verifying that we haven't broken anything
      */
     private static String createAlternative_oldVersion(String uuid) {
-        final byte[] mask = new byte[]{(byte) 0x01};
+        final byte[] mask = {(byte) 0x01};
         byte[] bytes = UUIDFactory.uuidToByteArray(uuid);
         for (int i = 0; i < bytes.length; ++i) {
             bytes[i] ^= mask[i % mask.length];

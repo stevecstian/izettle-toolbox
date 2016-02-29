@@ -36,7 +36,7 @@ public interface Item<T, K extends Discount<?>> {
     T inverse();
 
     /**
-     * Returns the {@link com.izettle.cart.Discount} applied to this item
+     * Returns the {@link Discount} applied to this item
      * @return
      */
     K getDiscount();

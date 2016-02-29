@@ -11,6 +11,7 @@ import java.util.SortedMap;
 public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>>
     implements Serializable {
 
+    private static final long serialVersionUID = 8764117057191413242L;
     private final List<ItemLine<T, D>> itemLines;
     private final List<DiscountLine<K>> discountLines;
     private final ServiceChargeLine<S> serviceChargeLine;

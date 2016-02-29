@@ -107,7 +107,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
      *
      * @param message Message to post.
      * @return The message string without encryption and message id format messageid:jsonstring
-     * @throws com.izettle.messaging.MessagingException Failed to post message.
+     * @throws MessagingException Failed to post message.
      */
     @Override
     public MessageReceipt post(M message) throws MessagingException {
@@ -119,7 +119,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
             );
             return new MessageReceipt(sendMessageResult.getMessageId(), jsonBody);
         } catch (AmazonServiceException | IOException | CryptographyException e) {
-            throw new MessagingException("Failed to post message: " + message.getClass().toString(), e);
+            throw new MessagingException("Failed to post message: " + message.getClass(), e);
         }
     }
 
@@ -129,7 +129,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
      *
      * @param message message to post
      * @param eventName the value that will be used as "subject" in the SNS envelope
-     * @throws com.izettle.messaging.MessagingException Failed to post message.
+     * @throws MessagingException Failed to post message.
      */
     @Override
     public <T> void post(T message, String eventName) throws MessagingException {
@@ -142,7 +142,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
      *
      * @param messages list of messages to post
      * @param eventName the value that will be used as "subject" in the SNS envelope
-     * @throws com.izettle.messaging.MessagingException Failed to post messages.
+     * @throws MessagingException Failed to post messages.
      */
     @Override
     public <T> void postBatch(Collection<T> messages, String eventName) throws MessagingException {
@@ -159,7 +159,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
             }
             sendMessageBatch(allEntries);
         } catch (AmazonServiceException | IOException | CryptographyException e) {
-            throw new MessagingException("Failed to post messages: " + messages.getClass().toString(), e);
+            throw new MessagingException("Failed to post messages: " + messages.getClass(), e);
         }
     }
 

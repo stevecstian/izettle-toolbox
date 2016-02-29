@@ -1,12 +1,10 @@
 package com.izettle.cassandra;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
-import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
 import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
@@ -14,7 +12,6 @@ import com.netflix.astyanax.model.ColumnFamily;
 import com.netflix.astyanax.serializers.StringSerializer;
 import com.netflix.astyanax.serializers.UUIDSerializer;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -56,7 +53,7 @@ public class TimeSeriesIT extends AbstractCassandraUnit4TestCase {
     }
 
     @Test
-    public void addEventsByUUIDAndRetrieveTimePeriod() throws IOException, ConnectionException {
+    public void addEventsByUUIDAndRetrieveTimePeriod() throws Exception {
 
         TimeSeries<String> timeSeries = new TimeSeries<>(keyspace, new ColumnFamily<>("timeSeriesColumnFamily", StringSerializer.get(), UUIDSerializer.get()));
 
@@ -74,7 +71,7 @@ public class TimeSeriesIT extends AbstractCassandraUnit4TestCase {
     }
 
     @Test
-    public void addEventsByStringAndRetrieveTimePeriod() throws IOException, ConnectionException {
+    public void addEventsByStringAndRetrieveTimePeriod() throws Exception {
 
         TimeSeries<String> timeSeries = new TimeSeries<>(keyspace, new ColumnFamily<>("timeSeriesColumnFamily", StringSerializer.get(), UUIDSerializer.get()));
 

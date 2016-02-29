@@ -2,7 +2,7 @@ package com.izettle.java;
 
 import static com.izettle.java.InstantAdjusters.truncationBy;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.StrictAssertions.catchThrowable;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.time.Instant;
 import java.time.ZoneId;

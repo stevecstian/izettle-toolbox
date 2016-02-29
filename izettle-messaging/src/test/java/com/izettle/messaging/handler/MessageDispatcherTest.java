@@ -2,38 +2,51 @@ package com.izettle.messaging.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.amazonaws.services.sqs.model.Message;
+import com.izettle.messaging.MessagingException;
 import com.izettle.messaging.TestMessage;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class MessageDispatcherTest {
-
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
     private final MessageDispatcher dispatcher = MessageDispatcher.nonEncryptedMessageDispatcher();
-    @SuppressWarnings("unchecked")
-    private final MessageHandler<TestMessage> testMessageHandler = mock(MessageHandler.class);
-    @SuppressWarnings("unchecked")
-    private final MessageHandler<String> stringHandler = mock(MessageHandler.class);
-    @SuppressWarnings("unchecked")
-    private final MessageHandler<AmazonSNSMessage> testSNSMessageHandler = mock(MessageHandler.class);
+    @Mock
+    private MessageHandler<TestMessage> testMessageHandler;
+    @Mock
+    private MessageHandler<String> stringHandler;
+    @Mock
+    private MessageHandler<AmazonSNSMessage> testSNSMessageHandler;
 
-    @Test(expected = com.izettle.messaging.MessagingException.class)
+    @Test
     public void shouldThrowExceptionIfNoMessageHandlersForMessageTypeIsPresent() throws Exception {
         Message message = new Message();
         message.setBody("{\"Subject\":\"com.izettle.messaging.messages.MessageWithoutHandle\", \"Message\": \"{}\"}");
-
+        thrown.expect(MessagingException.class);
+        thrown.expectMessage("No handlers for event com.izettle.messaging.messages.MessageWithoutHandle");
         dispatcher.handle(message);
     }
 
-    @Test(expected = com.izettle.messaging.MessagingException.class)
+    @Test
     public void shouldThrowExceptionIfMessageHasNoSubject() throws Exception {
         Message message = new Message();
         message.setBody("{\"Message\": \"{}\"}");
+        thrown.expect(MessagingException.class);
+        thrown.expectMessage("Received message without event name. MessageDispatcher requires a message subject in "
+            + "order to know which handler to route the message to. Make sure that you publish your message with a "
+            + "message subject before trying to receive it.\n"
+            + "null");
         dispatcher.handle(message);
     }
 
@@ -43,7 +56,8 @@ public class MessageDispatcherTest {
         dispatcher.addHandler(TestMessage.class, testMessageHandler);
 
         Message message = new Message();
-        message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+        message.setBody(
+            "{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
         dispatcher.handle(message);
 
         verify(testMessageHandler).handle(any(TestMessage.class));
@@ -56,7 +70,8 @@ public class MessageDispatcherTest {
         dispatcher.addHandler(String.class, stringHandler);
 
         Message message = new Message();
-        message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+        message.setBody(
+            "{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
         dispatcher.handle(message);
 
         verify(testMessageHandler).handle(any(TestMessage.class));
@@ -69,7 +84,8 @@ public class MessageDispatcherTest {
         dispatcher.addHandler(TestMessage.class, testMessageHandler);
 
         Message message = new Message();
-        message.setBody("{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"Hello!\\\"}\"}");
+        message.setBody(
+            "{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"Hello!\\\"}\"}");
         dispatcher.handle(message);
 
         ArgumentCaptor<TestMessage> argumentCaptor = ArgumentCaptor.forClass(TestMessage.class);

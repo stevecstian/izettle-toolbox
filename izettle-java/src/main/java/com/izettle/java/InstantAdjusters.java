@@ -17,7 +17,7 @@ public class InstantAdjusters {
     /**
      * Truncates an instant to the supplied ChronoUnit.<br>
      * <br>
-     * For example calling method with {@link java.time.temporal.ChronoUnit#HOURS} and using it to adjust the
+     * For example calling method with {@link ChronoUnit#HOURS} and using it to adjust the
      * instant 2016-02-24T12:12:55.854Z will adjust the instant into 2016-02-24T12:00:00.000Z <br>
      * <br>
      * Adjusting an instant weeks will use the ISO-8601 standard where weeks start on Mondays

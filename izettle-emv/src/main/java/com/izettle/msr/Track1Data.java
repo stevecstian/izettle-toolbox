@@ -3,9 +3,6 @@ package com.izettle.msr;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by fidde on 02/06/15.
- */
 public class Track1Data {
 
     private static final Pattern P = Pattern.compile(

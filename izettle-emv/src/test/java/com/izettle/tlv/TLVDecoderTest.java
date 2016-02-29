@@ -1,13 +1,16 @@
 package com.izettle.tlv;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.List;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-/**
- * Created by fidde on 17/12/14.
- */
 public class TLVDecoderTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testSimpleDecode() throws Exception {
@@ -18,7 +21,7 @@ public class TLVDecoderTest {
         TLV a = enc.encode(Hex.hexToByteArray("9F21"), new byte[16]);
 
         List<TLV> d = dec.decode(a.toBytes());
-        Assert.assertTrue(1 == d.size());
+        assertEquals(1, d.size());
 
         Assert.assertEquals("9F21", Hex.toHexString(d.get(0).getTag()));
         Assert.assertEquals(16, d.get(0).getValue().length);
@@ -58,12 +61,13 @@ public class TLVDecoderTest {
         Assert.assertEquals(3, decodedTags.size());
     }
 
-    @Test(expected = TLVException.class)
+    @Test
     public void testMultiTagsWithGarbageEnd() throws Exception {
         byte[] tlvData = Hex.hexToByteArray("E003010203E10304050690");
         TLVDecoder dec = new TLVDecoder();
-        List<TLV> tlvs = dec.decode(tlvData);
-        Assert.assertEquals(2, tlvs.size());
+        thrown.expect(TLVException.class);
+        thrown.expectMessage("Malformed data: Tag, but no length present");
+        dec.decode(tlvData);
     }
 
     @Test
@@ -83,7 +87,7 @@ public class TLVDecoderTest {
         TLVDecoder dec = new TLVDecoder();
         TLV tlv = dec.decode(tlvData).get(0);
 
-        Assert.assertTrue(5 == tlv.getValue().length);
+        assertEquals(5, tlv.getValue().length);
         Assert.assertEquals("AABBCCDDEE", Hex.toHexString(tlv.getValue()));
         Assert.assertEquals("8400000005", Hex.toHexString(tlv.getLength()));
     }
@@ -100,11 +104,12 @@ public class TLVDecoderTest {
         Assert.assertEquals("820002", Hex.toHexString(tlv.getLength()));
     }
 
-    @Test(expected = TLVException.class)
+    @Test
     public void testInvalidTag() throws Exception {
-
         byte[] tlvData = Hex.hexToByteArray("9F8101AA");
         TLVDecoder dec = new TLVDecoder();
+        thrown.expect(TLVException.class);
+        thrown.expectMessage("Malformed length, first length byte indiciates length that doesn't fit");
         dec.decode(tlvData).get(0);
     }
 
@@ -120,7 +125,7 @@ public class TLVDecoderTest {
         dec.addExpandTag(Hex.hexToByteArray("9A"));
 
         List<TLV> decodedTags = dec.decode(outerObject.toBytes());
-        Assert.assertTrue(1 == decodedTags.size());
+        assertEquals(1, decodedTags.size());
         Assert.assertEquals("9F27", Hex.toHexString(decodedTags.get(0).getTag()));
     }
 
@@ -132,10 +137,12 @@ public class TLVDecoderTest {
         Assert.assertEquals(2, decodedTags.size());
     }
 
-    @Test(expected = TLVException.class)
+    @Test
     public void testStrictModeLeftPadded() throws Exception {
         TLVDecoder dec = new TLVDecoder();
         dec.setStrictMode(true);
+        thrown.expect(TLVException.class);
+        thrown.expectMessage("Malformed length, first length byte indiciates length that doesn't fit");
         // Uneven number of header zeroes = not valid
         dec.decode(Hex.hexToByteArray("0000000000DF0301FEDF0401FF"));
     }

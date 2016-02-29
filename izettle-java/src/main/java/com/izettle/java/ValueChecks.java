@@ -46,9 +46,9 @@ public class ValueChecks {
     /**
      * Utility method for shorter notation of possible null check before assignment,
      * eg:
-     * <code>String s2 = s1 != null ? s1 : "";</code>
+     * {@code String s2 = s1 != null ? s1 : "";}
      * can instead be written as:
-     * <code>String s2 = coalesce(s1, "");</code>
+     * {@code String s2 = coalesce(s1, "");}
      * While adding type safety, this method is intended to behave in the exact way as MySQLs ifNull method
      *
      * @param <T> The type of the subject
@@ -63,7 +63,7 @@ public class ValueChecks {
 
     /**
      * Checks if the given object is empty. Here empty is defined as: <ul> <li>a null {@link Object}</li> <li>an empty {@link String}</li>
-     * <li>an empty {@link java.lang.reflect.Array}</li> <li>an empty {@link java.util.Collection}</li> <li>an empty {@link java.util.Map}</li> </ul>
+     * <li>an empty {@link Array}</li> <li>an empty {@link Collection}</li> <li>an empty {@link Map}</li> </ul>
      *
      * @param o
      * @return true if the object is empty, false otherwise
@@ -102,10 +102,10 @@ public class ValueChecks {
     }
 
     /**
-     * Checks if any of the objects satisfy <code>empty()</code>.
+     * Checks if any of the objects satisfy {@code empty()}.
      *
      * @param objects the list of objects to check
-     * @return True if any object satisfies <code>empty()</code>.
+     * @return True if any object satisfies {@code empty()}.
      */
     public static boolean anyEmpty(Object... objects) {
         if (empty(objects)) {

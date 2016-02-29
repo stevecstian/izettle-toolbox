@@ -20,7 +20,7 @@ public class CurrencyFormatter {
     public static long parse(CurrencyId currencyId, String amount) {
         Currency currency = Currency.getInstance(currencyId.name());
         Number numericValue = Double.valueOf(amount);
-        return Math.round(numericValue.doubleValue() * Math.pow(10, currency.getDefaultFractionDigits()));
+        return Math.round(numericValue.doubleValue() * StrictMath.pow(10, currency.getDefaultFractionDigits()));
     }
 
     /**
@@ -34,14 +34,14 @@ public class CurrencyFormatter {
      *        interpreted correctly
      * @param amount The amount to convert
      * @return the fractionized amount
-     * @throws java.text.ParseException If the string is not parseable as a number
+     * @throws ParseException If the string is not parseable as a number
      */
     public static long parse(CurrencyId currencyId, Locale locale, String amount) throws ParseException {
         Currency currency = Currency.getInstance(currencyId.name());
         NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
         currencyFormatter.setCurrency(currency);
         Number numericValue = currencyFormatter.parse(amount);
-        return Math.round(numericValue.doubleValue() * Math.pow(10, currency.getDefaultFractionDigits()));
+        return Math.round(numericValue.doubleValue() * StrictMath.pow(10, currency.getDefaultFractionDigits()));
     }
 
     /**
@@ -60,7 +60,7 @@ public class CurrencyFormatter {
         NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
         currencyFormatter.setCurrency(currency);
         currencyFormatter.setMinimumFractionDigits(currency.getDefaultFractionDigits());
-        double amount = fractionizedAmount * Math.pow(10, -currency.getDefaultFractionDigits());
+        double amount = fractionizedAmount * StrictMath.pow(10, -currency.getDefaultFractionDigits());
         return currencyFormatter.format(amount);
     }
 }

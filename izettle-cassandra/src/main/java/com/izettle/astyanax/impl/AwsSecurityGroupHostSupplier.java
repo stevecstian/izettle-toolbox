@@ -1,5 +1,7 @@
 package com.izettle.astyanax.impl;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -21,6 +23,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -91,10 +94,13 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
             conn.setConnectTimeout(DEFAULT_TIMEOUT); // 5 seconds
             conn.setReadTimeout(DEFAULT_TIMEOUT); // 5 seconds
 
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                conn.getInputStream(),
+                UTF_8
+            ))) {
                 String zone = br.readLine();
 
-                if (zone != null && zone.length() > 0) {
+                if (zone != null && !zone.isEmpty()) {
                     zone = zone.substring(0, zone.length() - 1);
                     return Region.getRegion(Regions.fromName(zone));
                 }
@@ -144,7 +150,7 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
             ArrayList<Host> currentHosts = Lists.newArrayList(ipToHost.values());
             logHostUpdate(previousHosts, currentHosts);
             previousHosts = currentHosts;
-            return previousHosts;
+            return Collections.unmodifiableList(previousHosts);
         } catch (AmazonClientException ex) {
             if (previousHosts == null) {
                 throw new RuntimeException(ex);
@@ -154,26 +160,26 @@ public class AwsSecurityGroupHostSupplier implements Supplier<List<Host>> {
                 Arrays.toString(filter.getValues().toArray()),
                 region == null ? DEFAULT_REGION.toString() : region.toString()
             );
-            return previousHosts;
+            return Collections.unmodifiableList(previousHosts);
         }
     }
 
     private void logHostUpdate(List<Host> previous, List<Host> current) {
-
         if (current != null) {
-            for (Host host : current) {
-                if (previous == null || !previous.contains(host)) {
-                    LOG.info("Registering a possible node on IP {} with the C* connection pool", host.getIpAddress());
-                }
-            }
+            current.stream()
+                .filter(host -> previous == null || !previous.contains(host))
+                .forEach(host ->
+                    LOG.info("Registering a possible node on IP {} with the C* connection pool", host.getIpAddress())
+                );
         }
 
         if (previous != null) {
-            for (Host host : previous) {
-                if (current == null || !current.contains(host)) {
-                    LOG.info("Removing a possible node on IP {} with the C* connection pool", host.getIpAddress());
-                }
-            }
+            previous.stream()
+                .filter(host -> current == null || !current.contains(host))
+                .forEach(host ->
+                    LOG.info("Removing a possible node on IP {} with the C* connection pool", host.getIpAddress()
+                    )
+                );
         }
 
     }
