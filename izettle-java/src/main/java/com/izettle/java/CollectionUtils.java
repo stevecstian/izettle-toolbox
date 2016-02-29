@@ -52,7 +52,8 @@ public class CollectionUtils {
                 } else if (largeCollection instanceof List) {
                     part = new LinkedList<>();
                 } else {
-                    throw new UnsupportedOperationException("Not prepared for this type of collection: " + largeCollection.getClass().toString());
+                    throw new UnsupportedOperationException(
+                        "Not prepared for this type of collection: " + largeCollection.getClass());
                 }
             }
             part.add(v);
@@ -91,7 +92,7 @@ public class CollectionUtils {
         Iterator<?> iterator = collection.iterator();
         while (iterator.hasNext()) {
             Object t = iterator.next();
-            sb.append(t.toString());
+            sb.append(t);
             if (iterator.hasNext()) {
                 sb.append(delimiter);
             }

@@ -14,9 +14,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class ValueChecksSpec {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void allDefined() {
@@ -32,18 +36,18 @@ public class ValueChecksSpec {
 
     @Test
     public void noneNull() {
-        assertTrue( ValueChecks.noneNull("hej", "svejs", "hallo"));
-        assertTrue( ValueChecks.noneNull("", "", ""));
-        assertFalse( ValueChecks.noneNull("hej", null, "hallo"));
-        assertFalse( ValueChecks.noneNull(null, null, null));
+        assertTrue(ValueChecks.noneNull("hej", "svejs", "hallo"));
+        assertTrue(ValueChecks.noneNull("", "", ""));
+        assertFalse(ValueChecks.noneNull("hej", null, "hallo"));
+        assertFalse(ValueChecks.noneNull(null, null, null));
     }
 
     @Test
     public void noneEmpty() {
-        assertTrue( ValueChecks.noneEmpty("hej", "svejs", "hallo"));
-        assertFalse( ValueChecks.noneEmpty("5", "BANANER!", ""));
-        assertFalse( ValueChecks.noneEmpty(null, null, "hallo"));
-        assertFalse( ValueChecks.noneEmpty("", "", null));
+        assertTrue(ValueChecks.noneEmpty("hej", "svejs", "hallo"));
+        assertFalse(ValueChecks.noneEmpty("5", "BANANER!", ""));
+        assertFalse(ValueChecks.noneEmpty(null, null, "hallo"));
+        assertFalse(ValueChecks.noneEmpty("", "", null));
 
     }
 
@@ -53,7 +57,10 @@ public class ValueChecksSpec {
         assertTrue("single space", empty(" "));
         assertTrue("double whitespace", empty(" \n"));
         assertTrue("different types of whitespace", empty("\t\f \r\n"));
-        assertTrue("unicode whitespace", empty(" \u2000 \u2001 \u2002 \u2003 \u2004 \u2005 \u2006 \u2007 \u2008 \u2009 \u200a \u202f \u205f \u3000 "));
+        assertTrue(
+            "unicode whitespace",
+            empty(" \u2000 \u2001 \u2002 \u2003 \u2004 \u2005 \u2006 \u2007 \u2008 \u2009 \u200a \u202f \u205f \u3000 ")
+        );
         assertTrue("empty string", empty(""));
         assertTrue("empty array", empty(new Object[0]));
         assertTrue("empty array", empty(new byte[0]));
@@ -134,90 +141,110 @@ public class ValueChecksSpec {
         ValueChecks.assertTrue(true, "should be true");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testIsNotTrue() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("should be true");
         ValueChecks.assertTrue(false, "should be true");
     }
 
     @Test
     public void testNotNull() {
         final String bananas = ValueChecks.assertNotNull("Bananas", "Bananas must not be null");
-        org.junit.Assert.assertEquals(bananas, "Bananas");
+        Assert.assertEquals("Bananas", bananas);
     }
 
     @Test
     public void testNotNullEmptyString() {
         final String bananas = ValueChecks.assertNotNull("", "Bananas must not be null");
-        org.junit.Assert.assertEquals(bananas, "");
+        Assert.assertEquals("", bananas);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNotNullButIs() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Bananas must not be null");
         ValueChecks.assertNotNull(null, "Bananas must not be null");
     }
 
     @Test
     public void testNotEmpty() {
         final String bananas = ValueChecks.assertNotEmpty("Bananas", "Bananas must not be Empty");
-        org.junit.Assert.assertEquals(bananas, "Bananas");
+        Assert.assertEquals("Bananas", bananas);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNotEmptyEmptyString() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Bananas must not be Empty");
         ValueChecks.assertNotEmpty("", "Bananas must not be Empty");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNotEmptyWhiteSpace() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Bananas must not be Empty");
         ValueChecks.assertNotEmpty(" ", "Bananas must not be Empty");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNotEmptyNull() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Bananas must not be Empty");
         final String nullBanana = null;
         ValueChecks.assertNotEmpty(nullBanana, "Bananas must not be Empty");
     }
 
     @Test
     public void testNotEmptyForArrayMessage() {
-        final String[] fruits = new String[]{"Banana", "Apple"};
+        final String[] fruits = {"Banana", "Apple"};
         final String[] result = ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
-        org.junit.Assert.assertArrayEquals(fruits, result);
+        Assert.assertArrayEquals(fruits, result);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNotEmptyForArrayMessageEmpty() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Fruitbasket must not be empty");
         final String[] fruits = null;
         ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
     }
 
     @Test
     public void testNoNullElements() {
-        final String[] fruits = new String[]{"Banana", "Apple"};
+        final String[] fruits = {"Banana", "Apple"};
         final String[] result = ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");
-        org.junit.Assert.assertArrayEquals(fruits, result);
+        Assert.assertArrayEquals(fruits, result);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNoNullElementsWithNullElements() {
-        final String[] fruits = new String[]{"Banana", "Apple", null};
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Fruitbasket must not contain null elements");
+        final String[] fruits = {"Banana", "Apple", null};
         ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNoNullElementsInCollectionWithNullElements() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Fruitbasket must not contain null elements");
         final List<String> fruits = Arrays.asList("Banana", "Apple", null);
         ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNoNullElementsInCollectionIsNull() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Fruitbasket must not be null and not contain null elements");
         final List<String> fruits = null;
         ValueChecks.assertNoNulls(fruits, "Fruitbasket must not be null and not contain null elements");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNotEmptyCollectionWithEmptyCollection() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Fruitbasket must not be empty");
         final List<String> fruits = Collections.emptyList();
         ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
     }
@@ -227,18 +254,20 @@ public class ValueChecksSpec {
         final List<String> fruits = Collections.emptyList();
         final Collection<String>
             result = ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");
-        org.junit.Assert.assertTrue(result.isEmpty());
+        Assert.assertTrue(result.isEmpty());
     }
 
     @Test
     public void testNotEmptyForCollectionMessage() {
         final List<String> fruits = Arrays.asList("Banana", "Apple", null);
         final Collection<String> result = ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
-        org.junit.Assert.assertArrayEquals(fruits.toArray(), result.toArray());
+        Assert.assertArrayEquals(fruits.toArray(), result.toArray());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNotEmptyForMapMessageEmpty() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Fruitbasket must not be empty");
         Map<String, String> fruits = new HashMap<>();
         ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
     }
@@ -249,15 +278,20 @@ public class ValueChecksSpec {
         fruits.put("Banana", "10");
         fruits.put("Apple", "5");
         final Map<String, String> result = ValueChecks.assertNotEmpty(fruits, "Fruitbasket must not be empty");
-        org.junit.Assert.assertEquals(fruits, result);
+        Assert.assertEquals(fruits, result);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testIllegalState() {
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("Invalid assertState!!");
+        //noinspection PointlessBooleanExpression
         ValueChecks.assertState(true == false, "Invalid assertState!!");
     }
 
+    @Test
     public void testValidState() {
+        //noinspection PointlessBooleanExpression
         ValueChecks.assertState(true == true, "Invalid assertState!!");
     }
 }

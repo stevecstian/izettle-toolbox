@@ -10,6 +10,7 @@ import java.io.Serializable;
  */
 public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Serializable{
 
+    private static final long serialVersionUID = -6348123371367411158L;
     private final T item;
     private final long grossValue;
     private final Long grossVat;

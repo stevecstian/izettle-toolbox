@@ -26,10 +26,10 @@ import org.bouncycastle.util.io.Streams;
  */
 public class PGP {
 
-    public static BouncyCastleProvider provider = new BouncyCastleProvider();
+    public static final BouncyCastleProvider PROVIDER = new BouncyCastleProvider();
 
     static {
-        Security.addProvider(provider);
+        Security.addProvider(PROVIDER);
     }
 
     public static byte[] decrypt(
@@ -70,9 +70,9 @@ public class PGP {
                     new JcePGPDataEncryptorBuilder(PGPEncryptedData.CAST5)
                             .setWithIntegrityPacket(true)
                             .setSecureRandom(new SecureRandom())
-                            .setProvider(provider));
+                        .setProvider(PROVIDER));
             for (final PGPPublicKey key : keys) {
-                generator.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(key).setProvider(provider));
+                generator.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(key).setProvider(PROVIDER));
             }
             out = new ByteArrayOutputStream();
             final ArmoredOutputStream armor = new ArmoredOutputStream(out);
@@ -114,7 +114,7 @@ public class PGP {
         }
         final InputStream stream = encrypted.getDataStream(
                 new JcePublicKeyDataDecryptorFactoryBuilder()
-                        .setProvider(provider)
+                    .setProvider(PROVIDER)
                         .build(key));
         return asLiteral(stream);
     }
@@ -149,7 +149,7 @@ public class PGP {
             final PGPSecretKey key = keys.getSecretKey(id);
             if (key != null) {
                 return key.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder()
-                        .setProvider(provider)
+                    .setProvider(PROVIDER)
                         .build(passphrase.toCharArray()));
             }
         } catch (Exception e) {

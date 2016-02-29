@@ -13,11 +13,13 @@ public class PostgresArrayArgumentFactory implements ArgumentFactory<SqlArray<?>
         this.clazz = clazz;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    @SuppressWarnings("rawtypes")
     public boolean accepts(final Class<?> expectedType, final Object value, final StatementContext ctx) {
         return value instanceof SqlArray && clazz.isAssignableFrom(((SqlArray) value).getType());
     }
 
+    @Override
     public Argument build(final Class<?> expectedType, final SqlArray<?> value, final StatementContext ctx) {
         return (position, statement, ctx1) -> {
             final Array elements = ctx.getConnection().createArrayOf(getTypeName(value), value.getElements());

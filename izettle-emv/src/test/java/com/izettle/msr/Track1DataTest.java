@@ -3,9 +3,6 @@ package com.izettle.msr;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by fidde on 02/06/15.
- */
 public class Track1DataTest {
 
     @Test

@@ -18,8 +18,8 @@ public class Hex {
         for (int i = 0; i < byteArr.length; i++) {
             byte b1 = (byte) ((byteArr[i] >> 4) & 0x0000000F);
             byte b2 = (byte) (byteArr[i] & 0x0000000F);
-            result[2 * i] = BASE_16_DIGITS[(int) b1];
-            result[2 * i + 1] = BASE_16_DIGITS[(int) b2];
+            result[2 * i] = BASE_16_DIGITS[b1];
+            result[2 * i + 1] = BASE_16_DIGITS[b2];
         }
         return String.valueOf(result);
     }

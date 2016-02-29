@@ -19,7 +19,7 @@ public class InstantArgumentFactory implements ArgumentFactory<Instant> {
         return new DefaultInstantArgument(value);
     }
 
-    private static class DefaultInstantArgument implements Argument {
+    private static final class DefaultInstantArgument implements Argument {
         private final Instant value;
 
         private DefaultInstantArgument(Instant value) {

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.izettle</groupId>
         <artifactId>izettle</artifactId>
-        <version>1.7</version>
+        <version>1.8</version>
     </parent>
 
     <groupId>com.izettle.toolbox</groupId>
@@ -52,32 +53,77 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <astyanax.version>3.8.0</astyanax.version>
+
+        <assertj-core.version>3.3.0</assertj-core.version>
+        <astyanax.version>3.9.0</astyanax.version>
+        <aws.version>1.10.56</aws.version>
+        <bouncycastle.version>1.54</bouncycastle.version>
+        <findbugs-maven-plugin.version>3.0.3</findbugs-maven-plugin.version>
         <guava.version>18.0</guava.version>
-        <aws.version>1.10.32</aws.version>
-        <bouncycastle.version>1.52</bouncycastle.version>
-        <jackson.version>2.5.1</jackson.version>
-        <slf4j.version>1.7.12</slf4j.version>
+        <jackson.version>2.7.2</jackson.version>
+        <junit.version>4.12</junit.version>
+        <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
+        <maven.version.range>[3.2.3,3.4.0)</maven.version.range>
         <metrics.version>3.1.2</metrics.version>
+        <mockito-all.version>1.10.19</mockito-all.version>
+        <slf4j.version>1.7.18</slf4j.version>
     </properties>
+
+    <profiles>
+
+        <profile>
+            <id>static-analysis</id>
+            <build>
+                <plugins>
+                    <!-- FindBugs Static Analysis -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>findbugs-maven-plugin</artifactId>
+                        <version>${findbugs-maven-plugin.version}</version>
+                        <configuration>
+                            <effort>Max</effort>
+                            <threshold>Exp</threshold>
+                            <xmlOutput>true</xmlOutput>
+                            <failOnError>true</failOnError>
+                            <plugins>
+                                <!-- Add the security plugin from http://find-sec-bugs.github.io/ -->
+                                <plugin>
+                                    <groupId>com.h3xstream.findsecbugs</groupId>
+                                    <artifactId>findsecbugs-plugin</artifactId>
+                                    <version>LATEST</version> <!-- Auto-update to the latest stable -->
+                                </plugin>
+                            </plugins>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
+            <version>${mockito-all.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.1.0</version>
+            <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -87,6 +133,41 @@
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven.enforcer.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-banned-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>javassist:javassist</exclude>
+                                        <exclude>aspectj:aspectj*</exclude>
+                                        <exclude>hsqldb:hsqldb</exclude>
+                                        <exclude>org.slf4j:1.5*</exclude>
+                                        <exclude>org.slf4j:1.6*</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <requireMavenVersion>
+                                    <version>${maven.version.range}</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>${java.version}</version>
+                                </requireJavaVersion>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 

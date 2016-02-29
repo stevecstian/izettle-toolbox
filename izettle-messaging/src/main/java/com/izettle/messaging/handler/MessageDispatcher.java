@@ -51,7 +51,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
         public final List<MessageHandler<M>> handlers = new ArrayList<>();
         private static final ObjectMapper JSON_MAPPER = JsonSerializer.getInstance();
 
-        public ListOfMessageHandlersForType(Class<M> messageType) {
+        ListOfMessageHandlersForType(Class<M> messageType) {
             this.messageType = messageType;
         }
         public void add(MessageHandler<M> handler) {

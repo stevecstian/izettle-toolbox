@@ -7,8 +7,9 @@ import java.io.Serializable;
  * provided by the caller), and some calculated values that's relevant to it's context and location in the cart
  * @param <K> the type of Discount that this line contains, the same object that originally was provided by the caller
  */
-public class DiscountLine<K extends Discount<K>> implements Serializable{
+public class DiscountLine<K extends Discount<K>> implements Serializable {
 
+    private static final long serialVersionUID = -7597848879896361989L;
     private final K discount;
     private final Double actualPercentage;
     private final Long value;

@@ -147,10 +147,10 @@ public class CalendarTruncatorSpec {
         assertEquals("2013-03-05 14:14:16.789", utc.format(forwardInstant(UTC, MINUTE, instant, -1)));
         assertEquals("2013-03-05 14:15:15.789", utc.format(forwardInstant(UTC, SECOND, instant, -1)));
         //edge cases when months have different nr of days
-        instant = utc.parse("2013-01-29 14:15:16.789");
+        Date instant2 = utc.parse("2013-01-29 14:15:16.789");
         //jumping one month, will only take us as many days there are in Feb
-        assertEquals("2013-02-28 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant, 1)));
+        assertEquals("2013-02-28 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant2, 1)));
         //while jumping two months will take us directly to the same day of month as the original
-        assertEquals("2013-03-29 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant, 2)));
+        assertEquals("2013-03-29 14:15:16.789", utc.format(forwardInstant(UTC, MONTH, instant2, 2)));
     }
 }

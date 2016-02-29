@@ -11,7 +11,7 @@ public class InstantTruncator {
 
     /**
      * Utility method for easily adding time to an instant. This method acts as a complement to the standard
-     * <code>Instant::plus</code> method which cannot take larger chrono units than DAY.
+     * {@code Instant::plus} method which cannot take larger chrono units than DAY.
      * @param instant The instant to add time to
      * @param timeZoneId The time zone to be taken into consideration when adding
      * @param nr the number of units to add
@@ -32,7 +32,7 @@ public class InstantTruncator {
 
     /**
      * Utility method for easily subtracting time from an instant. This method acts as a complement to the standard
-     * <code>Instant::minus</code> method which cannot take larger chrono units than DAY.
+     * {@code Instant::minus} method which cannot take larger chrono units than DAY.
      * @param instant The instant to subtract time from
      * @param timeZoneId The time zone to be taken into consideration when subtracting
      * @param nr the number of units to subtract

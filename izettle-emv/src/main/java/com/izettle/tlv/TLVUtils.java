@@ -1,8 +1,5 @@
 package com.izettle.tlv;
 
-/**
- * Created by fidde on 17/12/14.
- */
 public class TLVUtils {
 
     private TLVUtils() {

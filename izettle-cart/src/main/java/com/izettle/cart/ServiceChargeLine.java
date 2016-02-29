@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class ServiceChargeLine<S extends ServiceCharge<S>> implements Serializable {
 
+    private static final long serialVersionUID = 8618775504632874008L;
     private final S serviceCharge;
     private final long value;
     private final Long vat;

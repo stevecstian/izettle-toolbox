@@ -31,6 +31,7 @@ public class MessageDeserializer<M> {
 
     public String decrypt(String encrypted) throws IOException, CryptographyException {
         if (!anyNull(privatePgpKey, privatePgpKeyPassphrase)) {
+            // noinspection ConstantConditions
             try (ByteArrayInputStream keyStream = new ByteArrayInputStream(privatePgpKey)) {
                 return new String(PGP.decrypt(encrypted.getBytes(), keyStream, privatePgpKeyPassphrase), "UTF-8");
             }

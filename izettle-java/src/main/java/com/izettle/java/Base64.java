@@ -2,7 +2,8 @@ package com.izettle.java;
 
 public class Base64 {
 
-    static final char[] BASE_64_DIGITS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
+    static final char[] BASE_64_DIGITS =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
     static final int[] BASE_64_VALUES = new int['z' + 1];
 
     static {
@@ -42,7 +43,7 @@ public class Base64 {
                     break;
                 }
                 case 6: {
-                    byte bm = (byte) (0xFF >> 6); //"00000011";
+                    byte bm = 0xFF >> 6; //"00000011";
                     tmpVal = (firstByteVal & bm) << 4;
                     if (byteOffset + 1 < byteArr.length) {
                         byte bm2 = (byte) (0xFF << 4); //"11110000";
@@ -51,7 +52,7 @@ public class Base64 {
                     break;
                 }
                 case 4: {
-                    byte bm = (byte) (0xFF >> 4); //"00001111";
+                    byte bm = 0xFF >> 4; //"00001111";
                     tmpVal = (firstByteVal & bm) << 2;
                     if (byteOffset + 1 < byteArr.length) {
                         byte bm2 = (byte) (0xFF << 6); //"11000000";
@@ -59,11 +60,10 @@ public class Base64 {
                     }
                     break;
                 }
-                case 2: {
-                    byte bm = (byte) (0xFF >> 2); //"00111111";
+                case 2:
+                    byte bm = 0xFF >> 2; //"00111111";
                     tmpVal = firstByteVal & bm;
                     break;
-                }
             }
             if (bitOffset != 0) {
                 byteOffset++;
@@ -75,7 +75,8 @@ public class Base64 {
     }
 
     /**
-     * Will translate (decode) a b64 string to it's byte array conterpart. The alphabet used is A-Za-z0-9-_. The input string
+     * Will translate (decode) a b64 string to it's byte array conterpart. The alphabet used is A-Za-z0-9-_. The
+     * input string
      * must not be chunked. This method will produce the exact same output as
      * org.apache.commons.codec.binary.Base64.decodeBase64, but twice as fast
      * @param b64 the encoded string
@@ -100,24 +101,21 @@ public class Base64 {
             int q1 = BASE_64_VALUES[b64.charAt(qIdx)];
             int q2 = BASE_64_VALUES[b64.charAt(qIdx + 1)];
             switch (bitOffset) {
-                case 0: {
+                case 0:
                     bArr[bIdx++] = (byte) ((q1 << 2) | (q2 >> 4));
                     bitOffset = 2;
                     qIdx += 1;
                     break;
-                }
-                case 2: {
+                case 2:
                     bArr[bIdx++] = (byte) ((q1 << 4) | (q2 >> 2));
                     bitOffset = 4;
                     qIdx += 1;
                     break;
-                }
-                case 4: {
+                case 4:
                     bArr[bIdx++] = (byte) ((q1 << 6) | q2);
                     bitOffset = 0;
                     qIdx += 2;
                     break;
-                }
             }
         }
         return bArr;

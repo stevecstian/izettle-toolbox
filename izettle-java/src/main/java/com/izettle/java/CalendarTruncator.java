@@ -18,7 +18,7 @@ public class CalendarTruncator {
      */
     public static Date getFirstInstantOfYear(TimeZoneId timeZoneId, int year) {
         Calendar resultDate = CalendarCreator.create(timeZoneId);
-        resultDate.set(year, 0, 1, 0, 0, 0);
+        resultDate.set(year, Calendar.JANUARY, 1, 0, 0, 0);
         resultDate.set(Calendar.MILLISECOND, 0);
         resultDate.set(Calendar.YEAR, year);
         return resultDate.getTime();
@@ -51,7 +51,7 @@ public class CalendarTruncator {
         Calendar resultDate = CalendarCreator.create(timeZoneId);
         resultDate.setFirstDayOfWeek(Calendar.MONDAY);
         resultDate.setMinimalDaysInFirstWeek(4);
-        resultDate.set(year, 0, 1, 0, 0, 0);
+        resultDate.set(year, Calendar.JANUARY, 1, 0, 0, 0);
         resultDate.set(Calendar.MILLISECOND, 0);
         int maxWeekNr = resultDate.getActualMaximum(Calendar.WEEK_OF_YEAR);
         if (weekNumber > maxWeekNr) {

@@ -151,11 +151,11 @@ public final class UUIDFactory {
 
     /**
      * Base64 encodes the supplied UUID into as URL safe format (including removing trailing '=' characters).
-     * This will turn the UUID into a shorter format than what <code>.toString()</code> on the UUID would give.
+     * This will turn the UUID into a shorter format than what {@code .toString()} on the UUID would give.
      * For example, given the UUID of
-     * <code>"cdaed56d-8712-414d-b346-01905d0026fe"</code>,
+     * {@code "cdaed56d-8712-414d-b346-01905d0026fe"},
      * this method will return
-     * <code>"za7VbYcSQU2zRgGQXQAm_g"</code>, which is a shorter representation of the same bytes.
+     * {@code "za7VbYcSQU2zRgGQXQAm_g"}, which is a shorter representation of the same bytes.
      *
      * @param uuid The UUID to be converted.
      * @return The encoded UUID as string.
@@ -242,7 +242,7 @@ public final class UUIDFactory {
      *     https://github.com/cowtowncoder/java-uuid-generator
      *     </a>
      */
-    static class UUID1Generator {
+    static final class UUID1Generator {
 
         private UUID1Generator() {
         }

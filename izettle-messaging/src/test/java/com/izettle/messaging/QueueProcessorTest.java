@@ -24,6 +24,7 @@ import org.mockito.ArgumentCaptor;
 public class QueueProcessorTest {
     private MessageQueueProcessor queueProcessor;
     private final AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
+    @SuppressWarnings("unchecked")
     private final MessageHandler<Message> mockHandler = mock(MessageHandler.class);
     private final List<Message> receivedMessages = new ArrayList<>();
 

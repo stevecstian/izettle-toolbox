@@ -1,6 +1,7 @@
 package com.izettle.messaging;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -20,11 +21,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 
 public class QueueServiceSenderTest {
-
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
     private MessageQueueProducer<TestMessage> messageQueueProducer;
     private MessagePublisher messagePublisher;
     private AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
@@ -79,9 +83,9 @@ public class QueueServiceSenderTest {
 
         // Act
         messagePublisher.postBatch(
-                Arrays.asList(
-                        new TestMessage("Hello"), new TestMessage("world")
-                ), "subject"
+            Arrays.asList(
+                new TestMessage("Hello"), new TestMessage("world")
+            ), "subject"
         );
 
         // Assert
@@ -121,9 +125,9 @@ public class QueueServiceSenderTest {
         final MessageSerializer serializer = mock(MessageSerializer.class);
         when(serializer.serialize(testMessage)).thenReturn(serializedMessage);
         final MessagePublisher publisher = QueueServiceSender.nonEncryptedMessagePublisher(
-                "test",
-                mockAmazonSQS,
-                serializer
+            "test",
+            mockAmazonSQS,
+            serializer
         );
 
         // Act
@@ -135,18 +139,24 @@ public class QueueServiceSenderTest {
         verify(serializer).encrypt(serializedMessage);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void itShouldFailToConstructWithEmptyQueueUrl() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(startsWith("None of queueUrl, amazonSQS or messageSerializer can be empty!"));
         QueueServiceSender.nonEncryptedMessageQueueProducer(null, mockAmazonSQS);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void itShouldFailToConstructWithEmptySQSClient() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(startsWith("None of queueUrl, amazonSQS or messageSerializer can be empty!"));
         QueueServiceSender.nonEncryptedMessageQueueProducer("test.url", null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void itShouldFailToConstructWithEmptyMessageSerializer() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(startsWith("None of queueUrl, amazonSQS or messageSerializer can be empty!"));
         QueueServiceSender.nonEncryptedMessageQueueProducer("test.url", mockAmazonSQS, null);
     }
 }

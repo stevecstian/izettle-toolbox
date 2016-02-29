@@ -32,7 +32,7 @@ public class Base64Test {
 
     @Test
     public void testB64StringToByteArrEmptyNullCases() {
-        assertEquals(null, Base64.b64StringToByteArr(null));
+        assertNull(Base64.b64StringToByteArr(null));
         assertArrayEquals(new byte[0], Base64.b64StringToByteArr(""));
     }
 }

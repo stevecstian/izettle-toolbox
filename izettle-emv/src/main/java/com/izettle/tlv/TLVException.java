@@ -1,9 +1,8 @@
 package com.izettle.tlv;
 
-/**
- * Created by fidde on 16/12/14.
- */
 public class TLVException extends Exception {
+
+    private static final long serialVersionUID = 6917277463228991723L;
 
     public TLVException(String str) {
         super(str);
