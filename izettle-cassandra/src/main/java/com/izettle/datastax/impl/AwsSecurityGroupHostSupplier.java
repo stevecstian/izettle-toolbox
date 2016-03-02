@@ -1,10 +1,11 @@
-package com.izettle.astyanax.impl;
+package com.izettle.datastax.impl;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.izettle.cassandra.AwsSecurityGroupHostSupplierAbstract;
 import com.izettle.cassandra.ConnectionPoint;
-import com.netflix.astyanax.connectionpool.Host;
+import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
  *
  * @author progre55
  */
-public class AwsSecurityGroupHostSupplier extends AwsSecurityGroupHostSupplierAbstract<List<Host>> {
+public class AwsSecurityGroupHostSupplier extends AwsSecurityGroupHostSupplierAbstract<Collection<InetSocketAddress>> {
 
     /**
      * Constructor with a specific region. Can run on non-AWS installations.
@@ -43,9 +44,9 @@ public class AwsSecurityGroupHostSupplier extends AwsSecurityGroupHostSupplierAb
     }
 
     @Override
-    public List<Host> convertTo(List<ConnectionPoint> connectionPoints) {
+    public Collection<InetSocketAddress> convertTo(List<ConnectionPoint> connectionPoints) {
         return connectionPoints.stream()
-            .map(connectionPoint -> new Host(connectionPoint.getIpAddress(), connectionPoint.getPort()))
+            .map(connectionPoint -> new InetSocketAddress(connectionPoint.getIpAddress(), connectionPoint.getPort()))
             .collect(
                 Collectors.toList());
     }
