@@ -48,6 +48,8 @@
         <module>izettle-cart</module>
         <module>izettle-emv</module>
         <module>izettle-jdbi</module>
+        <module>izettle-cassandra-datastax</module>
+        <module>izettle-cassandra-astyanax</module>
     </modules>
 
     <properties>

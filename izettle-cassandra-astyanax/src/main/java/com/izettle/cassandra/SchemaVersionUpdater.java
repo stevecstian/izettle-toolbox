@@ -1,9 +1,7 @@
 package com.izettle.cassandra;
 
-import static com.izettle.java.ResourceUtils.getBytesFromStream;
-import static com.izettle.java.ValueChecks.coalesce;
-
 import com.izettle.java.ResourceUtils;
+import com.izettle.java.ValueChecks;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
@@ -141,7 +139,7 @@ public class SchemaVersionUpdater {
     }
 
     private boolean isAlreadyApplied(SchemaUpdatingScript script) throws ConnectionException {
-        return coalesce(keyspace.prepareQuery(columnFamily).getKey(script.name).getCount().execute().getResult(), 0) > 0;
+        return ValueChecks.coalesce(keyspace.prepareQuery(columnFamily).getKey(script.name).getCount().execute().getResult(), 0) > 0;
     }
 
     private static final class SchemaUpdatingScript {
@@ -157,7 +155,7 @@ public class SchemaVersionUpdater {
 
         public String readCQLContents() throws IOException {
             try (InputStream is = url.openStream()) {
-                return new String(getBytesFromStream(is));
+                return new String(ResourceUtils.getBytesFromStream(is));
             }
         }
 

@@ -27,9 +27,9 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AwsSecurityGroupHostSupplierAbstract<T> implements Supplier<T> {
+public abstract class AbstractAwsSecurityGroupHostSupplier<T> implements Supplier<T> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AwsSecurityGroupHostSupplierAbstract.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractAwsSecurityGroupHostSupplier.class);
 
     protected static final int DEFAULT_TIMEOUT = 5000;
     protected static final Region DEFAULT_REGION = Region.getRegion(Regions.EU_WEST_1);
@@ -42,7 +42,7 @@ public abstract class AwsSecurityGroupHostSupplierAbstract<T> implements Supplie
     private final int port;
     private volatile List<ConnectionPoint> previousHosts;
 
-    public AwsSecurityGroupHostSupplierAbstract(
+    public AbstractAwsSecurityGroupHostSupplier(
         AmazonEC2Client client,
         String groupId,
         Region region,
