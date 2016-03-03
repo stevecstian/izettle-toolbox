@@ -12,8 +12,6 @@ import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -21,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -49,7 +48,7 @@ public abstract class AbstractAwsSecurityGroupHostSupplier<T> implements Supplie
         int defaultPort
     ) {
         this.client = client;
-        this.filter = new Filter("group-id", Lists.newArrayList(groupId));
+        this.filter = new Filter("group-id", Arrays.asList(groupId));
         this.region = region;
         this.port = defaultPort;
         if (region == null) {
@@ -105,7 +104,7 @@ public abstract class AbstractAwsSecurityGroupHostSupplier<T> implements Supplie
     public synchronized T get() {
         try {
             setMyRegion();
-            Map<String, ConnectionPoint> ipToHost = Maps.newHashMap();
+            Map<String, ConnectionPoint> ipToHost = new HashMap<>();
 
             DescribeInstancesRequest req = new DescribeInstancesRequest();
             req.withFilters(filter);
@@ -121,7 +120,7 @@ public abstract class AbstractAwsSecurityGroupHostSupplier<T> implements Supplie
                 }
             }
 
-            ArrayList<ConnectionPoint> currentHosts = Lists.newArrayList(ipToHost.values());
+            ArrayList<ConnectionPoint> currentHosts = new ArrayList<>(ipToHost.values());
             logHostUpdate(previousHosts, currentHosts);
             previousHosts = currentHosts;
             return convertTo(previousHosts);
