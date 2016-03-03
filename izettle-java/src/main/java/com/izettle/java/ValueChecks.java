@@ -3,6 +3,7 @@ package com.izettle.java;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public class ValueChecks {
 
@@ -63,7 +64,7 @@ public class ValueChecks {
 
     /**
      * Checks if the given object is empty. Here empty is defined as: <ul> <li>a null {@link Object}</li> <li>an empty {@link String}</li>
-     * <li>an empty {@link Array}</li> <li>an empty {@link Collection}</li> <li>an empty {@link Map}</li> </ul>
+     * <li>an empty {@link Array}</li> <li>an empty {@link Collection}</li> <li>an empty {@link Map}</li> <li>an empty {@link Optional}</li></ul>
      *
      * @param o
      * @return true if the object is empty, false otherwise
@@ -83,6 +84,9 @@ public class ValueChecks {
         }
         if (o instanceof Map) {
             return ((Map<?, ?>) o).isEmpty();
+        }
+        if (o instanceof Optional) {
+            return !((Optional) o).isPresent();
         }
         return false;
     }
