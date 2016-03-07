@@ -1,7 +1,6 @@
-package com.izettle.cassandra;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.izettle.cassandra.TimeSeries;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType;

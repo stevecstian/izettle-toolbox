@@ -1,7 +1,6 @@
 package com.izettle.cassandra;
 
-import static com.izettle.java.ValueChecks.anyEmpty;
-
+import com.izettle.java.ValueChecks;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.model.ColumnFamily;
@@ -110,7 +109,7 @@ public class SequenceGenerator<K> {
      * @throws SequenceGeneratorException Failed to create the sequence.
      */
     public void reset(K sequenceKey, Long initialSequenceValue) throws SequenceGeneratorException {
-        if (anyEmpty(sequenceKey, initialSequenceValue)) {
+        if (ValueChecks.anyEmpty(sequenceKey, initialSequenceValue)) {
             throw new SequenceGeneratorException("Can't create a sequence without a sequence key or an initial value");
         }
 

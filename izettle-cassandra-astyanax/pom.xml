@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>izettle-toolbox</artifactId>
+		<groupId>com.izettle.toolbox</groupId>
+		<version>1.0.64-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>izettle-cassandra-astyanax</artifactId>
+	<properties>
+		<cassandra-unit.version>2.2.2.1</cassandra-unit.version>
+		<snappy-java.version>1.1.2.1</snappy-java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.izettle.toolbox</groupId>
+			<artifactId>izettle-java</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netflix.astyanax</groupId>
+			<artifactId>astyanax-core</artifactId>
+			<version>${astyanax.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netflix.astyanax</groupId>
+			<artifactId>astyanax-cassandra</artifactId>
+			<version>${astyanax.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netflix.astyanax</groupId>
+			<artifactId>astyanax-recipes</artifactId>
+			<version>${astyanax.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.izettle.toolbox</groupId>
+			<artifactId>izettle-cassandra</artifactId>
+			<version>1.0.64-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.cassandraunit</groupId>
+			<artifactId>cassandra-unit</artifactId>
+			<version>${cassandra-unit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.netflix.astyanax</groupId>
+			<artifactId>astyanax-thrift</artifactId>
+			<version>${astyanax.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial.snappy</groupId>
+			<artifactId>snappy-java</artifactId>
+			<version>${snappy-java.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+</project>
