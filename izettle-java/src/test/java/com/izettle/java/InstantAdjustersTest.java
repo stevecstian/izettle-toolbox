@@ -1,11 +1,14 @@
 package com.izettle.java;
 
+import static com.izettle.java.InstantAdjusters.additionBy;
+import static com.izettle.java.InstantAdjusters.subtractionBy;
 import static com.izettle.java.InstantAdjusters.truncationBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.UnsupportedTemporalTypeException;
@@ -94,4 +97,47 @@ public class InstantAdjustersTest {
         assertThat(thrown).isInstanceOf(UnsupportedTemporalTypeException.class);
     }
 
+    @Test
+    public void itShouldAddWeeks() throws Exception {
+        final Instant instant = Instant.now();
+        final Instant result = instant.with(additionBy(1, ChronoUnit.WEEKS, zoneId));
+        final Instant expected = ZonedDateTime
+            .ofInstant(instant, zoneId)
+            .plus(1, ChronoUnit.WEEKS)
+            .toInstant();
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void itShouldAddYears() throws Exception {
+        final Instant instant = Instant.now();
+        final Instant result = instant.with(additionBy(1, ChronoUnit.YEARS, zoneId));
+        final Instant expected = ZonedDateTime
+            .ofInstant(instant, zoneId)
+            .plus(1, ChronoUnit.YEARS)
+            .toInstant();
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void itShouldSubtractDays() throws Exception {
+        final Instant instant = Instant.now();
+        final Instant result = instant.with(subtractionBy(1, ChronoUnit.DAYS, zoneId));
+        final Instant expected = ZonedDateTime
+            .ofInstant(instant, zoneId)
+            .minus(1, ChronoUnit.DAYS)
+            .toInstant();
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void itShouldSubtractMonths() throws Exception {
+        final Instant instant = Instant.now();
+        final Instant result = instant.with(subtractionBy(2, ChronoUnit.MONTHS, zoneId));
+        final Instant expected = ZonedDateTime
+            .ofInstant(instant, zoneId)
+            .minus(2, ChronoUnit.MONTHS)
+            .toInstant();
+        assertThat(result).isEqualTo(expected);
+    }
 }

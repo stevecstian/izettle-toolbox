@@ -14,6 +14,9 @@ import java.time.temporal.WeekFields;
 
 public class InstantAdjusters {
 
+    private InstantAdjusters() {
+    }
+
     /**
      * Truncates an instant to the supplied ChronoUnit.<br>
      * <br>
@@ -54,5 +57,33 @@ public class InstantAdjusters {
             return temporal.with(zonedDateTime.toInstant());
         };
     }
-}
 
+    /**
+     * Utility method for easily adding time to an instant. This method acts as a complement to the standard
+     * <code>Instant::plus</code> method which cannot take larger chrono units than DAY.
+     * @param zoneId The time zone to be taken into consideration when adding
+     * @param quantity the number of units to add
+     * @param chronoUnit The chrono unit to add
+     * @return a newly created TemporalAdjuster
+     */
+    public static TemporalAdjuster additionBy(final long quantity, final ChronoUnit chronoUnit, final ZoneId zoneId) {
+        requireNonNull(zoneId);
+        requireNonNull(chronoUnit);
+        return temporal -> ZonedDateTime
+            .ofInstant(Instant.from(temporal), zoneId)
+            .plus(quantity, chronoUnit)
+            .toInstant();
+    }
+
+    /**
+     * Utility method for easily subtracting time from an instant. This method acts as a complement to the standard
+     * <code>Instant::minus</code> method which cannot take larger chrono units than DAY.
+     * @param zoneId The time zone to be taken into consideration when subtracting
+     * @param quantity the number of units to subtract
+     * @param chronoUnit The chrono unit to subtract
+     * @return a newly created TemporalAdjuster
+     */
+    public static TemporalAdjuster subtractionBy(final long quantity, final ChronoUnit chronoUnit, final ZoneId zoneId) {
+        return additionBy(-quantity, chronoUnit, zoneId);
+    }
+}
