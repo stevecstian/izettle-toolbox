@@ -97,6 +97,6 @@ public class QueueProcessorTest {
 
         // Assert
         verify(mockHandler).handle(msg1);
-        verify(mockAmazonSQS, never()).deleteMessage(any(DeleteMessageRequest.class));
+        verify(mockAmazonSQS, never()).deleteMessageAsync(any(DeleteMessageRequest.class));
     }
 }

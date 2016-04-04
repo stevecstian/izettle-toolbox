@@ -11,9 +11,10 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.izettle.messaging.serialization.MessageDeserializer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rx.Observable;
 
 /**
  * Convenience class for consuming messages from a single queue in Amazon Simple Queue Service.
@@ -99,7 +100,7 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
      * @throws MessagingException Failed to poll queue.
      */
     @Override
-    public Observable<List<PolledMessage<M>>> poll() throws MessagingException {
+    public Future<List<PolledMessage<M>>> poll() throws MessagingException {
         return poll(20);
     }
 
@@ -112,15 +113,15 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
      * @throws MessagingException Failed to poll queue.
      */
     @Override
-    public Observable<List<PolledMessage<M>>> poll(int messageWaitTimeInSeconds) throws MessagingException {
+    public Future<List<PolledMessage<M>>> poll(int messageWaitTimeInSeconds) throws MessagingException {
         ReceiveMessageRequest messageRequest = new ReceiveMessageRequest(queueUrl);
         messageRequest.setMaxNumberOfMessages(MAXIMUM_NUMBER_OF_MESSAGES_TO_RECEIVE);
         messageRequest.setWaitTimeSeconds(messageWaitTimeInSeconds);
-        Observable<ReceiveMessageResult> result;
+        CompletableFuture<ReceiveMessageResult> result;
 
         try {
-            result = Observable.from(amazonSQS.receiveMessageAsync(messageRequest));
-            return result.map(this::convertFromResult);
+            result = (CompletableFuture<ReceiveMessageResult>) amazonSQS.receiveMessageAsync(messageRequest);
+            return result.thenApply(this::convertFromResult);
         } catch (AmazonClientException e) {
             throw new MessagingException("Failed to poll message queue.", e);
         }

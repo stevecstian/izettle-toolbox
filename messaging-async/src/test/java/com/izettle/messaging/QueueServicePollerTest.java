@@ -14,10 +14,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import org.junit.Before;
 import org.junit.Test;
-import rx.Observable;
-import rx.observers.TestSubscriber;
 
 public class QueueServicePollerTest {
 
@@ -40,7 +39,7 @@ public class QueueServicePollerTest {
             .completedFuture(
                 receiveMessageResult));
 
-        List<PolledMessage<TestMessage>> receivedMessages1 = queueServicePoller.poll().toBlocking().first();
+        List<PolledMessage<TestMessage>> receivedMessages1 = queueServicePoller.poll().get();
 
         assertThat(receivedMessages1).hasSize(1);
 
@@ -49,7 +48,7 @@ public class QueueServicePollerTest {
                 mock(ReceiveMessageResult.class)));
 
         queueServicePoller.delete(receivedMessages1.get(0));
-        List<PolledMessage<TestMessage>> receivedMessages2 = queueServicePoller.poll().toBlocking().first();
+        List<PolledMessage<TestMessage>> receivedMessages2 = queueServicePoller.poll().get();
         assertThat(receivedMessages2).isEmpty();
     }
 
@@ -64,13 +63,9 @@ public class QueueServicePollerTest {
             .completedFuture(
                 receiveMessageResult));
 
-        Observable<List<PolledMessage<TestMessage>>> futureMessages = queueServicePoller.poll();
-        TestSubscriber<List<PolledMessage<TestMessage>>> testSubscriber = new TestSubscriber<>();
-        List<PolledMessage<TestMessage>> polledMessages = futureMessages.toBlocking().single();
+        Future<List<PolledMessage<TestMessage>>> futureMessages = queueServicePoller.poll();
+        List<PolledMessage<TestMessage>> polledMessages = futureMessages.get();
 
-        futureMessages.subscribe(testSubscriber);
-        testSubscriber.assertNoErrors();
-        testSubscriber.assertValueCount(1);
         assertEquals(2, polledMessages.size());
 
         when(mockAmazonSQS.receiveMessageAsync(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture
@@ -79,7 +74,7 @@ public class QueueServicePollerTest {
 
         queueServicePoller.delete(polledMessages.get(0));
         queueServicePoller.delete(polledMessages.get(1));
-        List<PolledMessage<TestMessage>> receivedMessages2 = queueServicePoller.poll().toBlocking().first();
+        List<PolledMessage<TestMessage>> receivedMessages2 = queueServicePoller.poll().get();
         assertEquals(0, receivedMessages2.size());
     }
 }

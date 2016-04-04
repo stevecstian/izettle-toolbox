@@ -12,12 +12,12 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.izettle.messaging.handler.MessageHandler;
 import com.izettle.messaging.handler.MessageHandlerForSingleMessageType;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.Subscriber;
 
 /**
  * Implementation of a poller on a single queue. All messages that get received on the queue
@@ -155,33 +155,23 @@ public class QueueProcessor implements MessageQueueProcessor {
             messageRequest.setWaitTimeSeconds(MESSAGE_WAIT_SECONDS);
         }
         try {
-            Observable<ReceiveMessageResult> result = Observable.from(amazonSQS.receiveMessageAsync(messageRequest));
-            result.subscribe(
-                new Subscriber<ReceiveMessageResult>() {
-                    @Override
-                    public void onCompleted() {}
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        LOG.error("Failed when subscribing in pollMessageQueue: " + throwable.getMessage());
+            CompletableFuture<ReceiveMessageResult> result =
+                (CompletableFuture<ReceiveMessageResult>) amazonSQS.receiveMessageAsync(messageRequest);
+            result.thenApply((Function<ReceiveMessageResult, Void>) receiveMessageResult -> {
+                List<Message> messages = receiveMessageResult.getMessages();
+                if (executorService != null) {
+                    try {
+                        executorService.submit(() -> handleMessages(messages, messageQueueUrl));
+                    } catch (RejectedExecutionException e) {
+                        LOG.warn("Use executorService but been rejected!", e);
+                        handleMessages(messages, messageQueueUrl);
                     }
-
-                    @Override
-                    public void onNext(ReceiveMessageResult receiveMessageResult) {
-                        List<Message> messages = receiveMessageResult.getMessages();
-                        if (executorService != null) {
-                            try {
-                                executorService.submit(() -> handleMessages(messages, messageQueueUrl));
-                            } catch (RejectedExecutionException e) {
-                                LOG.warn("Use executorService but been rejected!", e);
-                                handleMessages(messages, messageQueueUrl);
-                            }
-                        } else {
-                            handleMessages(messages, messageQueueUrl);
-                        }
-                    }
+                } else {
+                    handleMessages(messages, messageQueueUrl);
                 }
-            );
+
+                return null;
+            });
         } catch (AbortedException e) {
             LOG.info("Client abort receive message.");
         } catch (AmazonClientException e) {
@@ -213,7 +203,12 @@ public class QueueProcessor implements MessageQueueProcessor {
                  not.
                  Please note that in Amazon SQS, the message will be retried after some time (default 30s).
                  */
-                LOG.warn("Failed to handle message {} from queue {}. Will leave it on queue.", message.getMessageId(), messageQueueUrl, e);
+                LOG.warn(
+                    "Failed to handle message {} from queue {}. Will leave it on queue.",
+                    message.getMessageId(),
+                    messageQueueUrl,
+                    e
+                );
             }
         }
     }
@@ -224,7 +219,11 @@ public class QueueProcessor implements MessageQueueProcessor {
         } catch (AbortedException e) {
             LOG.info("Client abort delete message.");
         } catch (AmazonClientException ase) {
-            throw new MessagingException("Failed to delete message with receipt handle " + messageReceiptHandle + " from queue " + messageQueueUrl, ase);
+            throw new MessagingException(
+                "Failed to delete message with receipt handle " + messageReceiptHandle + " from queue "
+                    + messageQueueUrl,
+                ase
+            );
         }
     }
 }

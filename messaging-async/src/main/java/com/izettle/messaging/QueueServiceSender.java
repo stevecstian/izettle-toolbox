@@ -21,7 +21,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import rx.Observable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * Convenience class for sending messages to a single queue in Amazon Simple Queue Service.
@@ -37,39 +38,39 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
     private final ObjectMapper jsonMapper = JsonSerializer.getInstance();
 
     public static MessagePublisher nonEncryptedMessagePublisher(
-            final String queueUrl,
-            final AmazonSQSAsync amazonSQSClient
+        final String queueUrl,
+        final AmazonSQSAsync amazonSQSClient
     ) {
         return new QueueServiceSender<>(queueUrl, amazonSQSClient, new DefaultMessageSerializer());
     }
 
     public static <T> MessageQueueProducer<T> nonEncryptedMessageQueueProducer(
-            final String queueUrl,
-            final AmazonSQSAsync amazonSQSClient
+        final String queueUrl,
+        final AmazonSQSAsync amazonSQSClient
     ) {
         return new QueueServiceSender<>(queueUrl, amazonSQSClient, new DefaultMessageSerializer());
     }
 
     public static MessagePublisher nonEncryptedMessagePublisher(
-            final String queueUrl,
-            final AmazonSQSAsync amazonSQSClient,
-            final MessageSerializer messageSerializer
+        final String queueUrl,
+        final AmazonSQSAsync amazonSQSClient,
+        final MessageSerializer messageSerializer
     ) {
         return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
     }
 
     public static <T> MessageQueueProducer<T> nonEncryptedMessageQueueProducer(
-            final String queueUrl,
-            final AmazonSQSAsync amazonSQSClient,
-            final MessageSerializer messageSerializer
+        final String queueUrl,
+        final AmazonSQSAsync amazonSQSClient,
+        final MessageSerializer messageSerializer
     ) {
         return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
     }
 
     public static <T> MessageQueueProducer<T> encryptedMessageQueueProducer(
-            final String queueUrl,
-            final AmazonSQSAsync amazonSQSClient,
-            final byte[] publicPgpKey
+        final String queueUrl,
+        final AmazonSQSAsync amazonSQSClient,
+        final byte[] publicPgpKey
     ) throws MessagingException {
 
         if (empty(publicPgpKey)) {
@@ -86,16 +87,16 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
     }
 
     private QueueServiceSender(
-            String queueUrl,
-            AmazonSQSAsync amazonSQS,
-            MessageSerializer messageSerializer
+        String queueUrl,
+        AmazonSQSAsync amazonSQS,
+        MessageSerializer messageSerializer
     ) {
         if (anyEmpty(queueUrl, amazonSQS, messageSerializer)) {
             throw new IllegalArgumentException(
-                    "None of queueUrl, amazonSQS or messageSerializer can be empty!\n"
-                            + "queueUrl = " + queueUrl + "\n"
-                            + "amazonSQS = " + amazonSQS + "\n"
-                            + "messageSerializer = " + messageSerializer
+                "None of queueUrl, amazonSQS or messageSerializer can be empty!\n"
+                    + "queueUrl = " + queueUrl + "\n"
+                    + "amazonSQS = " + amazonSQS + "\n"
+                    + "messageSerializer = " + messageSerializer
             );
         }
         this.queueUrl = queueUrl;
@@ -111,14 +112,15 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
      * @throws MessagingException Failed to post message.
      */
     @Override
-    public Observable<MessageReceipt> post(M message) throws MessagingException {
+    public Future<MessageReceipt> post(M message) throws MessagingException {
         try {
             String jsonBody = messageSerializer.serialize(message);
             String encryptedBody = messageSerializer.encrypt(jsonBody);
-            Observable<SendMessageResult> sendMessageResult = Observable.from(amazonSQS.sendMessageAsync(
-                    new SendMessageRequest(queueUrl, encryptedBody))
-            );
-            return sendMessageResult.map(res -> new MessageReceipt(res.getMessageId(), jsonBody));
+            CompletableFuture<SendMessageResult> sendMessageResult =
+                (CompletableFuture<SendMessageResult>) amazonSQS.sendMessageAsync(
+                    new SendMessageRequest(queueUrl, encryptedBody));
+
+            return sendMessageResult.thenApply(res -> new MessageReceipt(res.getMessageId(), jsonBody));
         } catch (AmazonServiceException | IOException | CryptographyException e) {
             throw new MessagingException("Failed to post message: " + message.getClass(), e);
         }
@@ -165,8 +167,8 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
     }
 
     private String wrapInSNSMessage(
-            Object message,
-            String subject
+        Object message,
+        String subject
     ) throws JsonProcessingException, CryptographyException {
         String messageBody = messageSerializer.encrypt(messageSerializer.serialize(message));
         AmazonSNSMessage snsMessage = new AmazonSNSMessage(subject, messageBody);

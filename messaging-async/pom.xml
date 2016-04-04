@@ -8,7 +8,7 @@
         <version>1.0.66-SNAPSHOT</version>
     </parent>
 
-    <artifactId>messaging-rx</artifactId>
+    <artifactId>messaging-async</artifactId>
 
     <dependencies>
         <dependency>
@@ -66,11 +66,6 @@
             <artifactId>metrics-core</artifactId>
             <version>${metrics.version}</version>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.reactivex</groupId>
-            <artifactId>rxjava</artifactId>
-            <version>1.1.2</version>
         </dependency>
     </dependencies>
 
