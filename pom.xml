@@ -49,6 +49,7 @@
         <module>izettle-jdbi</module>
         <module>izettle-cassandra-datastax</module>
         <module>izettle-cassandra-astyanax</module>
+        <module>messaging-rx</module>
     </modules>
 
     <properties>
