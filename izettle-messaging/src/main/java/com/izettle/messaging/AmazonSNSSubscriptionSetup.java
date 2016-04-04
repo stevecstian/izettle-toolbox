@@ -6,12 +6,12 @@ import com.amazonaws.auth.policy.Resource;
 import com.amazonaws.auth.policy.Statement;
 import com.amazonaws.auth.policy.actions.SQSActions;
 import com.amazonaws.auth.policy.conditions.ConditionFactory;
-import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.Subscription;
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
@@ -39,8 +39,8 @@ public class AmazonSNSSubscriptionSetup {
     public static void subscribeSQSQueueToSNSTopic(
         String queueURL,
         String topicARN,
-        AmazonSQS amazonSQS,
-        AmazonSNS amazonSNS
+        AmazonSQSAsync amazonSQS,
+        AmazonSNSAsync amazonSNS
     ) {
         // Verify that the queue exists, and get its ARN
         String queueARN = getSQSQueueARN(amazonSQS, queueURL);
@@ -57,7 +57,7 @@ public class AmazonSNSSubscriptionSetup {
         subscribeSQSQueueToSNSTopic(amazonSNS, queueARN, topicARN);
     }
 
-    private static String getSQSQueueARN(AmazonSQS amazonSQS, String queueURL) {
+    private static String getSQSQueueARN(AmazonSQSAsync amazonSQS, String queueURL) {
         // This statement will throw if the queue does not exist.
         GetQueueAttributesResult queueAttributes = amazonSQS.getQueueAttributes(
             new GetQueueAttributesRequest()
@@ -70,7 +70,7 @@ public class AmazonSNSSubscriptionSetup {
     }
 
     private static boolean isSQSQueueSubscribingToSNSTopic(
-        AmazonSNS amazonSNS,
+        AmazonSNSAsync amazonSNS,
         String queueARN,
         String topicARN
     ) {
@@ -88,7 +88,7 @@ public class AmazonSNSSubscriptionSetup {
     }
 
     private static void allowSQSQueueToReceiveMessagesFromSNSTopic(
-        AmazonSQS amazonSQS,
+        AmazonSQSAsync amazonSQS,
         String queueURL,
         String queueARN,
         String topicARN
@@ -132,7 +132,7 @@ public class AmazonSNSSubscriptionSetup {
     }
 
     private static void subscribeSQSQueueToSNSTopic(
-        AmazonSNS amazonSNS,
+        AmazonSNSAsync amazonSNS,
         String queueARN,
         String topicARN
     ) {
