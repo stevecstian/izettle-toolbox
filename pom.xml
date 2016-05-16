@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.izettle</groupId>
         <artifactId>izettle</artifactId>
-        <version>1.8</version>
+        <version>1.9</version>
     </parent>
 
     <groupId>com.izettle.toolbox</groupId>
@@ -55,19 +55,19 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <assertj-core.version>3.3.0</assertj-core.version>
+        <assertj-core.version>3.4.1</assertj-core.version>
         <astyanax.version>3.9.0</astyanax.version>
-        <aws.version>1.10.56</aws.version>
+        <aws.version>1.10.77</aws.version>
         <bouncycastle.version>1.54</bouncycastle.version>
         <findbugs-maven-plugin.version>3.0.3</findbugs-maven-plugin.version>
         <guava.version>18.0</guava.version>
-        <jackson.version>2.7.2</jackson.version>
+        <jackson.version>2.7.4</jackson.version>
         <junit.version>4.12</junit.version>
         <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
         <maven.version.range>[3.2.3,3.4.0)</maven.version.range>
         <metrics.version>3.1.2</metrics.version>
         <mockito-all.version>1.10.19</mockito-all.version>
-        <slf4j.version>1.7.18</slf4j.version>
+        <slf4j.version>1.7.21</slf4j.version>
     </properties>
 
     <profiles>
