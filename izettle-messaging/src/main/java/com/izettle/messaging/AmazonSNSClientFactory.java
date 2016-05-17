@@ -1,13 +1,21 @@
 package com.izettle.messaging;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.ClientConfigurationFactory;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.amazonaws.services.sns.AmazonSNSAsyncClient;
+import java.util.concurrent.Executors;
 
 /**
  * Factory that creates Amazon SNS clients for specific endpoints.
  */
 public class AmazonSNSClientFactory {
+
+    /**
+     * Client configuration factory providing ClientConfigurations tailored to this client
+     */
+    private static final ClientConfigurationFactory CONFIG_FACTORY = new ClientConfigurationFactory();
 
     /**
      * Creates Amazon SNS client for given endpoint using the provided credentials.
@@ -51,10 +59,13 @@ public class AmazonSNSClientFactory {
      * @return Amazon SNS client.
      */
     private static AmazonSNSAsync createInstance(AWSCredentials awsCredentials) {
+        // default is 3 retries
+        ClientConfiguration clientConfiguration = CONFIG_FACTORY.getConfig().withMaxErrorRetry(6);
         if (awsCredentials == null) {
-            return new AmazonSNSAsyncClient();
+            return new AmazonSNSAsyncClient(clientConfiguration);
         } else {
-            return new AmazonSNSAsyncClient(awsCredentials);
+            // 50 is copied from AmazonSNSAsyncClient.DEFAULT_THREAD_POOL_SIZE
+            return new AmazonSNSAsyncClient(awsCredentials, clientConfiguration, Executors.newFixedThreadPool(50));
         }
     }
 }

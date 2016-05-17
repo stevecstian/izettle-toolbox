@@ -1,13 +1,21 @@
 package com.izettle.messaging;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.ClientConfigurationFactory;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
+import java.util.concurrent.Executors;
 
 /**
  * Factory that creates Amazon SQS clients for specific endpoints.
  */
 public class AmazonSQSClientFactory {
+
+    /**
+     * Client configuration factory providing ClientConfigurations tailored to this client
+     */
+    private static final ClientConfigurationFactory CONFIG_FACTORY = new ClientConfigurationFactory();
 
     /**
      * Creates Amazon SQS client for given endpoint using the provided credentials.
@@ -51,10 +59,13 @@ public class AmazonSQSClientFactory {
      * @return Amazon SQS client.
      */
     private static AmazonSQSAsync createInstance(AWSCredentials awsCredentials) {
+        // default is 3 retries
+        ClientConfiguration clientConfiguration = CONFIG_FACTORY.getConfig().withMaxErrorRetry(6);
         if (awsCredentials == null) {
-            return new AmazonSQSAsyncClient();
+            return new AmazonSQSAsyncClient(clientConfiguration);
         } else {
-            return new AmazonSQSAsyncClient(awsCredentials);
+            // 50 is copied from AmazonSQSAsyncClient.DEFAULT_THREAD_POOL_SIZE
+            return new AmazonSQSAsyncClient(awsCredentials, clientConfiguration, Executors.newFixedThreadPool(50));
         }
     }
 }
