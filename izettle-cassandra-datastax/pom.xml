@@ -13,7 +13,7 @@
 		<dependency>
 			<groupId>com.izettle.toolbox</groupId>
 			<artifactId>izettle-cassandra</artifactId>
-			<version>1.0.66-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>
