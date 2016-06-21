@@ -16,7 +16,11 @@ public class Interval {
     private final Instant start;
     private final Instant end;
 
-    public Interval(final Instant start, final Instant end) {
+    public static Interval of(final Instant start, final Instant end) {
+        return new Interval(start, end);
+    }
+
+    private Interval(final Instant start, final Instant end) {
         this.start = requireNonNull(start, "Start instant cannot be null");
         this.end = requireNonNull(end, "End instant cannot be null");
         if (end.isBefore(start)) {
