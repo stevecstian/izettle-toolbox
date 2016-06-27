@@ -61,7 +61,7 @@
         <bouncycastle.version>1.54</bouncycastle.version>
         <findbugs-maven-plugin.version>3.0.3</findbugs-maven-plugin.version>
         <guava.version>18.0</guava.version>
-        <jackson.version>2.7.4</jackson.version>
+        <jackson.version>2.7.5</jackson.version>
         <junit.version>4.12</junit.version>
         <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
         <maven.version.range>[3.2.3,3.4.0)</maven.version.range>
