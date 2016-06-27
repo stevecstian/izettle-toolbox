@@ -16,11 +16,15 @@ public class Interval {
     private final Instant start;
     private final Instant end;
 
-    public Interval(final Instant start, final Instant end) {
+    public static Interval of(final Instant start, final Instant end) {
+        return new Interval(start, end);
+    }
+
+    private Interval(final Instant start, final Instant end) {
         this.start = requireNonNull(start, "Start instant cannot be null");
         this.end = requireNonNull(end, "End instant cannot be null");
         if (end.isBefore(start)) {
-            throw new IllegalArgumentException("An interval cannot have an end that's before it's start");
+            throw new IllegalArgumentException("An interval cannot have an end that's before its start");
         }
     }
 
@@ -58,7 +62,7 @@ public class Interval {
      * @return true if this interval ends just were the other starts, or starts where the other ends. false otherwise
      */
     public boolean abuts(final Interval other) {
-        requireNonNull(other, "other interval cannot be null");
+        requireNonNull(other, "Other interval cannot be null");
         return start.equals(other.end) || other.start.equals(end);
     }
 
@@ -68,7 +72,7 @@ public class Interval {
      * @return true if the other interval is completely before or completely after this interval
     */
     public boolean disjoint(final Interval other) {
-        requireNonNull(other, "other interval cannot be null");
+        requireNonNull(other, "Other interval cannot be null");
         return start.isAfter(other.end) || other.start.isAfter(end);
     }
 
