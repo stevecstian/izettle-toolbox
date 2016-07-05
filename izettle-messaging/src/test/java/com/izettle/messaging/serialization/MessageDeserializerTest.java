@@ -1,9 +1,9 @@
 package com.izettle.messaging.serialization;
 
+import static com.izettle.java.ResourceUtils.getResourceAsBytes;
 import static org.junit.Assert.assertEquals;
 
 import com.izettle.java.DateFormatCreator;
-import com.izettle.java.ResourceUtils;
 import com.izettle.java.TimeZoneId;
 import com.izettle.messaging.TestMessage;
 import com.izettle.messaging.TestMessageWithDate;
@@ -15,11 +15,17 @@ public class MessageDeserializerTest {
 
     private MessageDeserializer<TestMessage> plaintextDeserializer;
     private String plaintextMessage;
+    private String messageSentThroughSNS;
+    private String messageSentThroughSQS;
+    private String messageSentDirectlyToSQS;
 
     @Before
     public void setup() throws IOException {
         plaintextDeserializer = new MessageDeserializer<>(TestMessage.class);
-        plaintextMessage = new String(ResourceUtils.getResourceAsBytes("example-message.json"));
+        plaintextMessage = new String(getResourceAsBytes("example-message.json"));
+        messageSentThroughSNS = new String(getResourceAsBytes("example-message-sent-with-messagepublisher-through-sns.json"));
+        messageSentThroughSQS = new String(getResourceAsBytes("example-message-sent-with-messagepublisher-to-sqs.json"));
+        messageSentDirectlyToSQS = new String(getResourceAsBytes("example-message-sent-with-messagequeueproducer-to-sqs.json")).trim();
     }
 
     @Test
@@ -46,5 +52,47 @@ public class MessageDeserializerTest {
         String dateFieldAsString = DateFormatCreator.createDateAndTimeMillisFormatter(TimeZoneId.UTC)
                 .format(msg.getDate());
         assertEquals("2001-12-23 02:05:06.123", dateFieldAsString);
+    }
+
+    @Test
+    public void shouldRemoveSNSEnvelopeFromMessageSentWithMessagePublisherThroughSNS() throws Exception {
+        String msg = MessageDeserializer.removeSnsEnvelope(messageSentThroughSNS);
+        assertEquals("{\"amount\":3135,\"message\":\"MessagePublisher to SNS\"}", msg);
+    }
+
+    @Test
+    public void shouldRemoveSNSEnvelopeFromMessageSentWithMessagePublisherThroughSQS() throws Exception {
+        String msg = MessageDeserializer.removeSnsEnvelope(messageSentThroughSQS);
+        assertEquals("{\"amount\":3133,\"message\":\"MessagePublisher to SQS\"}", msg);
+    }
+
+    @Test
+    public void shouldRemoveSNSEnvelopeFromMessageSentWithMessageQueueProducerToSQS() throws Exception {
+        String msg = MessageDeserializer.removeSnsEnvelope(messageSentDirectlyToSQS);
+        assertEquals("{\"amount\":3134,\"message\":\"MessageQueueProducer to SQS\"}", msg);
+    }
+
+    @Test
+    public void shouldDeserializeMessageSentWithMessagePublisherThroughSNS() throws Exception {
+        TestMessage msg = plaintextDeserializer.deserialize(
+            MessageDeserializer.removeSnsEnvelope(messageSentThroughSNS)
+        );
+        assertEquals("MessagePublisher to SNS", msg.getMessage());
+    }
+
+    @Test
+    public void shouldDeserializeMessageSentWithMessagePublisherThroughSQS() throws Exception {
+        TestMessage msg = plaintextDeserializer.deserialize(
+            MessageDeserializer.removeSnsEnvelope(messageSentThroughSQS)
+        );
+        assertEquals("MessagePublisher to SQS", msg.getMessage());
+    }
+
+    @Test
+    public void shouldDeserializeMessageSentWithMessageQueueProducerToSQS() throws Exception {
+        TestMessage msg = plaintextDeserializer.deserialize(
+            MessageDeserializer.removeSnsEnvelope(messageSentDirectlyToSQS)
+        );
+        assertEquals("MessageQueueProducer to SQS", msg.getMessage());
     }
 }

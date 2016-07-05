@@ -46,7 +46,7 @@ public class MessageDeserializer<M> {
     public static String removeSnsEnvelope(String message) throws IOException {
         if (!empty(message) && message.startsWith("{")) {
             JsonNode root = JSON_MAPPER.readTree(message);
-            if (root.has("TopicArn") && root.has("Message")) {
+            if (root.has("Subject") && root.has("Message")) {
                 return root.get("Message").asText();
             }
         }
