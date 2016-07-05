@@ -1,5 +1,8 @@
 package com.izettle.messaging;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TestMessage {
     private String message;
 
