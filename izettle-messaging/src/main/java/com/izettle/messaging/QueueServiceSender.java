@@ -57,6 +57,15 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
         return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
     }
 
+    public static MessagePublisher encryptedMessagePublisher(
+        final String queueUrl,
+        final AmazonSQS amazonSQSClient,
+        final byte[] publicPgpKey
+    ) throws MessagingException {
+        MessageSerializer messageSerializer = createEncryptedMessageSerializer(publicPgpKey);
+        return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
+    }
+
     public static <T> MessageQueueProducer<T> nonEncryptedMessageQueueProducer(
             final String queueUrl,
             final AmazonSQS amazonSQSClient,
@@ -70,18 +79,19 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
             final AmazonSQS amazonSQSClient,
             final byte[] publicPgpKey
     ) throws MessagingException {
+        MessageSerializer messageSerializer = createEncryptedMessageSerializer(publicPgpKey);
+        return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
+    }
 
+    private static MessageSerializer createEncryptedMessageSerializer(byte[] publicPgpKey) throws MessagingException {
         if (empty(publicPgpKey)) {
             throw new MessagingException("Can't create encryptedQueueServicePoster with null as public PGP key");
         }
-
-        MessageSerializer messageSerializer;
         try {
-            messageSerializer = new DefaultMessageSerializer(publicPgpKey);
+            return new DefaultMessageSerializer(publicPgpKey);
         } catch (CryptographyException e) {
             throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
         }
-        return new QueueServiceSender<>(queueUrl, amazonSQSClient, messageSerializer);
     }
 
     private QueueServiceSender(
