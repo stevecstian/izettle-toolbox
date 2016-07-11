@@ -1,7 +1,7 @@
 package com.izettle.cart;
 
 import static com.izettle.cart.CartUtils.coalesce;
-import static com.izettle.cart.CartUtils.getNonRoundedDiscountValue;
+import static com.izettle.cart.CartUtils.getRoundedDiscountValue;
 import static com.izettle.cart.CartUtils.round;
 
 import java.math.BigDecimal;
@@ -42,8 +42,7 @@ class ItemUtils {
     static Long getDiscountValue(final Item item) {
         Discount discount = item.getDiscount();
         if (discount != null) {
-            BigDecimal valueBeforeDiscounts = getExactGrossValue(item);
-            return round(getNonRoundedDiscountValue(discount, valueBeforeDiscounts));
+            return getRoundedDiscountValue(discount, getGrossValue(item));
         }
         return null;
     }

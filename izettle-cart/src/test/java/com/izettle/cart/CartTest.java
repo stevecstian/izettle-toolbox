@@ -34,6 +34,39 @@ public class CartTest {
     }
 
     @Test
+    public void itShouldCalculateDiscountBasedOnTheLineItemsRoundedGrossValue() {
+        /* Actual live bug when the cart library did calculate the discount amount based on the exact line amount
+         * resulting in rounding in two different directions. This test assures that the total gross value of a line is
+         * first calculated and rounded, then used as input for a possible discount calculation
+         */
+        List<TestItem> items = new LinkedList<TestItem>();
+        items.add(new TestItem(
+            "Hogrev",
+            14900L,
+            null,
+            new BigDecimal("1.092"),
+            new TestDiscount(null, 50.0, BigDecimal.ONE)
+        ));
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart =
+            new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, null, null);
+        assertEquals(8135L, cart.getValue());
+        /*
+         * Just another (artificial, more extreme) example, to clarify:
+         */
+        List<TestItem> items2 = new LinkedList<TestItem>();
+        items2.add(new TestItem(
+            "Bananas",
+            1L,
+            null,
+            new BigDecimal("1.4"),
+            new TestDiscount(null, 40.0, BigDecimal.ONE)
+        ));
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart2 =
+            new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items2, null, null);
+        assertEquals(1L, cart2.getValue());
+    }
+
+    @Test
     public void itShouldCalculateCorrectVatAndEffectivePriceWithServiceChargePercentage() {
         List<TestItem> items = new LinkedList<TestItem>();
         items.add(new TestItem(1299L, 25.0f, new BigDecimal("1.0")));

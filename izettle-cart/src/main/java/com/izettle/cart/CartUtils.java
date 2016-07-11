@@ -33,6 +33,14 @@ class CartUtils {
         return grossPrice;
     }
 
+    static Long getRoundedDiscountValue(final Discount discount, final long grossAmount) {
+        final BigDecimal nonRoundedValue = getNonRoundedDiscountValue(discount, BigDecimal.valueOf(grossAmount));
+        if (nonRoundedValue == null) {
+            return null;
+        }
+        return round(nonRoundedValue);
+    }
+
     static BigDecimal getNonRoundedDiscountValue(final Discount discount, final BigDecimal totalGrossAmount) {
         BigDecimal retVal = null;
         if (discount.getAmount() != null) {
