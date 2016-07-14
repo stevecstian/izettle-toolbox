@@ -32,20 +32,23 @@ public class MessageDispatcherTest {
     @Test
     public void shouldThrowExceptionIfNoMessageHandlersForMessageTypeIsPresent() throws Exception {
         Message message = new Message();
-        message.setBody("{\"Subject\":\"com.izettle.messaging.messages.MessageWithoutHandle\", \"Message\": \"{}\"}");
+        message.setBody("{\"Subject\":\"com.izettle.messaging.messages.MessageWithoutHandle\", "
+            + "\"Type\":\"com.izettle.messaging.messages.TestMessage\", "
+            + "\"Message\": \"{}\"}");
         thrown.expect(MessagingException.class);
-        thrown.expectMessage("No handlers for event com.izettle.messaging.messages.MessageWithoutHandle");
+        thrown.expectMessage("No handlers for message with event: com.izettle.messaging.messages.MessageWithoutHandle "
+            + "and type: com.izettle.messaging.messages.TestMessage");
         dispatcher.handle(message);
     }
 
     @Test
-    public void shouldThrowExceptionIfMessageHasNoSubject() throws Exception {
+    public void shouldThrowExceptionIfMessageHasNoSubjectOrType() throws Exception {
         Message message = new Message();
         message.setBody("{\"Message\": \"{}\"}");
         thrown.expect(MessagingException.class);
-        thrown.expectMessage("Received message without event name. MessageDispatcher requires a message subject in "
-            + "order to know which handler to route the message to. Make sure that you publish your message with a "
-            + "message subject before trying to receive it.\n"
+        thrown.expectMessage("Received message without event name or type. MessageDispatcher requires a message "
+            + "subject or type in order to know which handler to route the message to. Make sure that you publish your "
+            + "message with a message subject or type before trying to receive it.\n"
             + "null");
         dispatcher.handle(message);
     }
@@ -64,6 +67,19 @@ public class MessageDispatcherTest {
     }
 
     @Test
+    public void shouldCallTypeHandlerWhenNoSubjectSet() throws Exception {
+
+        dispatcher.addHandler(TestMessage.class, testMessageHandler);
+
+        Message message = new Message();
+        message.setBody(
+            "{\"Type\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+        dispatcher.handle(message);
+
+        verify(testMessageHandler).handle(any(TestMessage.class));
+    }
+
+    @Test
     public void shouldCallCorrectHandlerWhenReceivingMessage() throws Exception {
 
         dispatcher.addHandler(TestMessage.class, testMessageHandler);
@@ -72,6 +88,22 @@ public class MessageDispatcherTest {
         Message message = new Message();
         message.setBody(
             "{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
+        dispatcher.handle(message);
+
+        verify(testMessageHandler).handle(any(TestMessage.class));
+        verify(stringHandler, never()).handle(any(String.class));
+    }
+
+    @Test
+    public void shouldPrioritizeEventOverType() throws Exception {
+
+        dispatcher.addHandler(TestMessage.class, testMessageHandler);
+        dispatcher.addHandler(String.class, stringHandler);
+
+        Message message = new Message();
+        message.setBody(
+            "{\"Subject\":\"com.izettle.messaging.TestMessage\", \"Type\":\"java.util.String\", "
+            + "\"Message\": \"{\\\"message\\\":\\\"\\\"}\"}");
         dispatcher.handle(message);
 
         verify(testMessageHandler).handle(any(TestMessage.class));
