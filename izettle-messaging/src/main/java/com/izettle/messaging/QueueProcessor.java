@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
  * will be passed on to the supplied message handler. If the message handler does not throw any
  * exceptions, the message will also be deleted from the queue. Otherwise (if an exception is
  * thrown), the message will remain on the queue, and will most likely be processed again.
+ * However, if the message handler is an instance of AsyncMessageDispatcher, the message will not
+ * be deleted from the queue after handling.
  */
 public class QueueProcessor implements MessageQueueProcessor {
 
@@ -35,7 +37,6 @@ public class QueueProcessor implements MessageQueueProcessor {
     private final String deadLetterQueueUrl;
     private final AmazonSQS amazonSQS;
     private final MessageHandler<Message> messageHandler;
-    private final AsyncMessageDispatcher asyncMessageDispatcher;
     private int deadLetterQueuePollSequence;
     private ExecutorService executorService;
 
@@ -52,23 +53,6 @@ public class QueueProcessor implements MessageQueueProcessor {
             deadLetterQueueUrl,
             amazonSQS,
             messageHandler,
-            null
-        );
-    }
-
-    public static MessageQueueProcessor createQueueProcessor(
-        AmazonSQS amazonSQS,
-        String name,
-        String queueUrl,
-        String deadLetterQueueUrl,
-        AsyncMessageDispatcher asyncMessageDispatcher
-    ) {
-        return new QueueProcessor(
-            name,
-            queueUrl,
-            deadLetterQueueUrl,
-            amazonSQS,
-            asyncMessageDispatcher,
             null
         );
     }
@@ -141,24 +125,6 @@ public class QueueProcessor implements MessageQueueProcessor {
         this.deadLetterQueueUrl = deadLetterQueueUrl;
         this.amazonSQS = amazonSQS;
         this.messageHandler = messageHandler;
-        this.asyncMessageDispatcher = null;
-        this.executorService = executorService;
-    }
-
-    private QueueProcessor(
-        String name,
-        String queueUrl,
-        String deadLetterQueueUrl,
-        AmazonSQS amazonSQS,
-        AsyncMessageDispatcher asyncMessageDispatcher,
-        ExecutorService executorService
-    ) {
-        this.name = name;
-        this.queueUrl = queueUrl;
-        this.deadLetterQueueUrl = deadLetterQueueUrl;
-        this.amazonSQS = amazonSQS;
-        this.messageHandler = null;
-        this.asyncMessageDispatcher = asyncMessageDispatcher;
         this.executorService = executorService;
     }
 
@@ -214,11 +180,9 @@ public class QueueProcessor implements MessageQueueProcessor {
 
         for (Message message : messages) {
             try {
-                if (null == asyncMessageDispatcher) {
-                    messageHandler.handle(message);
+                messageHandler.handle(message);
+                if (!(messageHandler instanceof AsyncMessageDispatcher)) {
                     deleteMessageFromQueue(message.getReceiptHandle(), messageQueueUrl);
-                } else {
-                    asyncMessageDispatcher.handle(message);
                 }
             } catch (RetryableMessageHandlerException ignored) {
                 /*

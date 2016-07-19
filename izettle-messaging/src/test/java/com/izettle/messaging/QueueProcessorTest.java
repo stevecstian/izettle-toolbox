@@ -14,6 +14,7 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.izettle.messaging.handler.AsyncMessageDispatcher;
 import com.izettle.messaging.handler.MessageHandler;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ public class QueueProcessorTest {
     private final AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
     @SuppressWarnings("unchecked")
     private final MessageHandler<Message> mockHandler = mock(MessageHandler.class);
+    private final AsyncMessageDispatcher asyncMockHandler = mock(AsyncMessageDispatcher.class);
     private final List<Message> receivedMessages = new ArrayList<>();
 
     @Before
@@ -95,6 +97,27 @@ public class QueueProcessorTest {
 
         // Assert
         verify(mockHandler).handle(msg1);
+        verify(mockAmazonSQS, never()).deleteMessage(any(DeleteMessageRequest.class));
+    }
+
+    @Test
+    public void shouldNotDeletePolledMessagesIfTheHandlerIsAsyncMessageDispatcher() throws Exception {
+        // Arrange
+        queueProcessor = QueueProcessor.createQueueProcessor(
+            mockAmazonSQS,
+            "UnitTestProcessor",
+            "testurl",
+            "deadLetterQueueUrl",
+            asyncMockHandler
+        );
+        Message msg1 = createMessage("msg1");
+        receivedMessages.add(msg1);
+
+        // Act
+        queueProcessor.poll();
+
+        // Assert
+        verify(asyncMockHandler).handle(msg1);
         verify(mockAmazonSQS, never()).deleteMessage(any(DeleteMessageRequest.class));
     }
 }

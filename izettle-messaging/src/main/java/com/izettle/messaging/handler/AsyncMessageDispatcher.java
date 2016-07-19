@@ -1,5 +1,7 @@
 package com.izettle.messaging.handler;
 
+import static com.izettle.java.ValueChecks.allEmpty;
+import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
 
 import com.amazonaws.services.sqs.model.Message;
@@ -38,7 +40,7 @@ public class AsyncMessageDispatcher implements MessageHandler<Message> {
         byte[] privatePgpKey,
         final String privatePgpKeyPassphrase
     ) throws MessagingException {
-        if (empty(privatePgpKey) || empty(privatePgpKeyPassphrase)) {
+        if (anyEmpty(privatePgpKey, privatePgpKeyPassphrase)) {
             throw new MessagingException(
                 "Can't create encryptedMessageDispatcher with private PGP key as null or "
                 + "privatePgpKeyPassphrase as null"
@@ -108,7 +110,7 @@ public class AsyncMessageDispatcher implements MessageHandler<Message> {
         String eventName = sns.getSubject();
         String typeName = sns.getType();
         String decryptedMessage = messageDeserializer.decrypt(JSON_MAPPER.writeValueAsString(sqs));
-        if (empty(eventName) && empty(typeName)) {
+        if (allEmpty(eventName, typeName)) {
             throw new MessagingException(
                 "Received message without event name or type. AsyncMessageDispatcher requires a message subject or "
                 + "type in order to know which handler to route the message to. Make sure that you publish your "
