@@ -8,6 +8,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.izettle.messaging.handler.AsyncMessageDispatcher;
 import com.izettle.messaging.handler.MessageHandler;
 import com.izettle.messaging.handler.MessageHandlerForSingleMessageType;
 import java.util.List;
@@ -34,6 +35,7 @@ public class QueueProcessor implements MessageQueueProcessor {
     private final String deadLetterQueueUrl;
     private final AmazonSQS amazonSQS;
     private final MessageHandler<Message> messageHandler;
+    private final AsyncMessageDispatcher asyncMessageDispatcher;
     private int deadLetterQueuePollSequence;
     private ExecutorService executorService;
 
@@ -50,6 +52,23 @@ public class QueueProcessor implements MessageQueueProcessor {
             deadLetterQueueUrl,
             amazonSQS,
             messageHandler,
+            null
+        );
+    }
+
+    public static MessageQueueProcessor createQueueProcessor(
+        AmazonSQS amazonSQS,
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        AsyncMessageDispatcher asyncMessageDispatcher
+    ) {
+        return new QueueProcessor(
+            name,
+            queueUrl,
+            deadLetterQueueUrl,
+            amazonSQS,
+            asyncMessageDispatcher,
             null
         );
     }
@@ -122,6 +141,24 @@ public class QueueProcessor implements MessageQueueProcessor {
         this.deadLetterQueueUrl = deadLetterQueueUrl;
         this.amazonSQS = amazonSQS;
         this.messageHandler = messageHandler;
+        this.asyncMessageDispatcher = null;
+        this.executorService = executorService;
+    }
+
+    private QueueProcessor(
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        AmazonSQS amazonSQS,
+        AsyncMessageDispatcher asyncMessageDispatcher,
+        ExecutorService executorService
+    ) {
+        this.name = name;
+        this.queueUrl = queueUrl;
+        this.deadLetterQueueUrl = deadLetterQueueUrl;
+        this.amazonSQS = amazonSQS;
+        this.messageHandler = null;
+        this.asyncMessageDispatcher = asyncMessageDispatcher;
         this.executorService = executorService;
     }
 
@@ -177,8 +214,12 @@ public class QueueProcessor implements MessageQueueProcessor {
 
         for (Message message : messages) {
             try {
-                messageHandler.handle(message);
-                deleteMessageFromQueue(message.getReceiptHandle(), messageQueueUrl);
+                if (null == asyncMessageDispatcher) {
+                    messageHandler.handle(message);
+                    deleteMessageFromQueue(message.getReceiptHandle(), messageQueueUrl);
+                } else {
+                    asyncMessageDispatcher.handle(message);
+                }
             } catch (RetryableMessageHandlerException ignored) {
                 /*
                  If the message handler throws this exception, we should retry handling the message some time later.
