@@ -77,6 +77,9 @@ public final class UUIDFactory {
      * @param uuid The original UUID.
      * @return A new UUID that is based on the original UUID.
      */
+    public static UUID createAlternative(UUID uuid) {
+        return createAlternative(uuid, new byte[]{0x01});
+    }
     public static String createAlternative(String uuid) {
         return createAlternative(uuid, new byte[]{0x01});
     }
@@ -90,13 +93,12 @@ public final class UUIDFactory {
      * surprising, but there are really no logical alternatives (except for not allowing to create alternatives for this
      * type of UUID). As a consequence, the time information within the resulting UUID should not be used as a
      * substitute for information about when an event actually happened.
-     * @param uuid The original UUID.
+     * @param originalUuid The original UUID.
      * @param mask Seed value to be used when producing the alternative. This value will be xor:ed
      *             with the original bytes to produce the alternative.
      * @return A new UUID that is based on the original UUID.
      */
-    public static String createAlternative(String uuid, byte[] mask) {
-        final UUID originalUuid = fromBase64String(uuid);
+    public static UUID createAlternative(UUID originalUuid, byte[] mask) {
         final int originalVersion = originalUuid.version();
         final int originalVariant = originalUuid.variant();
         final long msb;
@@ -122,7 +124,10 @@ public final class UUIDFactory {
         lsBytes[0] &= 0x3f; //clear variant
         lsBytes[0] |= originalVariant << 6;
         final long lsb = bytesToLong(lsBytes);
-        return toBase64String(new UUID(msb, lsb));
+        return new UUID(msb, lsb);
+    }
+    public static String createAlternative(String uuid, byte[] mask) {
+        return toBase64String(createAlternative(parse(uuid), mask));
     }
 
     private static long mask(long value, byte[] mask) {
