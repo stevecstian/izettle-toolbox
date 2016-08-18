@@ -102,6 +102,15 @@ public class UUIDFactoryTest {
     }
 
     @Test
+    public void shouldCreateAlternativeVersionOfUUID1WhenPresentedInNativeFormat() {
+        final String uuidAsB64String = "vUyWIXc5Rg-Xvx2XBhA2Uw";
+        final String uuidAsString = "bd4c9621-7739-460f-97bf-1d9706103653";
+        assertEquals("vE2XIHY4Rw6WvhyWBxE3Ug", UUIDFactory.createAlternative(uuidAsB64String));
+        assertEquals("vE2XIHY4Rw6WvhyWBxE3Ug", UUIDFactory.createAlternative(uuidAsString));
+        assertEquals(parse("vE2XIHY4Rw6WvhyWBxE3Ug"), UUIDFactory.createAlternative(parse(uuidAsString)));
+    }
+
+    @Test
     public void itShouldBeReflectiveBetweenLongsAndBytes() {
         Random rnd = new Random();
         for (int i = 0; i < 1000; i++) {
