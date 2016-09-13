@@ -3,7 +3,7 @@
     <parent>
         <artifactId>izettle-toolbox</artifactId>
         <groupId>com.izettle.toolbox</groupId>
-        <version>1.0.71</version>
+        <version>1.0.72-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
