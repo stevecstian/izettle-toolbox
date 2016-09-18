@@ -3,7 +3,9 @@ package com.izettle.cassandra;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.izettle.java.ResourceUtils.getBytesFromStream;
 
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -15,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -53,7 +56,8 @@ import org.slf4j.LoggerFactory;
 public class SchemaVersionUpdater {
 
     private static final Logger LOG = LoggerFactory.getLogger(SchemaVersionUpdater.class);
-    private static final String COLUMN_FAMILY_NAME = "schema_scripts_version";
+    private static final String TABLE_NAME = "schema_migration";
+    private static final String LEGACY_COLUMN_FAMILY_NAME = "schema_scripts_version";
 
     private final Session session;
 
@@ -75,12 +79,13 @@ public class SchemaVersionUpdater {
 
     private void apply(List<SchemaUpdatingScript> scripts) throws IOException {
         LOG.debug("Updating Cassandra schema");
-        ensureColumnFamilyExists();
+        ensureTableExists();
+        updateFromLegacyColumnFamily();
 
         Set<String> alreadyExecutedScripts = new HashSet<>();
         Statement select = QueryBuilder.select()
             .all()
-            .from(COLUMN_FAMILY_NAME);
+            .from(TABLE_NAME);
         ResultSet resultSet = session.execute(select);
 
         for (Row row : resultSet) {
@@ -104,23 +109,58 @@ public class SchemaVersionUpdater {
         }
     }
 
-    private void ensureColumnFamilyExists() {
+    private void ensureTableExists() {
         KeyspaceMetadata keyspaceMetadata =
             session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace());
 
-        if (keyspaceMetadata.getTable(COLUMN_FAMILY_NAME) != null) {
+        if (keyspaceMetadata.getTable(TABLE_NAME) != null) {
             LOG.debug("Versioning column family already exists, skipping creation.");
             return;
         }
 
         LOG.info("Creating versioning column family.");
         session.execute(
-            "CREATE TABLE " + COLUMN_FAMILY_NAME + " ("
+            "CREATE TABLE " + TABLE_NAME + " ("
                 + "key text PRIMARY KEY,"
-                + "executed timestamp,"
+                + "executed timestamp"
                 + ");");
 
         LOG.debug("Versioning column family created.");
+    }
+
+    private void updateFromLegacyColumnFamily() {
+        KeyspaceMetadata keyspaceMetadata =
+            session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace());
+
+        if (keyspaceMetadata.getTable(LEGACY_COLUMN_FAMILY_NAME) == null) {
+            LOG.debug("Legacy column family not found, skipping updating.");
+            return;
+        }
+
+        if (!tableIsEmpty()) {
+            LOG.warn("Legacy column family found but new table is not empty, skipping updating.");
+            return;
+        }
+
+        LOG.info("Updating from legacy column family.");
+        PreparedStatement insert = session.prepare("INSERT INTO " + TABLE_NAME + " (key, executed) values (?, ?)");
+        BatchStatement batch = new BatchStatement();
+
+        ResultSet rs = session.execute("SELECT * FROM " + LEGACY_COLUMN_FAMILY_NAME);
+        while (!rs.isExhausted()) {
+            Row row = rs.one();
+            Long executed = byteBufferToTimestamp(row.getBytes("value"));
+            batch.add(insert.bind(row.getString("key"), new Date(executed)));
+        }
+        session.execute(batch);
+        session.execute("DROP TABLE " + LEGACY_COLUMN_FAMILY_NAME);
+
+        LOG.debug("Updated from legacy column family.");
+    }
+
+    private Boolean tableIsEmpty() {
+        Statement select = QueryBuilder.select().all().from(TABLE_NAME);
+        return session.execute(select).isExhausted();
     }
 
     private void apply(SchemaUpdatingScript script) throws IOException {
@@ -129,7 +169,7 @@ public class SchemaVersionUpdater {
             LOG.info("Applying script " + script);
             session.execute(script.readCQLContents());
 
-            Insert insert = QueryBuilder.insertInto(COLUMN_FAMILY_NAME)
+            Insert insert = QueryBuilder.insertInto(TABLE_NAME)
                 .value("key", script.name)
                 .value("executed", new Date());
             session.execute(insert);
@@ -141,7 +181,7 @@ public class SchemaVersionUpdater {
     private boolean isNotApplied(SchemaUpdatingScript script) {
         Statement select = QueryBuilder.select()
             .all()
-            .from(COLUMN_FAMILY_NAME)
+            .from(TABLE_NAME)
             .where(eq("key", script.name));
         return session.execute(select).isExhausted();
     }
@@ -167,5 +207,15 @@ public class SchemaVersionUpdater {
         public String toString() {
             return "#" + sequenceNr + ": \"" + name + "\"";
         }
+    }
+
+    private static Long byteBufferToTimestamp(ByteBuffer buffer) {
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
+        Long result = 0L;
+        for (int i = 0; i < bytes.length; i++) {
+            result = 16 * (16 * result + ((bytes[i] & 0xF0) >>> 4)) + (bytes[i] & 0x0F);
+        }
+        return result;
     }
 }

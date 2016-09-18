@@ -1,0 +1,16 @@
+name: schema_migration_test
+columnFamilies:
+- name: schema_scripts_version
+  keyType: UTF8Type
+  comparatorType: UTF8Type
+  defaultColumnValueType: BytesType
+  rows:
+  - key: "0000-script1.cql"
+    columns:
+    - {name: "executed", value: "00000156e30b8c00"} # 2016-09-01T00:00:00Z
+  - key: "0001-script2.cql"
+    columns:
+    - {name: "executed", value: "00000156e831e800"} # 2016-09-02T00:00:00Z
+  - key: "0002-script3.cql"
+    columns:
+    - {name: "executed", value: "00000156ed584400"} # 2016-09-03T00:00:00Z
