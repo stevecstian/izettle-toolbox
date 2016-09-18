@@ -9,11 +9,25 @@
 
 	<artifactId>izettle-cassandra-datastax</artifactId>
 
+	<properties>
+		<cassandra-driver.version>3.1.0</cassandra-driver.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.izettle.toolbox</groupId>
 			<artifactId>izettle-cassandra</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.izettle.toolbox</groupId>
+			<artifactId>izettle-java</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.datastax.cassandra</groupId>
+			<artifactId>cassandra-driver-core</artifactId>
+			<version>${cassandra-driver.version}</version>
 		</dependency>
 	</dependencies>
 </project>
