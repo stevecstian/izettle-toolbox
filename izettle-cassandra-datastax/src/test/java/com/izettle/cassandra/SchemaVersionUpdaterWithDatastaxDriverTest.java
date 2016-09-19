@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class SchemaVersionUpdaterTest {
+public class SchemaVersionUpdaterWithDatastaxDriverTest {
     final private static String TABLE_NAME = "schema_migration";
 
     @BeforeClass
@@ -40,8 +40,8 @@ public class SchemaVersionUpdaterTest {
         load("dataset-legacy.yaml");
 
         Session session = getSession();
-        SchemaVersionUpdater updater = new SchemaVersionUpdater(session);
-        updater.applyFromResources(SchemaVersionUpdaterTest.class, "migrations/");
+        SchemaVersionUpdaterWithDatastaxDriver updater = new SchemaVersionUpdaterWithDatastaxDriver(session);
+        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations/");
 
         ResultSet rs = session.execute("SELECT * FROM " + TABLE_NAME);
         List<Row> rows = rs.all();
@@ -75,8 +75,8 @@ public class SchemaVersionUpdaterTest {
             .value("executed", new Date())
         );
 
-        SchemaVersionUpdater updater = new SchemaVersionUpdater(session);
-        updater.applyFromResources(SchemaVersionUpdaterTest.class, "migrations/");
+        SchemaVersionUpdaterWithDatastaxDriver updater = new SchemaVersionUpdaterWithDatastaxDriver(session);
+        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations/");
 
         ResultSet rs = session.execute("SELECT * FROM " + TABLE_NAME);
         List<Row> rows = rs.all();
@@ -100,8 +100,8 @@ public class SchemaVersionUpdaterTest {
             .value("executed", new Date())
         );
 
-        SchemaVersionUpdater updater = new SchemaVersionUpdater(session);
-        updater.applyFromResources(SchemaVersionUpdaterTest.class, "migrations/");
+        SchemaVersionUpdaterWithDatastaxDriver updater = new SchemaVersionUpdaterWithDatastaxDriver(session);
+        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations/");
 
         KeyspaceMetadata keyspaceMetadata =
             session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace());

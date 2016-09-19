@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * <code>
  *     public static void main(String[] args) {
  *         Session session = cluster.connect(keySpace);
- *         SchemaVersionUpdater updater = new SchemaVersionUpdater(session);
+ *         SchemaVersionUpdaterWithDatastaxDriver updater = new SchemaVersionUpdaterWithDatastaxDriver(session);
  *         updater.applyFromResources(MyProgram.class, "update-scripts");
  *     }
  * </code>
@@ -53,15 +53,15 @@ import org.slf4j.LoggerFactory;
  * The name of the script files MUST start with a number, which is the sequence number.
  * Scripts will be executed in ascending sequence number order.
  */
-public class SchemaVersionUpdater {
+public class SchemaVersionUpdaterWithDatastaxDriver {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SchemaVersionUpdater.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SchemaVersionUpdaterWithDatastaxDriver.class);
     private static final String TABLE_NAME = "schema_migration";
     private static final String LEGACY_COLUMN_FAMILY_NAME = "schema_scripts_version";
 
     private final Session session;
 
-    public SchemaVersionUpdater(Session session) {
+    public SchemaVersionUpdaterWithDatastaxDriver(Session session) {
         this.session = session;
     }
 
