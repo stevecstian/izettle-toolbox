@@ -41,7 +41,7 @@ public class SchemaVersionUpdaterWithDatastaxDriverTest {
 
         Session session = getSession();
         SchemaVersionUpdaterWithDatastaxDriver updater = new SchemaVersionUpdaterWithDatastaxDriver(session);
-        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations/");
+        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations");
 
         ResultSet rs = session.execute("SELECT * FROM " + TABLE_NAME);
         List<Row> rows = rs.all();
@@ -76,7 +76,7 @@ public class SchemaVersionUpdaterWithDatastaxDriverTest {
         );
 
         SchemaVersionUpdaterWithDatastaxDriver updater = new SchemaVersionUpdaterWithDatastaxDriver(session);
-        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations/");
+        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations");
 
         ResultSet rs = session.execute("SELECT * FROM " + TABLE_NAME);
         List<Row> rows = rs.all();
@@ -101,7 +101,7 @@ public class SchemaVersionUpdaterWithDatastaxDriverTest {
         );
 
         SchemaVersionUpdaterWithDatastaxDriver updater = new SchemaVersionUpdaterWithDatastaxDriver(session);
-        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations/");
+        updater.applyFromResources(SchemaVersionUpdaterWithDatastaxDriverTest.class, "migrations");
 
         KeyspaceMetadata keyspaceMetadata =
             session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace());

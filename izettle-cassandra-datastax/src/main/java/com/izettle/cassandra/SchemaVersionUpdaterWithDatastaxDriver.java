@@ -67,7 +67,7 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
 
     public void applyFromResources(Class<?> clazz, String path) throws IOException, URISyntaxException {
         List<SchemaUpdatingScript> scripts = new ArrayList<>();
-        String resourcePath = path;
+        String resourcePath = path.endsWith("/") ? path : path + "/";
         for (String resourceName : ResourceUtils.getResourceListing(clazz, path)) {
             URL url = clazz.getClassLoader().getResource(resourcePath + resourceName);
             // Take the first digits from the filename and use as "sequenceNr".
