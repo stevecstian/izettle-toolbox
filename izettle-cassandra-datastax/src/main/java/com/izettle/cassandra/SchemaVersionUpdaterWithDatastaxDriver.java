@@ -149,7 +149,7 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         ResultSet rs = session.execute("SELECT * FROM " + LEGACY_COLUMN_FAMILY_NAME);
         while (!rs.isExhausted()) {
             Row row = rs.one();
-            Long executed = byteBufferToTimestamp(row.getBytes("value"));
+            Long executed = byteBufferToTimestamp(row.getBytes(2));
             batch.add(insert.bind(row.getString("key"), new Date(executed)));
         }
         session.execute(batch);
