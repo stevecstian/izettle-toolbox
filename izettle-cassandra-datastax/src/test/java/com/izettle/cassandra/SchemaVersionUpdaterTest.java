@@ -3,6 +3,7 @@ package com.izettle.cassandra;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -86,6 +87,25 @@ public class SchemaVersionUpdaterTest {
             "0003-before-the-big-bang.cql",
             "0004-the-big-bang.cql"
         );
+    }
+
+    @Test
+    public void doNotApplyScriptAlreadyApplied() throws IOException, URISyntaxException {
+        load("dataset-empty.yaml");
+
+        Session session = getSession();
+        createSchemaMigrationTable(session);
+        session.execute(QueryBuilder.insertInto(TABLE_NAME)
+            .value("key", "0003-before-the-big-bang.cql")
+            .value("executed", new Date())
+        );
+
+        SchemaVersionUpdater updater = new SchemaVersionUpdater(session);
+        updater.applyFromResources(SchemaVersionUpdaterTest.class, "migrations/");
+
+        KeyspaceMetadata keyspaceMetadata =
+            session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace());
+        assertThat(keyspaceMetadata.getTable("galaxies")).isNull();
     }
 
     private void load(String dataSetLocation) {
