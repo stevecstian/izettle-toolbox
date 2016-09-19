@@ -1,7 +1,10 @@
 package com.izettle.java;
 
 import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.stream.Stream;
 
 /**
  * Enum for listing available time zone ids. These are already present in the jre in TimeZone.getAvailableIds(); This
@@ -635,12 +638,31 @@ public enum TimeZoneId {
     PACIFIC_KIRITIMATI("Pacific/Kiritimati");
     private final String stringId;
 
+    private static Map<String, TimeZoneId> TIME_ZONE_ID_BY_STRING_ID = new HashMap<>();
+
+    static {
+        Stream
+            .of(values())
+            .forEach(timeZoneId -> {
+                TIME_ZONE_ID_BY_STRING_ID.put(timeZoneId.stringId, timeZoneId);
+                TIME_ZONE_ID_BY_STRING_ID.put(timeZoneId.toZoneId().toString(), timeZoneId);
+            });
+    }
+
     TimeZoneId(String stringId) {
         this.stringId = stringId;
     }
 
     public TimeZone getTimeZone() {
         return TimeZone.getTimeZone(this.stringId);
+    }
+
+    public static TimeZoneId fromString(String stringId) {
+        final TimeZoneId timeZoneId = TIME_ZONE_ID_BY_STRING_ID.get(stringId);
+        if (timeZoneId == null) {
+            throw new IllegalArgumentException("No match found for time zone name: " + stringId);
+        }
+        return timeZoneId;
     }
 
     public ZoneId toZoneId() {
