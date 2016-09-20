@@ -149,11 +149,12 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         ResultSet rs = session.execute("SELECT * FROM " + LEGACY_COLUMN_FAMILY_NAME);
         while (!rs.isExhausted()) {
             Row row = rs.one();
+            String key = row.getString("key");
             Long executed = byteBufferToTimestamp(row.getBytes(2));
-            batch.add(insert.bind(row.getString("key"), new Date(executed)));
+            LOG.debug("Copying key {}.", key);
+            batch.add(insert.bind(key, new Date(executed)));
         }
         session.execute(batch);
-        session.execute("DROP TABLE " + LEGACY_COLUMN_FAMILY_NAME);
 
         LOG.debug("Updated from legacy column family.");
     }
