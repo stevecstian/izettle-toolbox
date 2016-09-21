@@ -3,13 +3,14 @@ package com.izettle.cassandra;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.izettle.java.ResourceUtils.getBytesFromStream;
 
-import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ColumnMetadata;
+import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.KeyspaceMetadata;
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.izettle.java.ResourceUtils;
@@ -17,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -56,8 +56,7 @@ import org.slf4j.LoggerFactory;
 public class SchemaVersionUpdaterWithDatastaxDriver {
 
     private static final Logger LOG = LoggerFactory.getLogger(SchemaVersionUpdaterWithDatastaxDriver.class);
-    private static final String TABLE_NAME = "schema_migration";
-    private static final String LEGACY_COLUMN_FAMILY_NAME = "schema_scripts_version";
+    private static final String TABLE_NAME = "schema_scripts_version";
 
     private final Session session;
 
@@ -80,7 +79,6 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
     private void apply(List<SchemaUpdatingScript> scripts) throws IOException {
         LOG.debug("Updating Cassandra schema");
         ensureTableExists();
-        updateFromLegacyColumnFamily();
 
         Set<String> alreadyExecutedScripts = new HashSet<>();
         Statement select = QueryBuilder.select()
@@ -112,9 +110,11 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
     private void ensureTableExists() {
         KeyspaceMetadata keyspaceMetadata =
             session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace());
+        TableMetadata tableMetadata = keyspaceMetadata.getTable(TABLE_NAME);
 
-        if (keyspaceMetadata.getTable(TABLE_NAME) != null) {
+        if (tableMetadata != null) {
             LOG.debug("Versioning column family already exists, skipping creation.");
+            ensureTableSchema(tableMetadata);
             return;
         }
 
@@ -128,40 +128,26 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         LOG.debug("Versioning column family created.");
     }
 
-    private void updateFromLegacyColumnFamily() {
-        KeyspaceMetadata keyspaceMetadata =
-            session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace());
+    private static void ensureTableSchema(TableMetadata tableMetadata) throws IllegalStateException {
+        ColumnMetadata primaryKey = tableMetadata.getPrimaryKey().get(0);
 
-        if (keyspaceMetadata.getTable(LEGACY_COLUMN_FAMILY_NAME) == null) {
-            LOG.debug("Legacy column family not found, skipping updating.");
-            return;
+        if (!primaryKey.getName().equals("key")) {
+            throw new IllegalStateException(String.format("The name of primary key in table [%s] should be 'key'", TABLE_NAME));
         }
 
-        if (!tableIsEmpty()) {
-            LOG.warn("Legacy column family found but new table is not empty, skipping updating.");
-            return;
+        if (primaryKey.getType() != DataType.text()) {
+            throw new IllegalStateException(String.format("Primary key in table [%s] should have type 'text'", TABLE_NAME));
         }
 
-        LOG.info("Updating from legacy column family.");
-        PreparedStatement insert = session.prepare("INSERT INTO " + TABLE_NAME + " (key, executed) values (?, ?)");
-        BatchStatement batch = new BatchStatement();
+        ColumnMetadata executedColumn = tableMetadata.getColumn("executed");
 
-        ResultSet rs = session.execute("SELECT * FROM " + LEGACY_COLUMN_FAMILY_NAME);
-        while (!rs.isExhausted()) {
-            Row row = rs.one();
-            String key = row.getString("key");
-            Long executed = byteBufferToTimestamp(row.getBytes(2));
-            LOG.debug("Copying key {}.", key);
-            batch.add(insert.bind(key, new Date(executed)));
+        if (executedColumn == null) {
+            throw new IllegalStateException(String.format("Cannot find column 'executed' in table [%s]", TABLE_NAME));
         }
-        session.execute(batch);
 
-        LOG.debug("Updated from legacy column family.");
-    }
-
-    private Boolean tableIsEmpty() {
-        Statement select = QueryBuilder.select().all().from(TABLE_NAME);
-        return session.execute(select).isExhausted();
+        if (executedColumn.getType() != DataType.timestamp()) {
+            throw new IllegalStateException(String.format("Column 'executed' in table [%s] should have type 'timestamp'", TABLE_NAME));
+        }
     }
 
     private void apply(SchemaUpdatingScript script) throws IOException {
@@ -208,15 +194,5 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         public String toString() {
             return "#" + sequenceNr + ": \"" + name + "\"";
         }
-    }
-
-    private static Long byteBufferToTimestamp(ByteBuffer buffer) {
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-        Long result = 0L;
-        for (int i = 0; i < bytes.length; i++) {
-            result = 16 * (16 * result + ((bytes[i] & 0xF0) >>> 4)) + (bytes[i] & 0x0F);
-        }
-        return result;
     }
 }
