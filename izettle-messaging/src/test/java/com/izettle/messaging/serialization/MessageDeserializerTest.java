@@ -5,15 +5,19 @@ import static org.junit.Assert.assertEquals;
 
 import com.izettle.java.DateFormatCreator;
 import com.izettle.java.TimeZoneId;
+import com.izettle.java.UUIDFactory;
 import com.izettle.messaging.TestMessage;
 import com.izettle.messaging.TestMessageWithDate;
+import com.izettle.messaging.TestMessageWithUUID;
 import java.io.IOException;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 
 public class MessageDeserializerTest {
 
     private MessageDeserializer<TestMessage> plaintextDeserializer;
+    private MessageDeserializer<TestMessageWithUUID> plaintextWithUUIDDeserializer;
     private String plaintextMessage;
     private String messageSentThroughSNS;
     private String messageSentThroughSQS;
@@ -22,6 +26,7 @@ public class MessageDeserializerTest {
     @Before
     public void setup() throws IOException {
         plaintextDeserializer = new MessageDeserializer<>(TestMessage.class);
+        plaintextWithUUIDDeserializer = new MessageDeserializer<>(TestMessageWithUUID.class);
         plaintextMessage = new String(getResourceAsBytes("example-message.json"));
         messageSentThroughSNS = new String(getResourceAsBytes("example-message-sent-with-messagepublisher-through-sns.json"));
         messageSentThroughSQS = new String(getResourceAsBytes("example-message-sent-with-messagepublisher-to-sqs.json"));
@@ -57,7 +62,8 @@ public class MessageDeserializerTest {
     @Test
     public void shouldRemoveSNSEnvelopeFromMessageSentWithMessagePublisherThroughSNS() throws Exception {
         String msg = MessageDeserializer.removeSnsEnvelope(messageSentThroughSNS);
-        assertEquals("{\"amount\":3135,\"message\":\"MessagePublisher to SNS\"}", msg);
+        assertEquals("{\"amount\":3135,\"message\":\"MessagePublisher to SNS\","
+            + "\"uuid1\":\"0SFwIEwSEeWQb_kt6mwGgg\",\"uuid2\":\"49c07050-7675-4a65-9e5e-e26d52146d2a\"}", msg);
     }
 
     @Test
@@ -74,10 +80,15 @@ public class MessageDeserializerTest {
 
     @Test
     public void shouldDeserializeMessageSentWithMessagePublisherThroughSNS() throws Exception {
-        TestMessage msg = plaintextDeserializer.deserialize(
+        UUID uuid1 = UUIDFactory.parse("0SFwIEwSEeWQb_kt6mwGgg");
+        UUID uuid2 = UUID.fromString("49c07050-7675-4a65-9e5e-e26d52146d2a");
+
+        TestMessageWithUUID msg = plaintextWithUUIDDeserializer.deserialize(
             MessageDeserializer.removeSnsEnvelope(messageSentThroughSNS)
         );
         assertEquals("MessagePublisher to SNS", msg.getMessage());
+        assertEquals(uuid1, msg.getUuid1());
+        assertEquals(uuid2, msg.getUuid2());
     }
 
     @Test

@@ -15,6 +15,7 @@ public class JsonSerializer {
         result.registerModule(new JavaTimeModule());
         result.registerModule(new Jdk8Module());
         result.registerModule(new ParameterNamesModule());
+        result.registerModule(new UUIDModule());
         return result;
     }
 

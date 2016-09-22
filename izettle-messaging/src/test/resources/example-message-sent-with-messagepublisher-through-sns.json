@@ -3,7 +3,7 @@
   "MessageId" : "d39afcae-bcf5-5303-a9f3-b35b19f37c8f",
   "TopicArn" : "arn:aws:sns:eu-west-1:111111111111:test",
   "Subject" : "TestMessage",
-  "Message" : "{\"amount\":3135,\"message\":\"MessagePublisher to SNS\"}",
+  "Message" : "{\"amount\":3135,\"message\":\"MessagePublisher to SNS\",\"uuid1\":\"0SFwIEwSEeWQb_kt6mwGgg\",\"uuid2\":\"49c07050-7675-4a65-9e5e-e26d52146d2a\"}",
   "Timestamp" : "2016-07-05T12:06:30.548Z",
   "SignatureVersion" : "1",
   "Signature" : "f6FZfQE7gbrWVYccu5x/ipH6GT9ygcWlwU6IWdWM9BEjvn2XwjB/I4IYxnvIOQLIZSL+XgE9ABkTM1N3tXksyE7+6JrlGt8/4+xijTq1aEqhwtpCNEVHsV3glafFhdVSK+o+mZ28SikbmWVrMtWRwPq1GfgsA3R+2aZb8y3PhnSDAW6PJmwp4R/0IYTRbaU2qaMaHdn2oJYCo9HIZGjP32jzT+1rDjyKQQLkJH4slW1LHBoVbR+ij4mqm2w0g9oDl7J8GhqiID6hJG6GZOVSU9U5FzPEN8PY18MltsAHuT/HqwTkD8CDGv9Bhf4NkD/mAQ2AKkdtAy4K7cR2bYVN/w==",

@@ -1,15 +1,16 @@
 package com.izettle.messaging;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TestMessage {
     private String message;
 
-    public TestMessage() {
-    }
-
-    public TestMessage(String message) {
+    @JsonCreator
+    public TestMessage(
+        @JsonProperty("message") String message) {
         this.message = message;
     }
 
