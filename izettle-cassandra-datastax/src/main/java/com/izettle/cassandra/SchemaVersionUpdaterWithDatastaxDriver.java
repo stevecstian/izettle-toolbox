@@ -3,14 +3,7 @@ package com.izettle.cassandra;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.izettle.java.ResourceUtils.getBytesFromStream;
 
-import com.datastax.driver.core.ColumnMetadata;
-import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.KeyspaceMetadata;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.TableMetadata;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.izettle.java.ResourceUtils;
@@ -132,11 +125,17 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         ColumnMetadata primaryKey = tableMetadata.getPrimaryKey().get(0);
 
         if (!primaryKey.getName().equals("key")) {
-            throw new IllegalStateException(String.format("The name of primary key in table [%s] should be 'key'", TABLE_NAME));
+            throw new IllegalStateException(String.format(
+                "The name of primary key in table [%s] should be 'key'",
+                TABLE_NAME
+            ));
         }
 
         if (primaryKey.getType() != DataType.text()) {
-            throw new IllegalStateException(String.format("Primary key in table [%s] should have type 'text'", TABLE_NAME));
+            throw new IllegalStateException(String.format(
+                "Primary key in table [%s] should have type 'text'",
+                TABLE_NAME
+            ));
         }
 
         ColumnMetadata executedColumn = tableMetadata.getColumn("executed");
@@ -146,7 +145,10 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         }
 
         if (executedColumn.getType() != DataType.timestamp()) {
-            throw new IllegalStateException(String.format("Column 'executed' in table [%s] should have type 'timestamp'", TABLE_NAME));
+            throw new IllegalStateException(String.format(
+                "Column 'executed' in table [%s] should have type 'timestamp'",
+                TABLE_NAME
+            ));
         }
     }
 
@@ -154,12 +156,14 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         if (isNotApplied(script)) {
 
             LOG.info("Applying script " + script);
-            session.execute(script.readCQLContents());
+            Statement statement =
+                new SimpleStatement(script.readCQLContents()).setConsistencyLevel(ConsistencyLevel.ALL);
+            session.execute(statement);
 
             Insert insert = QueryBuilder.insertInto(TABLE_NAME)
                 .value("key", script.name)
                 .value("executed", new Date());
-            session.execute(insert);
+            session.execute(insert.setConsistencyLevel(ConsistencyLevel.ALL));
 
             LOG.debug("Script " + script + " successfully applied.");
         }
