@@ -14,6 +14,7 @@ import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.izettle.java.ResourceUtils;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -66,12 +67,18 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
 
     public void applyFromResources(Class<?> clazz, String path) throws IOException, URISyntaxException {
         List<SchemaUpdatingScript> scripts = new ArrayList<>();
-        String resourcePath = path.endsWith("/") ? path : path + "/";
-        for (String resourceName : ResourceUtils.getResourceListing(clazz, path)) {
-            URL url = clazz.getClassLoader().getResource(resourcePath + resourceName);
-            // Take the first digits from the filename and use as "sequenceNr".
-            int sequenceNr = Integer.parseInt(resourceName.split("[^0-9]")[0]);
-            scripts.add(new SchemaUpdatingScript(sequenceNr, resourceName, url));
+        String resourcePath = path.endsWith(File.separator) ? path : path + File.separator;
+        for (String resourceName : ResourceUtils.getResourceListing(clazz, resourcePath)) {
+            try {
+                // Take the first digits from the filename and use as "sequenceNr".
+                int sequenceNr = Integer.parseInt(resourceName.split("[^0-9]")[0]);
+                URL url = clazz.getClassLoader().getResource(resourcePath + resourceName);
+                scripts.add(new SchemaUpdatingScript(sequenceNr, resourceName, url));
+            } catch (Exception e) {
+                LOG.error("Failed to process script: {}", resourcePath + resourceName);
+                throw e;
+            }
+
         }
         apply(scripts);
     }
