@@ -53,6 +53,12 @@ public class CollectionUtilsSpec {
     }
 
     @Test
+    public void testPartition_null() throws Exception {
+        List<Collection<Integer>> partitions = partition(null, 1);
+        assertNull(partitions);
+    }
+
+    @Test
     public void testPartition_1_1() {
         Set<Integer> source = Sets.newSet(1);
         List<Collection<Integer>> partitions = partition(source, 1);
