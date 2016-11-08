@@ -4,21 +4,19 @@ import static com.izettle.java.ValueChecks.empty;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author adam
  */
 public class CollectionUtils {
-
-    private CollectionUtils() {
-    }
+    private CollectionUtils() {}
 
     /**
      * Will partition a collection to a list of collections, each with maximum size of partitionSize. The
@@ -85,18 +83,7 @@ public class CollectionUtils {
         if (collection == null) {
             return null;
         }
-        if (collection.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        Iterator<?> iterator = collection.iterator();
-        while (iterator.hasNext()) {
-            Object t = iterator.next();
-            sb.append(t);
-            if (iterator.hasNext()) {
-                sb.append(delimiter);
-            }
-        }
-        return sb.toString();
+
+        return collection.stream().map(Object::toString).collect(Collectors.joining(delimiter));
     }
 }
