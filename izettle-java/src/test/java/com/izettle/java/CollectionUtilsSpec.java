@@ -161,4 +161,9 @@ public class CollectionUtilsSpec {
     public void itShouldToStringNull() {
         assertNull(null, CollectionUtils.toString(null));
     }
+
+    @Test
+    public void itShouldHandleNullElements() {
+        assertEquals(null, CollectionUtils.toString(Collections.singletonList(null)), "null");
+    }
 }
