@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
+import com.amazonaws.services.sqs.model.SendMessageBatchResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +50,7 @@ public class QueueServiceSenderTest {
 
     @Test
     public void shouldSendBatchesInSizeOfTen() throws Exception {
+        when(mockAmazonSQS.sendMessageBatch(any(SendMessageBatchRequest.class))).thenReturn(mock(SendMessageBatchResult.class));
         ArgumentCaptor<SendMessageBatchRequest> captor = ArgumentCaptor.forClass(SendMessageBatchRequest.class);
 
         messagePublisher.postBatch(messageBatch(10), subject);
@@ -77,8 +79,8 @@ public class QueueServiceSenderTest {
 
     @Test
     public void postBatchShouldSendMessagesWithSNSEnvelope() throws Exception {
-
         // Arrange
+        when(mockAmazonSQS.sendMessageBatch(any(SendMessageBatchRequest.class))).thenReturn(mock(SendMessageBatchResult.class));
         ArgumentCaptor<SendMessageBatchRequest> captor = ArgumentCaptor.forClass(SendMessageBatchRequest.class);
 
         // Act

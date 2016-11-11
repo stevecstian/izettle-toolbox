@@ -6,8 +6,10 @@ import static com.izettle.java.ValueChecks.empty;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.BatchResultErrorEntry;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
+import com.amazonaws.services.sqs.model.SendMessageBatchResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,6 +22,13 @@ import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Convenience class for sending messages to a single queue in Amazon Simple Queue Service.
@@ -27,7 +36,7 @@ import java.util.Collection;
  * @param <M> Message type.
  */
 public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePublisher {
-
+    private static final Logger LOG = LoggerFactory.getLogger(QueueServiceSender.class);
     private static final int MAX_BATCH_SIZE = 10;
     private final String queueUrl;
     private final AmazonSQS amazonSQS;
@@ -192,7 +201,34 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
 
     private void sendMessageBatch(Collection<SendMessageBatchRequestEntry> messages) {
         for (Collection<SendMessageBatchRequestEntry> batch : partition(messages, MAX_BATCH_SIZE)) {
-            amazonSQS.sendMessageBatch(new SendMessageBatchRequest(queueUrl, new ArrayList<>(batch)));
+            final SendMessageBatchResult sendMessageBatchResult =
+                amazonSQS.sendMessageBatch(new SendMessageBatchRequest(queueUrl, new ArrayList<>(batch)));
+            final List<BatchResultErrorEntry> failed = sendMessageBatchResult.getFailed();
+            if (!failed.isEmpty()) {
+                try {
+                    Set<String> failedMessageIds =
+                        failed.stream().map(BatchResultErrorEntry::getId).collect(Collectors.toSet());
+                    final Map<String, SendMessageBatchRequestEntry> failedMessageIdToMessage =
+                        batch.stream().filter(failedMessageIds::contains).collect(Collectors.toMap(
+                            SendMessageBatchRequestEntry::getId,
+                            Function.identity()
+                        ));
+                    failed.stream().forEach(failMessage -> {
+                        final SendMessageBatchRequestEntry failedEntry =
+                            failedMessageIdToMessage.get(failMessage.getId());
+                        if (failedEntry != null) {
+                            final String messageBody = failedEntry.getMessageBody();
+                            LOG.error(
+                                "Failed to send message, due to {}, message content : {} ",
+                                failMessage,
+                                messageBody
+                            );
+                        }
+                    });
+                } catch (Exception e) {
+                    LOG.error("Failed to log failed to send messages", e);
+                }
+            }
         }
     }
 }
