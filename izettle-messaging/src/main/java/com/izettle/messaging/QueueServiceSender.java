@@ -19,7 +19,6 @@ import com.izettle.messaging.serialization.JsonSerializer;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -143,7 +142,17 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
      */
     @Override
     public <T> void post(T message, String eventName) throws MessagingException {
-        postBatch(Arrays.asList(message), eventName);
+        if (empty(eventName)) {
+            throw new MessagingException("Cannot publish message with empty eventName!");
+        }
+        try {
+            amazonSQS.sendMessage(
+                new SendMessageRequest()
+                    .withMessageBody(wrapInSNSMessage(message, eventName))
+            );
+        } catch (Exception e) {
+            throw new MessagingException("Failed to post message: " + message.getClass(), e);
+        }
     }
 
     /**
