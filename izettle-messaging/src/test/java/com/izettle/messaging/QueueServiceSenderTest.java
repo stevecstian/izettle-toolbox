@@ -109,12 +109,19 @@ public class QueueServiceSenderTest {
 
     @Test
     public void postAsSNSMessageShouldSendMessagesWithSNSEnvelope() throws Exception {
+        // Arrange
+        ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
 
         // Act
         messagePublisher.post(new TestMessage("Hello"), "subject");
 
         // Assert
-        verify(mockAmazonSQS).sendMessageBatch(any(SendMessageBatchRequest.class));
+        verify(mockAmazonSQS).sendMessage(captor.capture());
+        final SendMessageRequest sendMessageRequest = captor.getValue();
+        AmazonSNSMessage msg = new ObjectMapper().readValue(sendMessageRequest.getMessageBody(), AmazonSNSMessage.class);
+        assertThat(msg.getSubject()).isEqualTo("subject");
+        assertThat(msg.getMessage()).isEqualTo("{\"message\":\"Hello\"}");
+
     }
 
     @Test
@@ -134,7 +141,7 @@ public class QueueServiceSenderTest {
         publisher.post(testMessage, "subject");
 
         // Assert
-        verify(mockAmazonSQS).sendMessageBatch(any(SendMessageBatchRequest.class));
+        verify(mockAmazonSQS).sendMessage(any(SendMessageRequest.class));
         verify(serializer).serialize(testMessage);
         verify(serializer).encrypt(serializedMessage);
     }
