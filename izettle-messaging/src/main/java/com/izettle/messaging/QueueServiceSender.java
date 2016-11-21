@@ -147,8 +147,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
         }
         try {
             amazonSQS.sendMessage(
-                new SendMessageRequest()
-                    .withMessageBody(wrapInSNSMessage(message, eventName))
+                new SendMessageRequest(queueUrl, wrapInSNSMessage(message, eventName))
             );
         } catch (Exception e) {
             throw new MessagingException("Failed to post message: " + message.getClass(), e);
