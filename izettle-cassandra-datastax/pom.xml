@@ -10,7 +10,7 @@
 	<artifactId>izettle-cassandra-datastax</artifactId>
 
 	<properties>
-		<cassandra-driver.version>3.1.0</cassandra-driver.version>
+		<cassandra-driver.version>3.1.2</cassandra-driver.version>
 	</properties>
 
 	<dependencies>

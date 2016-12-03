@@ -2,8 +2,11 @@ package com.izettle.dropwizard.cassandra;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.HostDistance;
+import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.policies.ConstantSpeculativeExecutionPolicy;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
@@ -54,6 +57,9 @@ public class CassandraSessionFactory {
     }
 
     public CassandraSessionManaged build(Environment environment) {
+        PoolingOptions poolingOptions = new PoolingOptions();
+        poolingOptions.setConnectionsPerHost(HostDistance.LOCAL,  6, 10)
+            .setConnectionsPerHost(HostDistance.REMOTE, 2, 4);
         final Cluster cluster = Cluster
             .builder()
             .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
@@ -62,6 +68,8 @@ public class CassandraSessionFactory {
             .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))
             .addContactPoints(getContactPoints().stream().toArray(String[]::new))
             .withPort(getPort())
+            .withSpeculativeExecutionPolicy(new ConstantSpeculativeExecutionPolicy(1000, 2))
+            .withPoolingOptions(poolingOptions)
             .build();
 
         cluster.getConfiguration().getCodecRegistry()
