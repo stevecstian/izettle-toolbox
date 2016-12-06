@@ -58,11 +58,12 @@
 
         <assertj-core.version>3.4.1</assertj-core.version>
         <astyanax.version>3.9.0</astyanax.version>
-        <aws.version>1.10.77</aws.version>
-        <bouncycastle.version>1.54</bouncycastle.version>
+        <aws.version>1.11.63</aws.version>
+        <bouncycastle.version>1.55</bouncycastle.version>
+        <cassandra-unit.version>3.0.0.1</cassandra-unit.version>
         <findbugs-maven-plugin.version>3.0.3</findbugs-maven-plugin.version>
-        <guava.version>18.0</guava.version>
-        <jackson.version>2.7.5</jackson.version>
+        <guava.version>19.0</guava.version>
+        <jackson.version>2.7.8</jackson.version>
         <junit.version>4.12</junit.version>
         <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
         <maven.version.range>[3.2.3,3.4.0)</maven.version.range>

@@ -58,8 +58,8 @@ public class CassandraSessionFactory {
 
     public CassandraSessionManaged build(Environment environment) {
         PoolingOptions poolingOptions = new PoolingOptions();
-        poolingOptions.setConnectionsPerHost(HostDistance.LOCAL,  6, 10)
-            .setConnectionsPerHost(HostDistance.REMOTE, 2, 4);
+        poolingOptions.setConnectionsPerHost(HostDistance.LOCAL,  3, 5)
+            .setConnectionsPerHost(HostDistance.REMOTE, 1, 2);
         final Cluster cluster = Cluster
             .builder()
             .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
