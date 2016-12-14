@@ -50,7 +50,8 @@
         <module>izettle-cassandra-datastax</module>
         <module>izettle-cassandra-astyanax</module>
         <module>izettle-dropwizard</module>
-    </modules>
+		<module>izettlej-ava-alb</module>
+	</modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
