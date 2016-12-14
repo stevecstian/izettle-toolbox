@@ -50,7 +50,7 @@
         <module>izettle-cassandra-datastax</module>
         <module>izettle-cassandra-astyanax</module>
         <module>izettle-dropwizard</module>
-		<module>izettlej-ava-alb</module>
+		<module>izettle-java-alb</module>
 	</modules>
 
     <properties>
