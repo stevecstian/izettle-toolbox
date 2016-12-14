@@ -50,7 +50,8 @@
         <module>izettle-cassandra-datastax</module>
         <module>izettle-cassandra-astyanax</module>
         <module>izettle-dropwizard</module>
-    </modules>
+		<module>izettle-java-alb</module>
+	</modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -70,6 +71,7 @@
         <metrics.version>3.1.2</metrics.version>
         <mockito-all.version>1.10.19</mockito-all.version>
         <slf4j.version>1.7.21</slf4j.version>
+        <dropwizard.version>1.0.3</dropwizard.version>
     </properties>
 
     <profiles>
