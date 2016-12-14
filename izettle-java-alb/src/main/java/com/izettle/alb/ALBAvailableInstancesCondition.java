@@ -9,7 +9,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * Precondition that check that enough instances are available in the ELB before the precondition is met.
@@ -47,7 +46,7 @@ public class ALBAvailableInstancesCondition implements Condition {
 
     @Override
     public CompletableFuture<Boolean> check(
-        Supplier<ExecutorService> executorServiceProvider,
+        ExecutorService executorService,
         Consumer<String> notificationsConsumer
     ) {
 
@@ -94,6 +93,6 @@ public class ALBAvailableInstancesCondition implements Condition {
                         notificationsConsumer.accept("ELB Available Instances Preconditions was unable to sleep");
                     }
                 }
-            }, executorServiceProvider.get());
+            }, executorService);
     }
 }

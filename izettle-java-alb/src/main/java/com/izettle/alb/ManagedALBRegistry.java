@@ -101,7 +101,7 @@ public class ManagedALBRegistry implements Managed {
         LOG.info("Deregistering instance ID {} in target group {}", instanceId, targetGroupArn);
         // Make sure precondition is met before moving on.
         final CompletableFuture<Boolean> await = deregisterCondition.check(
-            Executors::newSingleThreadExecutor,
+            Executors.newSingleThreadExecutor(),
             LOG::info
         );
 
