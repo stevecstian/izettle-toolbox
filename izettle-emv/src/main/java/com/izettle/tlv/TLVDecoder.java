@@ -1,5 +1,6 @@
 package com.izettle.tlv;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,43 +33,54 @@ public class TLVDecoder {
     public List<TLV> decode(byte[] in) throws TLVException {
 
         List<TLV> out = new ArrayList<>();
-        helper(in, 0, out);
+
+        final ByteBuffer wrap = ByteBuffer.wrap(in);
+
+        addAllTags(wrap, in.length, out);
+
         return out;
     }
 
-    private void helper(byte[] input, int offset, List<TLV> tags) throws TLVException {
+    private void addAllTags(ByteBuffer input, long maxLength, List<TLV> out) throws TLVException {
+        while (input.position() < input.capacity() && input.position() < maxLength) {
+            helper(input, out);
+        }
+    }
 
+    private void helper(ByteBuffer input, List<TLV> tags) throws TLVException {
         if (!strictMode) {
             // Remove leading zeroes
-            while (offset < input.length && 0 == input[offset]) {
-                offset++;
+            byte leading = input.get();
+            input.position(input.position() - 1);
+
+            while (leading == 0 && input.position() < input.capacity()) {
+                leading = input.get();
             }
         }
 
-        if (offset == input.length) {
+        if (input.position() >= input.capacity()) {
             return;
         }
 
-        // Parse tag
-        byte[] tag = {input[offset]};
-        if ((input[offset] & 0x1f) == 0x1f) {
-            /*
-             * If first byte of a tag has lowest 5 bits set, it's a multi-byte
-             * tag. Subsequent tag bytes have 0x80 bit set.
-             */
+        int tagStart = input.position();
+        int tagEnd = tagStart + 1;
+        if ((input.get() & 0x1f) == 0x1f) {
             do {
-                tag = ArrayUtils.concat(tag, new byte[]{input[++offset]});
-            } while ((input[offset] & 0x80) == 0x80);
+                ++tagEnd;
+            } while ((input.get() & 0x80) == 0x80);
         }
 
         // Validate tag
+        input.position(tagStart);
+        final byte[] tag = new byte[tagEnd - tagStart];
+        input.get(tag);
         TLVUtils.validateTag(tag);
 
-        if (offset + 1 >= input.length) {
+        if (input.position() >= input.capacity()) {
             throw new TLVException("Malformed data: Tag, but no length present");
         }
 
-        int length = input[++offset];
+        int length = input.get();
         byte[] lengthEncoded;
 
         if ((length & 0x80) == 0x80) {
@@ -77,46 +89,39 @@ public class TLVDecoder {
 
             // Save the actual encoded length
             lengthEncoded = new byte[numBytesForLength + 1];
-            if (numBytesForLength + offset > input.length) {
+            if (numBytesForLength + input.position() > input.capacity()) {
                 throw new TLVException("Malformed length, first length byte indiciates length that doesn't fit");
             }
-            System.arraycopy(input, offset, lengthEncoded, 0, numBytesForLength + 1);
+            input.position(input.position() - 1);
+            int preOffset = input.position();
+            input.get(lengthEncoded);
+            input.position(preOffset + 1);
 
             length = 0;
             while (numBytesForLength-- > 0) {
-                length |= (input[++offset] & 0xff) << (numBytesForLength * 8);
+                length |= (input.get() & 0xff) << (numBytesForLength * 8);
             }
         } else {
             lengthEncoded = new byte[]{(byte) length};
         }
 
-        ++offset; // Now positioned at first data byte
-
-        if (offset + length > input.length) {
+        if (input.position() + length > input.capacity()) {
             throw new TLVException("Tag " + Hex.toHexString(tag) + " exceeds data length");
         }
 
-        byte[] value = new byte[length];
-        System.arraycopy(input, offset, value, 0, length);
+        if (length >= Integer.MAX_VALUE) {
+            throw new TLVException("Tag " + Hex.toHexString(tag) + " exceeds max data length");
+        }
 
         int tagAsInteger = TLVUtils.tagToInt(tag);
 
         if (expandTags.contains(tagAsInteger)) {
-            if (offset + value.length > input.length) {
-                throw new TLVException("Expand tag " + Hex.toHexString(tag) + " is invalid, exceeds data length");
-            }
-            helper(value, 0, tags);
-            if (offset + length < input.length) {
-                // There are more tags after the expander tag.
-                helper(input, offset + length, tags);
-            }
+            addAllTags(input, length, tags);
         } else {
+            byte[] value = new byte[length];
+            input.get(value);
+
             tags.add(new TLV(tag, lengthEncoded, value));
-            if (offset + length == input.length) {
-                // We are finished
-            } else {
-                helper(input, offset + length, tags);
-            }
         }
     }
 }

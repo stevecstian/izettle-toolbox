@@ -176,5 +176,4 @@ public class TLVDecoderTest {
         decodedTags = dec.decode(Hex.hexToByteArray("000000DF0301FE0000000000DF0401FF000000"));
         Assert.assertEquals(2, decodedTags.size());
     }
-
 }
