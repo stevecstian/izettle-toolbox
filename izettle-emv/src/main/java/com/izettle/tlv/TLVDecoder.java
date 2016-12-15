@@ -96,25 +96,21 @@ public class TLVDecoder {
             throw new TLVException("Tag " + Hex.toHexString(tag) + " exceeds data length");
         }
 
-        byte[] value = new byte[length];
-        System.arraycopy(input, offset, value, 0, length);
-
         int tagAsInteger = TLVUtils.tagToInt(tag);
 
         if (expandTags.contains(tagAsInteger)) {
-            if (offset + value.length > input.length) {
+            if (offset + length > input.length) {
                 throw new TLVException("Expand tag " + Hex.toHexString(tag) + " is invalid, exceeds data length");
             }
-            helper(value, 0, tags);
-            if (offset + length < input.length) {
-                // There are more tags after the expander tag.
-                helper(input, offset + length, tags);
-            }
+
+            helper(input, offset, tags);
         } else {
+            byte[] value = new byte[length];
+            System.arraycopy(input, offset, value, 0, length);
+
             tags.add(new TLV(tag, lengthEncoded, value));
-            if (offset + length == input.length) {
-                // We are finished
-            } else {
+
+            if (offset + length != input.length) {
                 helper(input, offset + length, tags);
             }
         }
