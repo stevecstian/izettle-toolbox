@@ -1,6 +1,7 @@
 package com.izettle.cart;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class TestItem implements Item<TestItem, TestDiscount> {
 
@@ -9,8 +10,10 @@ public class TestItem implements Item<TestItem, TestDiscount> {
     private final BigDecimal quantity;
     private final String name;
     private final TestDiscount discount;
+    private final UUID id;
 
-    TestItem(String name, long unitPrice, Float vatPercentage, BigDecimal quantity, TestDiscount discount) {
+    TestItem(UUID id, String name, long unitPrice, Float vatPercentage, BigDecimal quantity, TestDiscount discount) {
+        this.id = id;
         this.name = name;
         this.unitPrice = unitPrice;
         this.vatPercentage = vatPercentage;
@@ -18,8 +21,8 @@ public class TestItem implements Item<TestItem, TestDiscount> {
         this.discount = discount;
     }
 
-    TestItem(long unitPrice, Float vatPercentage, BigDecimal quantity) {
-        this(null, unitPrice, vatPercentage, quantity, null);
+    TestItem(UUID id, long unitPrice, Float vatPercentage, BigDecimal quantity) {
+        this(id, null, unitPrice, vatPercentage, quantity, null);
     }
 
     @Override
@@ -49,8 +52,20 @@ public class TestItem implements Item<TestItem, TestDiscount> {
     }
 
     @Override
+    public UUID getId() {
+        return this.id;
+    }
+
+    @Override
     public TestItem inverse() {
-        return new TestItem(name, unitPrice, vatPercentage, quantity.negate(), discount != null ? discount.inverse() : null);
+        return new TestItem(
+            id,
+            name,
+            unitPrice,
+            vatPercentage,
+            quantity.negate(),
+            discount != null ? discount.inverse() : null
+        );
     }
 
     @Override

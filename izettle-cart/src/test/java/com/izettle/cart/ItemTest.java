@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.Test;
 
 public class ItemTest {
@@ -16,6 +17,7 @@ public class ItemTest {
         List<TestItem> items = new ArrayList<TestItem>();
 
         items.add(new TestItem(
+            UUID.randomUUID(),
             "name",
             1000L,
             null,
@@ -24,6 +26,7 @@ public class ItemTest {
         ));
 
         items.add(new TestItem(
+            UUID.randomUUID(),
             "name",
             1000L,
             null,
@@ -32,6 +35,7 @@ public class ItemTest {
         ));
 
         items.add(new TestItem(
+            UUID.randomUUID(),
             "name",
             1000L,
             null,
@@ -54,6 +58,7 @@ public class ItemTest {
 
         items = new ArrayList<TestItem>();
         items.add(new TestItem(
+            UUID.randomUUID(),
             "name",
             1000L,
             null,
@@ -66,6 +71,7 @@ public class ItemTest {
 
         items = new ArrayList<TestItem>();
         items.add(new TestItem(
+            UUID.randomUUID(),
             "name",
             1000L,
             null,
