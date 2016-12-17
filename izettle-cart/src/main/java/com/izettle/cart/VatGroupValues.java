@@ -38,4 +38,11 @@ public class VatGroupValues {
     public long getActualValue() {
         return actualValue;
     }
+
+    @Override
+    public String toString() {
+        return "VatGroupValues{" + "vatPercentage=" + vatPercentage + ", actualVatValue=" + actualVatValue + ", actualValue=" + actualValue + '}';
+    }
+
+
 }

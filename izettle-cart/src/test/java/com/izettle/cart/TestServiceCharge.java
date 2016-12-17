@@ -1,19 +1,24 @@
 package com.izettle.cart;
 
+import java.math.BigDecimal;
+
 public class TestServiceCharge implements ServiceCharge<TestServiceCharge> {
 
     private final Float vatPercentage;
     private final Long amount;
     private final Double percentage;
+    private final BigDecimal quantity;
 
     public TestServiceCharge(
         Float vatPercentage,
         Long amount,
-        Double percentage
+        Double percentage,
+        BigDecimal quantity
     ) {
         this.vatPercentage = vatPercentage;
         this.percentage = percentage;
         this.amount = amount;
+        this.quantity = quantity;
     }
 
     @Override
@@ -33,10 +38,11 @@ public class TestServiceCharge implements ServiceCharge<TestServiceCharge> {
 
     @Override
     public TestServiceCharge inverse() {
-        if (null != amount) {
-            return new TestServiceCharge(vatPercentage, -1 * amount, percentage);
-        }
+        return new TestServiceCharge(vatPercentage, amount, percentage, quantity.negate());
+    }
 
-        return new TestServiceCharge(vatPercentage, null, percentage);
+    @Override
+    public BigDecimal getQuantity() {
+        return quantity;
     }
 }

@@ -3,9 +3,14 @@ package com.izettle.cart;
 import static com.izettle.cart.CartUtils.coalesce;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 
 public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>>
@@ -24,7 +29,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     private final Long grossVat;
 
     /**
-     * Produces a new immutable cart object from two lists if Items and Discounts
+     * Produces a new immutable cart object from Items, Discounts and Service Charge
      * @param items the list of items, must not be empty (as a cart without items makes no sense)
      * @param discounts the list of cart wide discounts, possibly null or empty
      * @param serviceCharge The applied service charge, possibly null
@@ -47,8 +52,151 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     }
 
     /**
+     * Creates a new cart representing the results after altering quantities of some of the items. This would typically
+     * be used when doing a partial refund
+     * This instance is immutable and unaffected by this method call.
+     * @param alteration The items to be altered in the cart. Needs to be a subset of the items in this cart
+     * @return A newly created cart representing the state after the alteration. This cart is not intended to be exposed
+     * outside of this package
+     */
+    Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> applyAlteration(
+            final Map<Object, BigDecimal> alteration
+    ) {
+        final MathContext mathContext = new MathContext(20, CartUtils.ROUNDING_MODE);
+        ItemUtils.validateQuantities(alteration.values());
+        //Verify that all referenced items are present in the original cart
+        AlterationUtils.validateItems(this, alteration);
+        //reduce items
+        final List<AlteredCartItem> remainingItems = new LinkedList<AlteredCartItem>();
+        for (ItemLine<T, D> itemLine : this.getItemLines()) {
+            final T originalItem = itemLine.getItem();
+            final AlteredCartItem newItem;
+            if (alteration.containsKey(originalItem.getId())) {
+                final BigDecimal quantityChange = alteration.get(originalItem.getId());
+                final BigDecimal newQuantity = originalItem.getQuantity().add(quantityChange);
+                if (originalItem.getDiscount() != null && originalItem.getDiscount().getAmount() != null) {
+                    final BigDecimal quantityChangeRatio = newQuantity.divide(originalItem.getQuantity(), mathContext);
+                    final BigDecimal newDiscountQuantity = originalItem
+                        .getDiscount()
+                        .getQuantity()
+                        .multiply(quantityChangeRatio);
+                    final AlteredCartDiscount newDiscount = AlteredCartDiscount
+                        .from(originalItem.getDiscount())
+                        .withQuantity(newDiscountQuantity);
+                    newItem = AlteredCartItem
+                        .from(originalItem)
+                        .withQuantity(newQuantity)
+                        .withDiscount(newDiscount);
+                } else {
+                    newItem = AlteredCartItem
+                        .from(originalItem)
+                        .withQuantity(newQuantity);
+                }
+            } else {
+                newItem = AlteredCartItem.from(originalItem);
+            }
+            if (newItem.getQuantity().compareTo(BigDecimal.ZERO) != 0) {
+                remainingItems.add(newItem);
+            }
+        }
+        final long newGrossValue = CartUtils.getGrossValue(remainingItems);
+        final List<AlteredCartDiscount> remainingDiscounts;
+        final AlteredCartServiceCharge remainingServiceCharge;
+        if (this.grossValue != 0) {
+            //how much the gross value of the cart has changed
+            final BigDecimal grossValueRatio = BigDecimal.valueOf(newGrossValue)
+                .divide(BigDecimal.valueOf(this.grossValue), mathContext);
+            //reduce discounts
+            remainingDiscounts = new LinkedList<AlteredCartDiscount>();
+            for (DiscountLine<K> discountLine : discountLines) {
+                final K oldDiscount = discountLine.getDiscount();
+                final BigDecimal newQuantity = oldDiscount.getQuantity().multiply(grossValueRatio);
+                final AlteredCartDiscount newDiscount = AlteredCartDiscount.from(oldDiscount).withQuantity(newQuantity);
+                remainingDiscounts.add(newDiscount);
+            }
+            //reduce service charge
+            if (serviceChargeLine == null) {
+                remainingServiceCharge = null;
+            } else {
+                final S oldServiceCharge = serviceChargeLine.getServiceCharge();
+                final BigDecimal newQuantity = oldServiceCharge.getQuantity().multiply(grossValueRatio);
+                remainingServiceCharge = AlteredCartServiceCharge.from(oldServiceCharge).withQuantity(newQuantity);
+            }
+        } else {
+            //previous cart held no gross value, just copy discounts and service charge as-is
+            remainingDiscounts = new LinkedList<AlteredCartDiscount>();
+            for (DiscountLine<K> discountLine : discountLines) {
+                remainingDiscounts.add(AlteredCartDiscount.from(discountLine.getDiscount()));
+            }
+            if (serviceChargeLine == null) {
+                remainingServiceCharge = null;
+            } else {
+                remainingServiceCharge = AlteredCartServiceCharge.from(serviceChargeLine.getServiceCharge());
+            }
+        }
+        return new Cart(remainingItems, remainingDiscounts, remainingServiceCharge);
+    }
+
+    /**
+     * Creates a new cart representing the results after performing multiple quantity alterations of some of the items.
+     * This would typically be used when doing a partial refund
+     * This instance is immutable and unaffected by this method call.
+     * @param alterations The items to be altered in the cart. Needs to be a subset of the items in this cart
+     * @return A newly created cart representing the reduced cart
+     */
+    Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> applyAlterations(
+            final List<Map<Object, BigDecimal>> alterations
+    ) {
+        final Map<Object, BigDecimal> mergedAlterations = AlterationUtils.mergeAlterations(alterations);
+        return applyAlteration(mergedAlterations);
+    }
+
+    /**
+     * Because it's impossible to calculate the value of a refund or addition without the context of it's original cart
+     * and possible previous alterations, this method does just that: calculates the value of a specific alteration.
+     * As an example, let's consider a cart of 2 apples and 1 carrot with a % discount on the entire cart. First, there
+     * is an alteration where one of the apples is returned. Then the carrot is returned, and now we ask: "How much
+     * money is the return of the carrot worth?"
+     * @param previousAlterations possibly previous alterations that needs to be taken into consideration
+     * @param alteration the altered quantities to apply
+     * @return the value of the alteration
+     */
+    public AlterationCart<T, D, K, S> createAlterationCart(
+        final List<Map<Object, BigDecimal>> previousAlterations,
+        final Map<Object, BigDecimal> alteration
+    ) {
+        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartBeforeLastAlteration
+            = applyAlterations(previousAlterations);
+        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartAfterLatestAlteration
+            = cartBeforeLastAlteration.applyAlteration(alteration);
+        return new AlterationCart(cartBeforeLastAlteration, cartAfterLatestAlteration);
+    }
+
+    /**
+     * Utility method to retrieve what items and the quantity is available for alteration, while keeping the quantities
+     * non-negative.
+     * @param previousAlterations possibly previous alterations that needs to be taken into consideration
+     * @return A map of quantities available for alteration
+    */
+    public Map<Object, BigDecimal> getRemainingItems(final List<Map<Object, BigDecimal>> previousAlterations) {
+        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartAfterAlterations
+            = applyAlterations(previousAlterations);
+        final Map<Object, BigDecimal> alterableItems = new HashMap<Object, BigDecimal>();
+        if (cartAfterAlterations.itemLines != null) {
+            for (ItemLine<AlteredCartItem, AlteredCartDiscount> itemLine : cartAfterAlterations.itemLines) {
+                final AlteredCartItem item = itemLine.getItem();
+                if (item.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
+                    alterableItems.put(item.getId(), item.getQuantity());
+                }
+            }
+        }
+        return alterableItems;
+    }
+
+    /**
      * Produces a new cart that is inversed, eg an identical cart where all quantities are negated. Useful for example
      * for refunds
+     * This instance is immutable and unaffected by this method call.
      * @return the inversed cart
      */
     public Cart<T, D, K, S> inverse() {

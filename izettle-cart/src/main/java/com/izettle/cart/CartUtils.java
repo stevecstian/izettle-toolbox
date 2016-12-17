@@ -6,7 +6,7 @@ import java.util.*;
 
 class CartUtils {
 
-    private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
+    static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
 
     private CartUtils() {
     }
@@ -412,17 +412,23 @@ class CartUtils {
         }
 
         final long actualValue = grossValue - coalesce(cartWideDiscountValue, 0L);
-
-        final Long serviceChargeFromPercent;
-        if (serviceCharge.getPercentage() == null) {
-            serviceChargeFromPercent = null;
-        } else {
-            serviceChargeFromPercent = round(actualValue * serviceCharge.getPercentage() / 100);
+        BigDecimal retVal = null;
+        if (serviceCharge.getAmount() != null) {
+            retVal = BigDecimal.valueOf(serviceCharge.getAmount());
         }
-
-        return (serviceChargeFromPercent == null && serviceCharge.getAmount() == null)
-            ? null
-            : (coalesce(serviceCharge.getAmount(), 0L) + coalesce(serviceChargeFromPercent, 0L));
+        if (serviceCharge.getPercentage() != null) {
+            retVal = coalesce(retVal, BigDecimal.ZERO)
+                .add(
+                    BigDecimal.valueOf(actualValue)
+                    .abs()
+                    .multiply(BigDecimal.valueOf(serviceCharge.getPercentage()))
+                    .divide(BigDecimal.valueOf(100L))
+                );
+        }
+        if (retVal != null) {
+            return round(retVal.multiply(serviceCharge.getQuantity()));
+        }
+        return null;
     }
 
     public static <T, S extends T> T coalesce(T subject, S fallback) {
