@@ -40,4 +40,11 @@ public interface Item<T, K extends Discount<?>> {
      * @return
      */
     K getDiscount();
+
+    /**
+     * The identifier of the item in relation to other line items in the cart
+     * @param <I> the type of the identifier, can be of any type as long as it's comparable
+     * @return the identifier of the item
+     */
+    <I extends Object> Comparable<I> getId();
 }
