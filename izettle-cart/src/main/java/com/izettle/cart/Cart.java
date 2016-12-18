@@ -3,9 +3,15 @@ package com.izettle.cart;
 import static com.izettle.cart.CartUtils.coalesce;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 
 public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>>
@@ -24,7 +30,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     private final Long grossVat;
 
     /**
-     * Produces a new immutable cart object from two lists if Items and Discounts
+     * Produces a new immutable cart object from Items, Discounts and Service Charge
      * @param items the list of items, must not be empty (as a cart without items makes no sense)
      * @param discounts the list of cart wide discounts, possibly null or empty
      * @param serviceCharge The applied service charge, possibly null
@@ -47,8 +53,142 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     }
 
     /**
+     * Creates a new cart representing the results after altering quantities of some of the items. This would typically
+     * be used when doing a partial refund
+     * This instance is immutable and unaffected by this method call.
+     * @param alteration The items to be altered in the cart. Needs to be a subset of the items in this cart
+     * @return A newly created cart representing the state after the alteration. This cart is not intended to be exposed
+     * outside of this package
+     */
+    <I extends Comparable<?>> Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge>
+        applyAlteration(
+            final Map<I, BigDecimal> alteration
+    ) {
+        ItemUtils.validateQuantities(alteration.values());
+        //Verify that all referenced items are present in the original cart
+        AlterationUtils.validateItems(this, alteration);
+        //reduce items
+        final List<TempItem> remainingItems = new LinkedList<TempItem>();
+        for (ItemLine<T, D> itemLine : this.getItemLines()) {
+            final T originalItem = itemLine.getItem();
+            TempItem newItem = null;
+            for (Map.Entry<I, BigDecimal> entry : alteration.entrySet()) {
+                final I itemIdentifier = entry.getKey();
+                final BigDecimal quantityChange = entry.getValue();
+                if (itemIdentifier.equals(originalItem.getId())) {
+                    final BigDecimal newQuantity = originalItem.getQuantity().add(quantityChange);
+                    newItem = TempItem.from(originalItem).withQuantity(newQuantity);
+                }
+            }
+            if (newItem == null) {
+                newItem = TempItem.from(originalItem);
+            }
+            if (newItem.getQuantity().compareTo(BigDecimal.ZERO) != 0) {
+                remainingItems.add(newItem);
+            }
+        }
+        final long newGrossValue = CartUtils.getGrossValue(remainingItems);
+        final List<TempDiscount> remainingDiscounts;
+        final TempServiceCharge remainingServiceCharge;
+        if (this.grossValue != 0) {
+            //how much the gross value of the cart has changed
+            final BigDecimal grossValueRatio = BigDecimal.valueOf(newGrossValue)
+                .divide(BigDecimal.valueOf(this.grossValue), 20, RoundingMode.HALF_UP);
+            //reduce discounts
+            remainingDiscounts = new LinkedList<TempDiscount>();
+            for (DiscountLine<K> discountLine : discountLines) {
+                final K oldDiscount = discountLine.getDiscount();
+                final BigDecimal newQuantity = oldDiscount.getQuantity().multiply(grossValueRatio);
+                final TempDiscount newDiscount = TempDiscount.from(oldDiscount).withQuantity(newQuantity);
+                remainingDiscounts.add(newDiscount);
+            }
+            //reduce service charge
+            if (serviceChargeLine == null) {
+                remainingServiceCharge = null;
+            } else {
+                final S oldServiceCharge = serviceChargeLine.getServiceCharge();
+                final BigDecimal newQuantity = oldServiceCharge.getQuantity().multiply(grossValueRatio);
+                remainingServiceCharge = TempServiceCharge.from(oldServiceCharge).withQuantity(newQuantity);
+            }
+        } else {
+            //previous cart held no gross value, just copy discounts and service charge as-is
+            remainingDiscounts = new LinkedList<TempDiscount>();
+            for (DiscountLine<K> discountLine : discountLines) {
+                remainingDiscounts.add(TempDiscount.from(discountLine.getDiscount()));
+            }
+            if (serviceChargeLine == null) {
+                remainingServiceCharge = null;
+            } else {
+                remainingServiceCharge = TempServiceCharge.from(serviceChargeLine.getServiceCharge());
+            }
+        }
+        return new Cart(remainingItems, remainingDiscounts, remainingServiceCharge);
+    }
+
+    /**
+     * Creates a new cart representing the results after performing multiple quantity alterations of some of the items.
+     * This would typically be used when doing a partial refund
+     * This instance is immutable and unaffected by this method call.
+     * @param alteredItems The items to be altered in the cart. Needs to be a subset of the items in this cart
+     * @return A newly created cart representing the reduced cart
+     */
+    <I extends Comparable<?>> Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge>
+        applyAlterations(
+            final List<Map<I, BigDecimal>> alterations
+    ) {
+        final Map<Comparable<?>, BigDecimal> mergedAlterations = AlterationUtils.mergeAlterations(alterations);
+        return applyAlteration(mergedAlterations);
+    }
+
+    /**
+     * Because it's impossible to calculate the value of an alteration without the context of it's original cart and
+     * possible previous alterations, this method does just that: calculates the value of a specific alteration.
+     * @param <I> the type of the item identifier
+     * @param previousAlterations possibly previous alterations that needs to be taken into consideration
+     * @param alteration the altered quantities to apply
+     * @return the value of the alteration
+     */
+    public <I extends Comparable<I>> long getAlterationValue(
+        final List<Map<I, BigDecimal>> previousAlterations,
+        final Map<I, BigDecimal> alteration
+    ) {
+        final Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge> cartAfterPreviousAlterations
+            = applyAlterations(previousAlterations);
+        final Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge> afterLatestAlteration
+            = cartAfterPreviousAlterations.applyAlteration(alteration);
+        final long valueAfterPreviousAlterations = cartAfterPreviousAlterations.getValue();
+        final long valueAfterNewAlteration = afterLatestAlteration.getValue();
+        return valueAfterPreviousAlterations - valueAfterNewAlteration;
+    }
+
+    /**
+     * Utility method to retrieve what items and the quantity is available for alteration, while keeping the quantities
+     * non-negative.
+     * @param <I> the type of the item identifier
+     * @param previousAlterations possibly previous alterations that needs to be taken into consideration
+     * @return A map of quantities available for alteration
+    */
+    public <I extends Comparable<?>> Map<Comparable<?>, BigDecimal> getAlterableItems(
+        final List<Map<I, BigDecimal>> previousAlterations
+    ) {
+        final Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge> cartAfterAlterations
+            = applyAlterations(previousAlterations);
+        final Map<Comparable<?>, BigDecimal> alterableItems = new HashMap<Comparable<?>, BigDecimal>();
+        if (cartAfterAlterations.itemLines != null) {
+            for (ItemLine<TempItem, TempDiscount> itemLine : cartAfterAlterations.itemLines) {
+                final TempItem item = itemLine.getItem();
+                if (item.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
+                    alterableItems.put(item.getId(), item.getQuantity());
+                }
+            }
+        }
+        return alterableItems;
+    }
+
+    /**
      * Produces a new cart that is inversed, eg an identical cart where all quantities are negated. Useful for example
      * for refunds
+     * This instance is immutable and unaffected by this method call.
      * @return the inversed cart
      */
     public Cart<T, D, K, S> inverse() {

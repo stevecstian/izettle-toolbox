@@ -70,7 +70,7 @@ public class CartTest {
         List<TestItem> items = new LinkedList<TestItem>();
         items.add(createItem(1299L, 25.0f, new BigDecimal("1.0")));
         List<TestDiscount> discounts = new LinkedList<TestDiscount>();
-        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, null, 10.0D);
+        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, null, 10.0D, BigDecimal.ONE);
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart =
             new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, discounts, serviceCharge);
         assertEquals(1429, cart.getValue());
@@ -83,7 +83,7 @@ public class CartTest {
         List<TestItem> items = new LinkedList<TestItem>();
         items.add(createItem(1299L, 25.0f, new BigDecimal("1.0")));
         List<TestDiscount> discounts = new LinkedList<TestDiscount>();
-        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, 130L, null);
+        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, 130L, null, BigDecimal.ONE);
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart =
             new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, discounts, serviceCharge);
         assertEquals(1429L, cart.getValue());
@@ -96,7 +96,7 @@ public class CartTest {
         List<TestItem> items = new LinkedList<TestItem>();
         items.add(createItem(1299L, 25.0f, new BigDecimal("1.0")));
         List<TestDiscount> discounts = new LinkedList<TestDiscount>();
-        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, 130L, 10.0D);
+        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, 130L, 10.0D, BigDecimal.ONE);
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart =
             new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, discounts, serviceCharge);
         assertEquals(1559L, cart.getValue());
@@ -108,7 +108,7 @@ public class CartTest {
     public void itShouldHandleNullVatProperly() {
         List<TestItem> items = new LinkedList<TestItem>();
         items.add(createItem(1299L, null, new BigDecimal("1.0")));
-        TestServiceCharge serviceCharge = new TestServiceCharge(null, 130L, null);
+        TestServiceCharge serviceCharge = new TestServiceCharge(null, 130L, null, BigDecimal.ONE);
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart =
             new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, null, serviceCharge);
         assertEquals(1429L, cart.getValue());
@@ -248,7 +248,7 @@ public class CartTest {
 
         List<TestDiscount> discounts = new LinkedList<TestDiscount>();
         discounts.add(new TestDiscount(2L, 0.0D, BigDecimal.TEN));
-        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, null, 10.0D);
+        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, null, 10.0D, BigDecimal.ONE);
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart =
             new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, discounts, serviceCharge);
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> inversedCart = cart.inverse();
@@ -256,6 +256,7 @@ public class CartTest {
         assEq(-1 * cart.getValue(), inversedCart.getValue());
         assEq(-1 * cart.getDiscountValue(), inversedCart.getDiscountValue());
         assEq(-1 * cart.getActualVat(), inversedCart.getActualVat());
+        assEq(-1 * cart.getServiceChargeValue(), inversedCart.getServiceChargeValue());
         assertEquals(cart.getItemLines().size(), inversedCart.getItemLines().size());
     }
 
@@ -364,7 +365,7 @@ public class CartTest {
         items.add(createItem(3500L, 12.0f, new BigDecimal("4.0")));
         items.add(createItem(1200L, 25.0f, BigDecimal.ONE));
         items.add(createItem(999999L, 98.0f, new BigDecimal("3.0")));
-        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, null, 10.0D);
+        TestServiceCharge serviceCharge = new TestServiceCharge(20.0f, null, 10.0D, BigDecimal.ONE);
 
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart1 =
             new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, null, serviceCharge);
