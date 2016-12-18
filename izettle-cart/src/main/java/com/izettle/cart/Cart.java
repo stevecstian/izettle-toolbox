@@ -4,7 +4,9 @@ import static com.izettle.cart.CartUtils.coalesce;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 
@@ -24,7 +26,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     private final Long grossVat;
 
     /**
-     * Produces a new immutable cart object from two lists if Items and Discounts
+     * Produces a new immutable cart object from Items, Discounts and Service Charge
      * @param items the list of items, must not be empty (as a cart without items makes no sense)
      * @param discounts the list of cart wide discounts, possibly null or empty
      * @param serviceCharge The applied service charge, possibly null
@@ -47,8 +49,49 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     }
 
     /**
+     * Creates a immutable cart representing a refund of the specified items.
+     * This instance is immutable and unaffected by this method call.
+     * @param itemsToRefund The items to be refunded. Needs to be a subset of the items in this cart
+     * @param previousRefunds Previous refunds that has been made on this cart. These refunds are necessary to be able
+     * to figure out rounding distribution (consecutive refunds could otherwise add up to more or less than the original
+     * cart or item line), and when multiple refunds has accounted for the entire original cart.
+     * @return A newly created cart representing the refund
+    */
+    public Cart<T, D, K, S> refund(
+        final Collection<Cart<T, D, K, S>> previousRefunds,
+        final Collection<T> itemsToRefund
+    ) {
+        ItemUtils.validateItems(itemsToRefund);
+
+        //VALIDATE
+        //All referenced items are in the original cart
+        RefundUtils.validateItems(this, previousRefunds, itemsToRefund);
+
+        //DISTRIBUTE
+        //Make sure that there is no accumulated rounding effect
+        //Choose the value with the least abnormal delta
+
+        //CREATE NEW CART
+        //Copy possible discounts to the new cart
+        //Copy possible serviceCharge to the new cart
+        //Create new line items for the refunded items in the new cart
+        final List<T> items = new LinkedList<T>();
+        if (itemLines != null) {
+            for (ItemLine<T, D> itemLine : itemLines) {
+                items.add(itemLine.getItem());
+            }
+        }
+        return new Cart(
+            items,
+            discountLines,
+            serviceChargeLine != null ? serviceChargeLine.getServiceCharge() : null
+        );
+    }
+
+    /**
      * Produces a new cart that is inversed, eg an identical cart where all quantities are negated. Useful for example
      * for refunds
+     * This instance is immutable and unaffected by this method call.
      * @return the inversed cart
      */
     public Cart<T, D, K, S> inverse() {
