@@ -1,5 +1,6 @@
 package com.izettle.tlv;
 
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -177,4 +178,36 @@ public class TLVDecoderTest {
         Assert.assertEquals(2, decodedTags.size());
     }
 
+    @Test
+    public void shouldDecodeTLVDataWithFourByteLengthOfIntMaxValue() throws Exception {
+        // Arrange
+        final byte[] tlvData = Hex.hexToByteArray("9A847FFFFFFF");
+        thrown.expect(TLVException.class);
+        thrown.expectMessage("Tag 9A exceeds data length");
+
+        // Act
+        new TLVDecoder().decode(tlvData);
+    }
+
+    @Test
+    public void shouldDecodeTLVDataWithFourByteLengthOfAlmostIntMaxValue() throws Exception {
+        // Arrange
+        final byte[] tlvData = Hex.hexToByteArray("9A847FFFFFFA");
+        thrown.expect(TLVException.class);
+        thrown.expectMessage("Tag 9A exceeds data length");
+
+        // Act
+        new TLVDecoder().decode(tlvData);
+    }
+
+    @Test
+    public void shouldThrowExceptionOnMalformedInputData() throws Exception {
+        // Arrange
+        final byte[] tlvData = Hex.hexToByteArray("6A88");
+        thrown.expect(TLVException.class);
+        thrown.expectMessage(startsWith("Malformed length"));
+
+        // Act
+        new TLVDecoder().decode(tlvData);
+    }
 }
