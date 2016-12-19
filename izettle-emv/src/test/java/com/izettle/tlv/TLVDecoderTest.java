@@ -201,6 +201,17 @@ public class TLVDecoderTest {
     }
 
     @Test
+    public void shouldDecodeTLVDataWithFourByteLengthThatOverflowsIntMaxValueToMinusOne() throws Exception {
+        // Arrange
+        final byte[] tlvData = Hex.hexToByteArray("9A84FFFFFFFF");
+        thrown.expect(TLVException.class);
+        thrown.expectMessage("Length of tag 9A is negative");
+
+        // Act
+        new TLVDecoder().decode(tlvData);
+    }
+
+    @Test
     public void shouldThrowExceptionOnMalformedInputData() throws Exception {
         // Arrange
         final byte[] tlvData = Hex.hexToByteArray("6A88");

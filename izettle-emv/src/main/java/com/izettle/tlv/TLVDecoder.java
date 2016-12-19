@@ -92,6 +92,9 @@ public class TLVDecoder {
 
         ++offset; // Now positioned at first data byte
 
+        if (length < 0) {
+            throw new TLVException("Length of tag " + Hex.toHexString(tag) + " is negative");
+        }
         if (length > input.length - offset) {
             throw new TLVException("Tag " + Hex.toHexString(tag) + " exceeds data length");
         }
