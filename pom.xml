@@ -59,7 +59,7 @@
 
         <assertj-core.version>3.4.1</assertj-core.version>
         <astyanax.version>3.9.0</astyanax.version>
-        <aws.version>1.11.63</aws.version>
+        <aws.version>1.11.73</aws.version>
         <bouncycastle.version>1.55</bouncycastle.version>
         <cassandra-unit.version>3.0.0.1</cassandra-unit.version>
         <findbugs-maven-plugin.version>3.0.3</findbugs-maven-plugin.version>
