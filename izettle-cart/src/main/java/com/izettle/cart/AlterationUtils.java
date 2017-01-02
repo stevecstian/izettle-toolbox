@@ -1,5 +1,7 @@
 package com.izettle.cart;
 
+import static com.izettle.cart.CartUtils.coalesce;
+
 import com.izettle.cart.exception.InsufficientQuantityException;
 import com.izettle.cart.exception.UnknownItemException;
 import java.math.BigDecimal;
@@ -64,17 +66,10 @@ public class AlterationUtils {
                 for (Entry<I, BigDecimal> entry : previousAlteration.entrySet()) {
                     final I id = entry.getKey();
                     final BigDecimal quantity = entry.getValue();
-                    mergedAlterations.put(id, getOrDefault(mergedAlterations, id, BigDecimal.ZERO).add(quantity));
+                    mergedAlterations.put(id, coalesce(mergedAlterations.get(id), BigDecimal.ZERO).add(quantity));
                 }
             }
         }
         return mergedAlterations;
-    }
-
-    private static <I extends Comparable<I>, V> V getOrDefault(Map<I, V> map, Object key, V defaultValue) {
-        V v;
-        return (((v = map.get(key)) != null) || map.containsKey(key))
-            ? v
-            : defaultValue;
     }
 }
