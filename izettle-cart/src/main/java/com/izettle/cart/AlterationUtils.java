@@ -37,7 +37,7 @@ public class AlterationUtils {
         }
     }
 
-    private static <T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>, I extends Comparable<?>>
+    private static <T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>, I extends Comparable<I>>
         Map<Comparable<?>, BigDecimal> getQuantityById(
         final Cart<T, D, K, S> cart
     ) {
@@ -54,20 +54,27 @@ public class AlterationUtils {
         return quantityById;
     }
 
-    static <I extends Comparable<?>> Map<Comparable<?>, BigDecimal> mergeAlterations(
+    static <I extends Comparable<I>> Map<I, BigDecimal> mergeAlterations(
         final List<Map<I, BigDecimal>> alterations
     ) {
         //aggregate all alterations into one:
-        final Map<Comparable<?>, BigDecimal> mergedAlterations = new HashMap<Comparable<?>, BigDecimal>();
+        final Map<I, BigDecimal> mergedAlterations = new HashMap<I, BigDecimal>();
         if (alterations != null) {
             for (Map<I, BigDecimal> previousAlteration : alterations) {
                 for (Entry<I, BigDecimal> entry : previousAlteration.entrySet()) {
                     final I id = entry.getKey();
                     final BigDecimal quantity = entry.getValue();
-                    mergedAlterations.put(id, mergedAlterations.getOrDefault(id, BigDecimal.ZERO).add(quantity));
+                    mergedAlterations.put(id, getOrDefault(mergedAlterations, id, BigDecimal.ZERO).add(quantity));
                 }
             }
         }
         return mergedAlterations;
+    }
+
+    private static <I extends Comparable<I>, V> V getOrDefault(Map<I, V> map, Object key, V defaultValue) {
+        V v;
+        return (((v = map.get(key)) != null) || map.containsKey(key))
+            ? v
+            : defaultValue;
     }
 }

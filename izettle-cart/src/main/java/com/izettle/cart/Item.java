@@ -46,5 +46,5 @@ public interface Item<T, K extends Discount<?>> {
      * @param <I> the type of the identifier, can be of any type as long as it's comparable
      * @return the identifier of the item
      */
-    <I extends Object> Comparable<I> getId();
+    <I extends Comparable<I>> Comparable<I> getId();
 }

@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.SortedMap;
 
 public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>>
@@ -129,14 +128,14 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * Creates a new cart representing the results after performing multiple quantity alterations of some of the items.
      * This would typically be used when doing a partial refund
      * This instance is immutable and unaffected by this method call.
-     * @param alteredItems The items to be altered in the cart. Needs to be a subset of the items in this cart
+     * @param alterations The items to be altered in the cart. Needs to be a subset of the items in this cart
      * @return A newly created cart representing the reduced cart
      */
-    <I extends Comparable<?>> Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge>
+    <I extends Comparable<I>> Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge>
         applyAlterations(
             final List<Map<I, BigDecimal>> alterations
     ) {
-        final Map<Comparable<?>, BigDecimal> mergedAlterations = AlterationUtils.mergeAlterations(alterations);
+        final Map<I, BigDecimal> mergedAlterations = AlterationUtils.mergeAlterations(alterations);
         return applyAlteration(mergedAlterations);
     }
 
@@ -168,7 +167,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @param previousAlterations possibly previous alterations that needs to be taken into consideration
      * @return A map of quantities available for alteration
     */
-    public <I extends Comparable<?>> Map<Comparable<?>, BigDecimal> getAlterableItems(
+    public <I extends Comparable<I>> Map<Comparable<?>, BigDecimal> getAlterableItems(
         final List<Map<I, BigDecimal>> previousAlterations
     ) {
         final Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge> cartAfterAlterations
