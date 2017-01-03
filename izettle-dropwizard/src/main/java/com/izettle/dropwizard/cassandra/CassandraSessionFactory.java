@@ -55,14 +55,22 @@ public class CassandraSessionFactory {
     }
 
     public CassandraSessionManaged build(Environment environment) {
+        return build(environment, null);
+    }
+
+    public CassandraSessionManaged build(Environment environment, String localDc) {
         PoolingOptions poolingOptions = new PoolingOptions();
         poolingOptions.setConnectionsPerHost(HostDistance.LOCAL,  3, 5)
             .setConnectionsPerHost(HostDistance.REMOTE, 1, 2);
+        final DCAwareRoundRobinPolicy.Builder builder = DCAwareRoundRobinPolicy.builder();
+        if (localDc != null) {
+            builder.withLocalDc(localDc);
+        }
         final Cluster cluster = Cluster
             .builder()
             .withRetryPolicy(DefaultRetryPolicy.INSTANCE)
             .withReconnectionPolicy(new ExponentialReconnectionPolicy(10L, 1000L))
-            .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))
+            .withLoadBalancingPolicy(new TokenAwarePolicy(builder.build()))
             .addContactPoints(getContactPoints().stream().toArray(String[]::new))
             .withPort(getPort())
             .withSpeculativeExecutionPolicy(new ConstantSpeculativeExecutionPolicy(1000, 2))
