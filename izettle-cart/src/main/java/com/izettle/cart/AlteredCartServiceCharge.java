@@ -5,15 +5,15 @@ import java.math.BigDecimal;
 /**
  * Concrete implementation of ServiceCharge interface used for internal temporary calculations: never exposed publicly
  */
-class TempServiceCharge implements ServiceCharge<TempServiceCharge> {
+class AlteredCartServiceCharge implements ServiceCharge<AlteredCartServiceCharge> {
 
     private final Float vatPercentage;
     private final Long amount;
     private final Double percentage;
     private final BigDecimal quantity;
 
-    static <S extends ServiceCharge<S>> TempServiceCharge from(final S serviceCharge) {
-        return new TempServiceCharge(
+    static <S extends ServiceCharge<S>> AlteredCartServiceCharge from(final S serviceCharge) {
+        return new AlteredCartServiceCharge(
             serviceCharge.getVatPercentage(),
             serviceCharge.getAmount(),
             serviceCharge.getPercentage(),
@@ -21,7 +21,7 @@ class TempServiceCharge implements ServiceCharge<TempServiceCharge> {
         );
     }
 
-    private TempServiceCharge(
+    private AlteredCartServiceCharge(
         final Float vatPercentage,
         final Long amount,
         final Double percentage,
@@ -49,12 +49,12 @@ class TempServiceCharge implements ServiceCharge<TempServiceCharge> {
     }
 
     @Override
-    public TempServiceCharge inverse() {
-        return new TempServiceCharge(vatPercentage, amount, percentage, quantity.negate());
+    public AlteredCartServiceCharge inverse() {
+        return new AlteredCartServiceCharge(vatPercentage, amount, percentage, quantity.negate());
     }
 
-    public TempServiceCharge withQuantity(final BigDecimal newQuantity) {
-        return new TempServiceCharge(vatPercentage, amount, percentage, newQuantity);
+    public AlteredCartServiceCharge withQuantity(final BigDecimal newQuantity) {
+        return new AlteredCartServiceCharge(vatPercentage, amount, percentage, newQuantity);
     }
 
     @Override

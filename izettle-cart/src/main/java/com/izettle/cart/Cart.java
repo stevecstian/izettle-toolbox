@@ -59,7 +59,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @return A newly created cart representing the state after the alteration. This cart is not intended to be exposed
      * outside of this package
      */
-    <I extends Comparable<?>> Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge>
+    <I extends Comparable<I>> Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge>
         applyAlteration(
             final Map<I, BigDecimal> alteration
     ) {
@@ -67,38 +67,34 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         //Verify that all referenced items are present in the original cart
         AlterationUtils.validateItems(this, alteration);
         //reduce items
-        final List<TempItem> remainingItems = new LinkedList<TempItem>();
+        final List<AlteredCartItem> remainingItems = new LinkedList<AlteredCartItem>();
         for (ItemLine<T, D> itemLine : this.getItemLines()) {
             final T originalItem = itemLine.getItem();
-            TempItem newItem = null;
-            for (Map.Entry<I, BigDecimal> entry : alteration.entrySet()) {
-                final I itemIdentifier = entry.getKey();
-                final BigDecimal quantityChange = entry.getValue();
-                if (itemIdentifier.equals(originalItem.getId())) {
-                    final BigDecimal newQuantity = originalItem.getQuantity().add(quantityChange);
-                    newItem = TempItem.from(originalItem).withQuantity(newQuantity);
-                }
-            }
-            if (newItem == null) {
-                newItem = TempItem.from(originalItem);
+            final AlteredCartItem newItem;
+            if (alteration.containsKey(originalItem.getId())) {
+                final BigDecimal quantityChange = alteration.get(originalItem.getId());
+                final BigDecimal newQuantity = originalItem.getQuantity().add(quantityChange);
+                newItem = AlteredCartItem.from(originalItem).withQuantity(newQuantity);
+            } else {
+                newItem = AlteredCartItem.from(originalItem);
             }
             if (newItem.getQuantity().compareTo(BigDecimal.ZERO) != 0) {
                 remainingItems.add(newItem);
             }
         }
         final long newGrossValue = CartUtils.getGrossValue(remainingItems);
-        final List<TempDiscount> remainingDiscounts;
-        final TempServiceCharge remainingServiceCharge;
+        final List<AlteredCartDiscount> remainingDiscounts;
+        final AlteredCartServiceCharge remainingServiceCharge;
         if (this.grossValue != 0) {
             //how much the gross value of the cart has changed
             final BigDecimal grossValueRatio = BigDecimal.valueOf(newGrossValue)
                 .divide(BigDecimal.valueOf(this.grossValue), 20, RoundingMode.HALF_UP);
             //reduce discounts
-            remainingDiscounts = new LinkedList<TempDiscount>();
+            remainingDiscounts = new LinkedList<AlteredCartDiscount>();
             for (DiscountLine<K> discountLine : discountLines) {
                 final K oldDiscount = discountLine.getDiscount();
                 final BigDecimal newQuantity = oldDiscount.getQuantity().multiply(grossValueRatio);
-                final TempDiscount newDiscount = TempDiscount.from(oldDiscount).withQuantity(newQuantity);
+                final AlteredCartDiscount newDiscount = AlteredCartDiscount.from(oldDiscount).withQuantity(newQuantity);
                 remainingDiscounts.add(newDiscount);
             }
             //reduce service charge
@@ -107,18 +103,18 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             } else {
                 final S oldServiceCharge = serviceChargeLine.getServiceCharge();
                 final BigDecimal newQuantity = oldServiceCharge.getQuantity().multiply(grossValueRatio);
-                remainingServiceCharge = TempServiceCharge.from(oldServiceCharge).withQuantity(newQuantity);
+                remainingServiceCharge = AlteredCartServiceCharge.from(oldServiceCharge).withQuantity(newQuantity);
             }
         } else {
             //previous cart held no gross value, just copy discounts and service charge as-is
-            remainingDiscounts = new LinkedList<TempDiscount>();
+            remainingDiscounts = new LinkedList<AlteredCartDiscount>();
             for (DiscountLine<K> discountLine : discountLines) {
-                remainingDiscounts.add(TempDiscount.from(discountLine.getDiscount()));
+                remainingDiscounts.add(AlteredCartDiscount.from(discountLine.getDiscount()));
             }
             if (serviceChargeLine == null) {
                 remainingServiceCharge = null;
             } else {
-                remainingServiceCharge = TempServiceCharge.from(serviceChargeLine.getServiceCharge());
+                remainingServiceCharge = AlteredCartServiceCharge.from(serviceChargeLine.getServiceCharge());
             }
         }
         return new Cart(remainingItems, remainingDiscounts, remainingServiceCharge);
@@ -131,7 +127,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @param alterations The items to be altered in the cart. Needs to be a subset of the items in this cart
      * @return A newly created cart representing the reduced cart
      */
-    <I extends Comparable<I>> Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge>
+    <I extends Comparable<I>> Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge>
         applyAlterations(
             final List<Map<I, BigDecimal>> alterations
     ) {
@@ -151,13 +147,13 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         final List<Map<I, BigDecimal>> previousAlterations,
         final Map<I, BigDecimal> alteration
     ) {
-        final Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge> cartAfterPreviousAlterations
+        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartBeforeLastAlteration
             = applyAlterations(previousAlterations);
-        final Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge> afterLatestAlteration
-            = cartAfterPreviousAlterations.applyAlteration(alteration);
-        final long valueAfterPreviousAlterations = cartAfterPreviousAlterations.getValue();
-        final long valueAfterNewAlteration = afterLatestAlteration.getValue();
-        return valueAfterPreviousAlterations - valueAfterNewAlteration;
+        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartAfterLatestAlteration
+            = cartBeforeLastAlteration.applyAlteration(alteration);
+        final long valueBeforeLastAlteration = cartBeforeLastAlteration.getValue();
+        final long valueAfterLastAlteration = cartAfterLatestAlteration.getValue();
+        return valueBeforeLastAlteration - valueAfterLastAlteration;
     }
 
     /**
@@ -170,12 +166,12 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     public <I extends Comparable<I>> Map<Comparable<?>, BigDecimal> getAlterableItems(
         final List<Map<I, BigDecimal>> previousAlterations
     ) {
-        final Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge> cartAfterAlterations
+        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartAfterAlterations
             = applyAlterations(previousAlterations);
         final Map<Comparable<?>, BigDecimal> alterableItems = new HashMap<Comparable<?>, BigDecimal>();
         if (cartAfterAlterations.itemLines != null) {
-            for (ItemLine<TempItem, TempDiscount> itemLine : cartAfterAlterations.itemLines) {
-                final TempItem item = itemLine.getItem();
+            for (ItemLine<AlteredCartItem, AlteredCartDiscount> itemLine : cartAfterAlterations.itemLines) {
+                final AlteredCartItem item = itemLine.getItem();
                 if (item.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
                     alterableItems.put(item.getId(), item.getQuantity());
                 }

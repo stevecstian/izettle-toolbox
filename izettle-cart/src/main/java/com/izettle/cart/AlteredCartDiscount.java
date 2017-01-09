@@ -5,17 +5,17 @@ import java.math.BigDecimal;
 /**
  * Concrete implementation of Discount interface used for internal temporary calculations: never exposed publicly
  */
-class TempDiscount implements Discount<TempDiscount> {
+class AlteredCartDiscount implements Discount<AlteredCartDiscount> {
 
     private final Long amount;
     private final Double percentage;
     private final BigDecimal quantity;
 
-    static <D extends Discount<D>> TempDiscount from(final D discount) {
-        return new TempDiscount(discount.getAmount(), discount.getPercentage(), discount.getQuantity());
+    static <D extends Discount<D>> AlteredCartDiscount from(final D discount) {
+        return new AlteredCartDiscount(discount.getAmount(), discount.getPercentage(), discount.getQuantity());
     }
 
-    private TempDiscount(final Long amount, final Double percentage, final BigDecimal quantity) {
+    private AlteredCartDiscount(final Long amount, final Double percentage, final BigDecimal quantity) {
         this.amount = amount;
         this.percentage = percentage;
         this.quantity = quantity;
@@ -37,12 +37,12 @@ class TempDiscount implements Discount<TempDiscount> {
     }
 
     @Override
-    public TempDiscount inverse() {
-        return new TempDiscount(amount, percentage, quantity.negate());
+    public AlteredCartDiscount inverse() {
+        return new AlteredCartDiscount(amount, percentage, quantity.negate());
     }
 
-    public TempDiscount withQuantity(final BigDecimal newQuantity) {
-        return new TempDiscount(amount, percentage, newQuantity);
+    public AlteredCartDiscount withQuantity(final BigDecimal newQuantity) {
+        return new AlteredCartDiscount(amount, percentage, newQuantity);
     }
 
 }

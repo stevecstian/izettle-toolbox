@@ -49,9 +49,8 @@ public class AlterationUtils {
         final Map<Comparable<?>, BigDecimal> quantityById = new HashMap<Comparable<?>, BigDecimal>();
         for (ItemLine<T, D> itemLine : cart.getItemLines()) {
             final T item = itemLine.getItem();
-            final Comparable<I> id = item.getId();
-            final BigDecimal quantity = CartUtils.coalesce(quantityById.get(id), BigDecimal.ZERO);
-            quantityById.put(id, quantity.add(item.getQuantity()));
+            final Comparable<?> id = item.getId();
+            quantityById.put(id, coalesce(quantityById.get(id), BigDecimal.ZERO).add(item.getQuantity()));
         }
         return quantityById;
     }

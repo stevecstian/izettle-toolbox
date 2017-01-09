@@ -5,30 +5,30 @@ import java.math.BigDecimal;
 /**
  * Concrete implementation of Item interface used for internal temporary calculations: never exposed publicly
  */
-class TempItem implements Item<TempItem, TempDiscount> {
+class AlteredCartItem implements Item<AlteredCartItem, AlteredCartDiscount> {
 
     private final long unitPrice;
     private final Float vatPercentage;
     private final BigDecimal quantity;
-    private final TempDiscount discount;
+    private final AlteredCartDiscount discount;
     private final Comparable<?> id;
 
-    static <T extends Item<T, D>, D extends Discount<D>> TempItem from(final T item) {
-        return new TempItem(
+    static <T extends Item<T, D>, D extends Discount<D>> AlteredCartItem from(final T item) {
+        return new AlteredCartItem(
             item.getId(),
             item.getUnitPrice(),
             item.getVatPercentage(),
             item.getQuantity(),
-            item.getDiscount() != null ? TempDiscount.from(item.getDiscount()) : null
+            item.getDiscount() != null ? AlteredCartDiscount.from(item.getDiscount()) : null
         );
     }
 
-    private TempItem(
+    private AlteredCartItem(
         final Comparable<?> id,
         final long unitPrice,
         final Float vatPercentage,
         final BigDecimal quantity,
-        final TempDiscount discount
+        final AlteredCartDiscount discount
     ) {
         this.id = id;
         this.unitPrice = unitPrice;
@@ -58,8 +58,8 @@ class TempItem implements Item<TempItem, TempDiscount> {
     }
 
     @Override
-    public TempItem inverse() {
-        return new TempItem(
+    public AlteredCartItem inverse() {
+        return new AlteredCartItem(
             id,
             unitPrice,
             vatPercentage,
@@ -68,8 +68,8 @@ class TempItem implements Item<TempItem, TempDiscount> {
         );
     }
 
-    public TempItem withQuantity(final BigDecimal newQuantity) {
-        return new TempItem(
+    public AlteredCartItem withQuantity(final BigDecimal newQuantity) {
+        return new AlteredCartItem(
             id,
             unitPrice,
             vatPercentage,
@@ -79,7 +79,7 @@ class TempItem implements Item<TempItem, TempDiscount> {
     }
 
     @Override
-    public TempDiscount getDiscount() {
+    public AlteredCartDiscount getDiscount() {
         return discount;
     }
 }

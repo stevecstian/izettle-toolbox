@@ -114,7 +114,7 @@ public class AlterationTest {
                 Arrays.asList(new TestDiscount(100L, null, BigDecimal.ONE)),
                 new TestServiceCharge(30f, 100L, 10d, BigDecimal.ONE)
             );
-        final Cart<TempItem, TempDiscount, TempDiscount, TempServiceCharge> alteredCart = originalCart.applyAlteration(
+        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> alteredCart = originalCart.applyAlteration(
             Maps.newHashMap(id1, BigDecimal.valueOf(4).negate())
         );
         assertEquals(originalCart.getValue(), 1750L);
