@@ -33,7 +33,7 @@ public class AlterationTest {
         final TestItem item1 = createItem(id1, 10L, null, BigDecimal.ONE);
         final TestItem item2 = createItem(id2, 10L, null, BigDecimal.ONE);
 
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> originalCart = createCart(item1, item2);
+        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID> originalCart = createCart(item1, item2);
 
         originalCart.applyAlteration(Collections.singletonMap(id3, BigDecimal.ONE));
     }
@@ -41,7 +41,7 @@ public class AlterationTest {
     @Test(expected = CartException.class)
     public void itShouldNotAcceptItemsWithGreaterQuantityThanLeftInOriginalCart() {
         final UUID id = UUID.randomUUID();
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> originalCart = createCart(
+        final Cart originalCart = createCart(
             createItem(id, 10L, null, BigDecimal.TEN)
         );
 
@@ -55,7 +55,7 @@ public class AlterationTest {
     public void itShouldAcceptEnoughRemainingQuantity() {
         final UUID id1 = UUID.randomUUID();
         final UUID id2 = UUID.randomUUID();
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> originalCart = createCart(
+        final Cart originalCart = createCart(
             createItem(id1, 10L, 30f, BigDecimal.TEN),
             createItem(id2, 100L, 30f, BigDecimal.TEN)
         );
@@ -79,7 +79,7 @@ public class AlterationTest {
     */
     public void itShouldHandleMultipleAlterationsGracefully() {
         final UUID id1 = UUID.randomUUID();
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> originalCart = createCart(
+        final Cart originalCart = createCart(
             new TestItem(id1, "", 1L, 30f, BigDecimal.TEN, new TestDiscount(null, 50d, BigDecimal.ONE))
         );
         assertEquals(originalCart.getValue(), 5L);
@@ -108,13 +108,12 @@ public class AlterationTest {
             createItem(id1, 100L, 30f, new BigDecimal("4")),
             createItem(id2, 300L, 10f, new BigDecimal("4"))
         );
-        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> originalCart =
-            new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(
-                itemList,
-                Arrays.asList(new TestDiscount(100L, null, BigDecimal.ONE)),
-                new TestServiceCharge(30f, 100L, 10d, BigDecimal.ONE)
-            );
-        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> alteredCart = originalCart.applyAlteration(
+        final Cart originalCart = new Cart(
+            itemList,
+            Arrays.asList(new TestDiscount(100L, null, BigDecimal.ONE)),
+            new TestServiceCharge(30f, 100L, 10d, BigDecimal.ONE)
+        );
+        final Cart alteredCart = originalCart.applyAlteration(
             Maps.newHashMap(id1, BigDecimal.valueOf(4).negate())
         );
         assertEquals(originalCart.getValue(), 1750L);
@@ -132,9 +131,9 @@ public class AlterationTest {
         return new TestItem(id, "", unitPrice, vatPercentage, quantity, null);
     }
 
-    private Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> createCart(TestItem... items) {
+    private Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID> createCart(TestItem... items) {
         final List<TestItem> itemList = Arrays.asList(items);
-        return new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(itemList, null, null);
+        return new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID>(itemList, null, null);
     }
 
 }

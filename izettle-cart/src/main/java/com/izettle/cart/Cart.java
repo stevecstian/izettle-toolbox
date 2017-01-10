@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 
-public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>>
+public class Cart<T extends Item<T, D, I>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>, I extends Comparable<I>>
     implements Serializable {
 
     private static final long serialVersionUID = 8764117057191413242L;
-    private final List<ItemLine<T, D>> itemLines;
+    private final List<ItemLine<T, D, I>> itemLines;
     private final List<DiscountLine<K>> discountLines;
     private final ServiceChargeLine<S> serviceChargeLine;
     private final long grossValue;
@@ -59,20 +59,17 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @return A newly created cart representing the state after the alteration. This cart is not intended to be exposed
      * outside of this package
      */
-    <I extends Comparable<I>> Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge>
-        applyAlteration(
-            final Map<I, BigDecimal> alteration
-    ) {
+    Cart applyAlteration(final Map<I, BigDecimal> alteration) {
         ItemUtils.validateQuantities(alteration.values());
         //Verify that all referenced items are present in the original cart
         AlterationUtils.validateItems(this, alteration);
         //reduce items
-        final List<AlteredCartItem> remainingItems = new LinkedList<AlteredCartItem>();
-        for (ItemLine<T, D> itemLine : this.getItemLines()) {
+        final List<AlteredCartItem<I>> remainingItems = new LinkedList<AlteredCartItem<I>>();
+        for (ItemLine<T, D, I> itemLine : this.getItemLines()) {
             final T originalItem = itemLine.getItem();
             final AlteredCartItem newItem;
-            if (alteration.containsKey(originalItem.getId())) {
-                final BigDecimal quantityChange = alteration.get(originalItem.getId());
+            if (alteration.containsKey(originalItem.getItemIdentifier())) {
+                final BigDecimal quantityChange = alteration.get(originalItem.getItemIdentifier());
                 final BigDecimal newQuantity = originalItem.getQuantity().add(quantityChange);
                 newItem = AlteredCartItem.from(originalItem).withQuantity(newQuantity);
             } else {
@@ -127,10 +124,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * @param alterations The items to be altered in the cart. Needs to be a subset of the items in this cart
      * @return A newly created cart representing the reduced cart
      */
-    <I extends Comparable<I>> Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge>
-        applyAlterations(
-            final List<Map<I, BigDecimal>> alterations
-    ) {
+    Cart applyAlterations(final List<Map<I, BigDecimal>> alterations) {
         final Map<I, BigDecimal> mergedAlterations = AlterationUtils.mergeAlterations(alterations);
         return applyAlteration(mergedAlterations);
     }
@@ -138,19 +132,16 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     /**
      * Because it's impossible to calculate the value of an alteration without the context of it's original cart and
      * possible previous alterations, this method does just that: calculates the value of a specific alteration.
-     * @param <I> the type of the item identifier
      * @param previousAlterations possibly previous alterations that needs to be taken into consideration
      * @param alteration the altered quantities to apply
      * @return the value of the alteration
      */
-    public <I extends Comparable<I>> long getAlterationValue(
+    public long getAlterationValue(
         final List<Map<I, BigDecimal>> previousAlterations,
         final Map<I, BigDecimal> alteration
     ) {
-        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartBeforeLastAlteration
-            = applyAlterations(previousAlterations);
-        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartAfterLatestAlteration
-            = cartBeforeLastAlteration.applyAlteration(alteration);
+        final Cart cartBeforeLastAlteration = applyAlterations(previousAlterations);
+        final Cart cartAfterLatestAlteration = cartBeforeLastAlteration.applyAlteration(alteration);
         final long valueBeforeLastAlteration = cartBeforeLastAlteration.getValue();
         final long valueAfterLastAlteration = cartAfterLatestAlteration.getValue();
         return valueBeforeLastAlteration - valueAfterLastAlteration;
@@ -159,21 +150,19 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     /**
      * Utility method to retrieve what items and the quantity is available for alteration, while keeping the quantities
      * non-negative.
-     * @param <I> the type of the item identifier
      * @param previousAlterations possibly previous alterations that needs to be taken into consideration
      * @return A map of quantities available for alteration
     */
-    public <I extends Comparable<I>> Map<Comparable<?>, BigDecimal> getAlterableItems(
+    public Map<I, BigDecimal> getAlterableItems(
         final List<Map<I, BigDecimal>> previousAlterations
     ) {
-        final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartAfterAlterations
-            = applyAlterations(previousAlterations);
-        final Map<Comparable<?>, BigDecimal> alterableItems = new HashMap<Comparable<?>, BigDecimal>();
+        final Cart<T, D, K, S, I> cartAfterAlterations = applyAlterations(previousAlterations);
+        final Map<I, BigDecimal> alterableItems = new HashMap<I, BigDecimal>();
         if (cartAfterAlterations.itemLines != null) {
-            for (ItemLine<AlteredCartItem, AlteredCartDiscount> itemLine : cartAfterAlterations.itemLines) {
-                final AlteredCartItem item = itemLine.getItem();
+            for (ItemLine itemLine : cartAfterAlterations.itemLines) {
+                final Item<T, K, I> item = itemLine.getItem();
                 if (item.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
-                    alterableItems.put(item.getId(), item.getQuantity());
+                    alterableItems.put(item.getItemIdentifier(), item.getQuantity());
                 }
             }
         }
@@ -186,14 +175,14 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * This instance is immutable and unaffected by this method call.
      * @return the inversed cart
      */
-    public Cart<T, D, K, S> inverse() {
+    public Cart<T, D, K, S, I> inverse() {
         //Copy all items and discounts, but negate the quantities:
         final List<T> inverseItems;
         if (itemLines.isEmpty()) {
             inverseItems = Collections.emptyList();
         } else {
             inverseItems = new ArrayList<T>(itemLines.size());
-            for (ItemLine<T, D> itemLine : itemLines) {
+            for (ItemLine<T, D, I> itemLine : itemLines) {
                 inverseItems.add(itemLine.getItem().inverse());
             }
         }
@@ -214,7 +203,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             inverseServiceCharge = serviceChargeLine.getServiceCharge().inverse();
         }
 
-        return new Cart<T, D, K, S>(inverseItems, inverseDiscounts, inverseServiceCharge);
+        return new Cart<T, D, K, S, I>(inverseItems, inverseDiscounts, inverseServiceCharge);
     }
 
     /**
@@ -230,7 +219,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
      * contain additional information, specific to the context of this cart, such as actual amounts and VATs
      * @return an immutable list of item lines
      */
-    public List<ItemLine<T, D>> getItemLines() {
+    public List<ItemLine<T, D, I>> getItemLines() {
         return Collections.unmodifiableList(itemLines);
     }
 
@@ -270,7 +259,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             numberOfDiscounts = discountLines.size();
         }
 
-        for (ItemLine<T, D> itemLine : itemLines) {
+        for (ItemLine itemLine : itemLines) {
             if (itemLine.getItem().getDiscount() != null) {
                 numberOfDiscounts++;
             }
@@ -342,7 +331,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         StringBuilder sb = new StringBuilder();
         sb.append("Cart {\n");
         sb.append("\tItemLines:\n");
-        for (ItemLine<T, D> itemLine : itemLines) {
+        for (ItemLine itemLine : itemLines) {
             sb.append("\t\t").append(itemLine).append("\n");
         }
         sb.append("\tDiscountLines:\n");

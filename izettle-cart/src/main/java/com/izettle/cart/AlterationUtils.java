@@ -13,12 +13,12 @@ import java.util.Map.Entry;
 
 public class AlterationUtils {
 
-    static <T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>, I extends Comparable<?>>
+    static <T extends Item<T, D, I>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>, I extends Comparable<I>>
         void validateItems(
-        final Cart<T, D, K, S> originalCart,
+        final Cart<T, D, K, S, I> originalCart,
         final Map<I, BigDecimal> alteredItems
     ) {
-        final Map<Comparable<?>, BigDecimal> originalQuantities = getQuantityById(originalCart);
+        final Map<I, BigDecimal> originalQuantities = getQuantityById(originalCart);
         for (Map.Entry<I, BigDecimal> entry : alteredItems.entrySet()) {
             final I itemId = entry.getKey();
             final BigDecimal quantityChange = entry.getValue();
@@ -39,17 +39,17 @@ public class AlterationUtils {
         }
     }
 
-    private static <T extends Item<T, D>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>, I extends Comparable<I>>
-        Map<Comparable<?>, BigDecimal> getQuantityById(
-        final Cart<T, D, K, S> cart
+    private static <T extends Item<T, D, I>, D extends Discount<D>, K extends Discount<K>, S extends ServiceCharge<S>, I extends Comparable<I>>
+        Map<I, BigDecimal> getQuantityById(
+        final Cart<T, D, K, S, I> cart
     ) {
         if (cart == null) {
             return Collections.EMPTY_MAP;
         }
-        final Map<Comparable<?>, BigDecimal> quantityById = new HashMap<Comparable<?>, BigDecimal>();
-        for (ItemLine<T, D> itemLine : cart.getItemLines()) {
+        final Map<I, BigDecimal> quantityById = new HashMap<I, BigDecimal>();
+        for (ItemLine<T, D, I> itemLine : cart.getItemLines()) {
             final T item = itemLine.getItem();
-            final Comparable<?> id = item.getId();
+            final I id = item.getItemIdentifier();
             quantityById.put(id, coalesce(quantityById.get(id), BigDecimal.ZERO).add(item.getQuantity()));
         }
         return quantityById;

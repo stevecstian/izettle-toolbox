@@ -5,17 +5,17 @@ import java.math.BigDecimal;
 /**
  * Concrete implementation of Item interface used for internal temporary calculations: never exposed publicly
  */
-class AlteredCartItem implements Item<AlteredCartItem, AlteredCartDiscount> {
+class AlteredCartItem<I extends Comparable<I>> implements Item<AlteredCartItem, AlteredCartDiscount, I> {
 
     private final long unitPrice;
     private final Float vatPercentage;
     private final BigDecimal quantity;
     private final AlteredCartDiscount discount;
-    private final Comparable<?> id;
+    private final I id;
 
-    static <T extends Item<T, D>, D extends Discount<D>> AlteredCartItem from(final T item) {
+    static <T extends Item<T, D, I>, D extends Discount<D>, I extends Comparable<I>> AlteredCartItem from(final T item) {
         return new AlteredCartItem(
-            item.getId(),
+            item.getItemIdentifier(),
             item.getUnitPrice(),
             item.getVatPercentage(),
             item.getQuantity(),
@@ -24,7 +24,7 @@ class AlteredCartItem implements Item<AlteredCartItem, AlteredCartDiscount> {
     }
 
     private AlteredCartItem(
-        final Comparable<?> id,
+        final I id,
         final long unitPrice,
         final Float vatPercentage,
         final BigDecimal quantity,
@@ -53,7 +53,7 @@ class AlteredCartItem implements Item<AlteredCartItem, AlteredCartDiscount> {
     }
 
     @Override
-    public Comparable<?> getId() {
+    public I getItemIdentifier() {
         return this.id;
     }
 

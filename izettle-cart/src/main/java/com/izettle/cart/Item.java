@@ -6,8 +6,9 @@ import java.math.BigDecimal;
  * An object that can be added to a cart's list of items
  * @param <T> The type of the item itself
  * @param <K> The type of the optional item local discount
+ * @param <I> The type of the item identifier
  */
-public interface Item<T, K extends Discount<?>> {
+public interface Item<T, K extends Discount<?>, I extends Comparable<I>> {
 
     /**
      * The quantity, or the number of units that this item represents
@@ -43,8 +44,7 @@ public interface Item<T, K extends Discount<?>> {
 
     /**
      * The identifier of the item in relation to other line items in the cart
-     * @param <I> the type of the identifier, can be of any type as long as it's comparable
      * @return the identifier of the item
      */
-    <I extends Comparable<I>> I getId();
+    I getItemIdentifier();
 }

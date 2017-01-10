@@ -7,8 +7,9 @@ import java.io.Serializable;
  * provided by the caller), and some calculated values that's relevant to it's context and location in the cart
  * @param <T> The type of the Item itself
  * @param <K> The type of the optional Discount that might be associated with the provided Item
+ * @param <I> The type of the item identifier
  */
-public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Serializable{
+public class ItemLine<T extends Item<T, K, I>, K extends Discount<K>, I extends Comparable<I>> implements Serializable{
 
     private static final long serialVersionUID = -6348123371367411158L;
     private final T item;

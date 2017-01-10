@@ -3,7 +3,7 @@ package com.izettle.cart;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public class TestItem implements Item<TestItem, TestDiscount> {
+public class TestItem implements Item<TestItem, TestDiscount, UUID> {
 
     private final long unitPrice;
     private final Float vatPercentage;
@@ -52,7 +52,7 @@ public class TestItem implements Item<TestItem, TestDiscount> {
     }
 
     @Override
-    public UUID getId() {
+    public UUID getItemIdentifier() {
         return this.id;
     }
 

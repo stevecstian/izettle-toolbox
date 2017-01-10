@@ -43,7 +43,7 @@ public class ItemTest {
             null
         ));
 
-        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, null, null);
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID> cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID>(items, null, null);
 
         assertThat(cart.getItemLines().get(0).getDiscountValue()).isEqualTo(50L);
         assertThat(cart.getItemLines().get(1).getDiscountValue()).isEqualTo(500L);
@@ -53,8 +53,8 @@ public class ItemTest {
     @Test
     public void testThatInverseIsCorrectWhenIncludingDiscounts() {
         List<TestItem> items;
-        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart;
-        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> inverse;
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID> cart;
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID> inverse;
 
         items = new ArrayList<TestItem>();
         items.add(new TestItem(
@@ -65,7 +65,7 @@ public class ItemTest {
             BigDecimal.ONE,
             new TestDiscount(50L, null, BigDecimal.ONE)
         ));
-        cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, null, null);
+        cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID>(items, null, null);
         inverse = cart.inverse();
         assertEquals(cart.getValue(), -1L * inverse.getValue());
 
@@ -78,7 +78,7 @@ public class ItemTest {
             BigDecimal.ONE,
             new TestDiscount(null, 25.0d, BigDecimal.ONE)
         ));
-        cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, null, null);
+        cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge, UUID>(items, null, null);
         inverse = cart.inverse();
         assertEquals(cart.getValue(), -1L * inverse.getValue());
 
