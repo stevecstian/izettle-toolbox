@@ -2,7 +2,7 @@ package com.izettle.alb;
 
 import static java.util.Objects.requireNonNull;
 
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest;
 import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsResult;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupAttributesRequest;
@@ -46,7 +46,7 @@ public class ManagedALBRegistry implements Managed {
 
     private static final Logger LOG = LoggerFactory.getLogger(ManagedALBRegistry.class.getName());
 
-    private final AmazonElasticLoadBalancingClient elbClient;
+    private final AmazonElasticLoadBalancing elb;
     private final String targetGroupArn;
     private final Condition deregisterCondition;
     private final String instanceId;
@@ -54,19 +54,19 @@ public class ManagedALBRegistry implements Managed {
     /**
      * Create ALB Registry
      *
-     * @param elbClient                    The ELB AWS Client
+     * @param elb                          The ELB AWS Client
      * @param targetGroupArn               The ARN of the target group
      * @param instanceId                   The instance ID of the host where the App is running.
      * @param deregisterCondition          Precondition before deregister can be executed.
      */
     public ManagedALBRegistry(
-        AmazonElasticLoadBalancingClient elbClient,
+        AmazonElasticLoadBalancing elb,
         String targetGroupArn,
         String instanceId,
         Condition deregisterCondition
     ) {
 
-        requireNonNull(elbClient);
+        requireNonNull(elb);
         requireNonNull(targetGroupArn);
         requireNonNull(instanceId);
         requireNonNull(deregisterCondition);
@@ -74,7 +74,7 @@ public class ManagedALBRegistry implements Managed {
         this.instanceId = instanceId;
         this.deregisterCondition = deregisterCondition;
         this.targetGroupArn = targetGroupArn;
-        this.elbClient = elbClient;
+        this.elb = elb;
     }
 
     /**
@@ -89,7 +89,7 @@ public class ManagedALBRegistry implements Managed {
             .withTargets(new TargetDescription().withId(instanceId));
 
         //TODO: No way to check response?
-        RegisterTargetsResult registerTargetsResult = elbClient.registerTargets(registerTargetsRequest);
+        RegisterTargetsResult registerTargetsResult = elb.registerTargets(registerTargetsRequest);
 
     }
 
@@ -111,7 +111,7 @@ public class ManagedALBRegistry implements Managed {
             new DescribeTargetGroupAttributesRequest().withTargetGroupArn(targetGroupArn);
 
         DescribeTargetGroupAttributesResult describeTargetGroupAttributesResult =
-            elbClient.describeTargetGroupAttributes(describeTargetGroupAttributesRequest);
+            elb.describeTargetGroupAttributes(describeTargetGroupAttributesRequest);
 
         Optional<String> drainingTime = describeTargetGroupAttributesResult.getAttributes().stream()
             .filter(a -> a.getKey().equals("deregistration_delay.timeout_seconds"))
@@ -127,14 +127,15 @@ public class ManagedALBRegistry implements Managed {
 
         //TODO: Verify response?
         DeregisterTargetsResult deregisterTargetsResult =
-            elbClient.deregisterTargets(deregisterTargetsRequest);
+            elb.deregisterTargets(deregisterTargetsRequest);
 
         if (drainingTime.isPresent()) {
             // Now block until the connection draining timeout has hit. This is to make sure no more
             // requests are coming into the instance from the ELB from connections that the ELB might have held with
             // clients.
             LOG.info(
-                "Connection Draining {} Seconds before stopping instance after deregister instance {} in target group {}",
+                "Connection Draining {} Seconds before stopping instance after deregister instance {} in target group"
+                    + " {}",
                 drainingTime.get(),
                 instanceId,
                 targetGroupArn
