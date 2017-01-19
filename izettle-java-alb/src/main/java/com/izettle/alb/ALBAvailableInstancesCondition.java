@@ -2,7 +2,7 @@ package com.izettle.alb;
 
 import static java.util.Objects.requireNonNull;
 
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +15,7 @@ import java.util.function.Consumer;
  */
 public class ALBAvailableInstancesCondition implements Condition {
 
-    private final AmazonElasticLoadBalancingClient elbClient;
+    private final AmazonElasticLoadBalancing elb;
     private final String targetGroupArn;
     private final int minNumberOfAvailableInstances;
     private final int maxNumberOfAvailableInstances;
@@ -23,7 +23,7 @@ public class ALBAvailableInstancesCondition implements Condition {
     private final String instanceId;
 
     public ALBAvailableInstancesCondition(
-        AmazonElasticLoadBalancingClient elbClient,
+        AmazonElasticLoadBalancing elb,
         String targetGroupArn,
         String instanceId,
         int minNumberOfAvailableInstances,
@@ -31,7 +31,7 @@ public class ALBAvailableInstancesCondition implements Condition {
         long millisToSleepBetweenConditionCheck
     ) {
 
-        requireNonNull(elbClient);
+        requireNonNull(elb);
         requireNonNull(targetGroupArn);
         requireNonNull(instanceId);
 
@@ -41,7 +41,7 @@ public class ALBAvailableInstancesCondition implements Condition {
         this.maxNumberOfAvailableInstances = maxNumberOfAvailableInstances;
 
         this.targetGroupArn = targetGroupArn;
-        this.elbClient = elbClient;
+        this.elb = elb;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class ALBAvailableInstancesCondition implements Condition {
 
                     // First await that there are enough instances available
                     DescribeTargetHealthResult describeTargetHealthResult =
-                        elbClient.describeTargetHealth(new DescribeTargetHealthRequest().withTargetGroupArn(
+                        elb.describeTargetHealth(new DescribeTargetHealthRequest().withTargetGroupArn(
                             targetGroupArn));
 
                     // Number of healthy instances other than ourselves
