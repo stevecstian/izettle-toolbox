@@ -8,8 +8,10 @@ import com.izettle.java.TimeZoneId;
 import com.izettle.java.UUIDFactory;
 import com.izettle.messaging.TestMessage;
 import com.izettle.messaging.TestMessageWithDate;
+import com.izettle.messaging.TestMessageWithInstant;
 import com.izettle.messaging.TestMessageWithUUID;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,6 +59,32 @@ public class MessageDeserializerTest {
         String dateFieldAsString = DateFormatCreator.createDateAndTimeMillisFormatter(TimeZoneId.UTC)
                 .format(msg.getDate());
         assertEquals("2001-12-23 02:05:06.123", dateFieldAsString);
+    }
+
+    @Test
+    public void deserializingMessageWithRfc3339DateShouldParseInstantCorrectly() throws Exception {
+        // Arrange
+        String json = "{\"instant\":\"2001-12-23T03:05:06.123+0100\"}";
+
+        // Act
+        TestMessageWithInstant msg = new MessageDeserializer<>(TestMessageWithInstant.class).deserialize(json);
+
+        // Assert
+        String dateFieldAsString = DateTimeFormatter.ISO_INSTANT.withZone(TimeZoneId.UTC.toZoneId()).format(msg.getInstant());
+        assertEquals("2001-12-23T02:05:06.123Z", dateFieldAsString);
+    }
+
+    @Test
+    public void deserializingMessageWithNonRfcFormattedInstantShouldParseInstantCorrectly() throws Exception {
+        // Arrange
+        String json = "{\"instant\":\"2001-12-23T02:05:06.123Z\"}";
+
+        // Act
+        TestMessageWithInstant msg = new MessageDeserializer<>(TestMessageWithInstant.class).deserialize(json);
+
+        // Assert
+        String dateFieldAsString = DateTimeFormatter.ISO_INSTANT.withZone(TimeZoneId.UTC.toZoneId()).format(msg.getInstant());
+        assertEquals("2001-12-23T02:05:06.123Z", dateFieldAsString);
     }
 
     @Test

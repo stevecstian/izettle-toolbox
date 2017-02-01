@@ -12,7 +12,9 @@ import com.izettle.java.ResourceUtils;
 import com.izettle.java.TimeZoneId;
 import com.izettle.messaging.TestMessage;
 import com.izettle.messaging.TestMessageWithDate;
+import com.izettle.messaging.TestMessageWithInstant;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,5 +93,19 @@ public class DefaultMessageSerializerTest {
         // Assert
         String dateFieldAsString = new ObjectMapper().readTree(messageAsJson).get("date").asText();
         assertEquals("2001-12-23T02:05:06.123+0000", dateFieldAsString);
+    }
+
+    @Test
+    public void serializingMessageWithInstantShouldFormatTheDateAccordingToRfc3339() throws Exception {
+        // Arrange
+        Instant testInstant = Instant.parse("2001-12-23T02:05:06.123Z");
+        TestMessageWithInstant msg = new TestMessageWithInstant(testInstant);
+
+        // Act
+        String messageAsJson = plaintextSerializer.serialize(msg);
+
+        // Assert
+        String instantFieldAsString = new ObjectMapper().readTree(messageAsJson).get("instant").asText();
+        assertEquals("2001-12-23T02:05:06.123+0000", instantFieldAsString);
     }
 }
