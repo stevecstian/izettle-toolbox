@@ -51,7 +51,8 @@
         <module>izettle-cassandra-astyanax</module>
         <module>izettle-dropwizard</module>
 		<module>izettle-java-alb</module>
-	</modules>
+        <module>izettle-jackson</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
