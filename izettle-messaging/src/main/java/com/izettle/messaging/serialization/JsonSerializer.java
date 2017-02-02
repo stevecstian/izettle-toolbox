@@ -16,6 +16,7 @@ public class JsonSerializer {
         result.registerModule(new Jdk8Module());
         result.registerModule(new ParameterNamesModule());
         result.registerModule(new UUIDModule());
+        result.registerModule(new InstantRFC3339Module());
         return result;
     }
 
