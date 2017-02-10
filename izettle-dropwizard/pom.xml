@@ -11,10 +11,8 @@
 	<artifactId>izettle-dropwizard</artifactId>
 
 	<properties>
-		<dropwizard.version>1.0.0</dropwizard.version>
 		<cassandra-driver.version>[3.1,)</cassandra-driver.version>
 		<cassandra-unit.version>2.1.9.2</cassandra-unit.version>
-		<guava.version>18.0</guava.version>
 		<truth.version>0.28</truth.version>
 	</properties>
 
@@ -44,6 +42,7 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 			<version>${jackson.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- test only -->
