@@ -52,6 +52,7 @@
         <module>izettle-dropwizard</module>
 		<module>izettle-java-alb</module>
         <module>izettle-jackson</module>
+        <module>izettle-zipkin</module>
     </modules>
 
     <properties>
