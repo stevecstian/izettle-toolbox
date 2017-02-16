@@ -43,4 +43,12 @@ public class InstantRFC3339ModuleTest {
         final Instant parsedInstant = mapper.readValue(value, Instant.class);
         assertEquals(Instant.parse("2016-08-04T09:42:51.336Z"), parsedInstant);
     }
+
+    @Test
+    public void itShouldHandleZeroMillis() throws Exception {
+        final ObjectMapper mapper = createMapper();
+        final String value = "\"2017-02-16T16:33:55Z\"";
+        final Instant parsedInstant = mapper.readValue(value, Instant.class);
+        assertEquals(Instant.parse("2017-02-16T16:33:55Z"), parsedInstant);
+    }
 }
