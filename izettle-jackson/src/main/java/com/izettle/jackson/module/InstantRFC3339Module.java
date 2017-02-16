@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * A simple Jackson module that will serialize and deserialize an Instant in accordance with RFC3339
@@ -26,6 +27,8 @@ public class InstantRFC3339Module extends SimpleModule {
 
     private static final DateTimeFormatter INSTANT_PARSING_FORMATTER = DateTimeFormatter
         .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXX");
+    private static final DateTimeFormatter INSTANT_PARSING_FORMATTER2 = DateTimeFormatter
+        .ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
     private static final DateTimeFormatter INSTANT_FORMATTING_FORMATTER = DateTimeFormatter
         .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
         .withZone(ZoneId.of("UTC"));
@@ -60,7 +63,11 @@ public class InstantRFC3339Module extends SimpleModule {
             final DeserializationContext context
         ) throws IOException, JsonProcessingException {
             final String value = jp.readValueAs(String.class);
-            return Instant.from(INSTANT_PARSING_FORMATTER.parse(value));
+            try {
+                return Instant.from(INSTANT_PARSING_FORMATTER.parse(value));
+            } catch (DateTimeParseException e) {
+                return Instant.from(INSTANT_PARSING_FORMATTER2.parse(value));
+            }
         }
     }
 }
