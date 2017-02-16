@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.Test;
 
 public class InstantRFC3339ModuleTest {
@@ -19,6 +20,22 @@ public class InstantRFC3339ModuleTest {
         final ObjectMapper mapper = createMapper();
         final Instant parsedInstant = mapper.readValue("\"2016-08-04T09:42:51.336+0200\"", Instant.class);
         assertEquals(Instant.parse("2016-08-04T07:42:51.336Z"), parsedInstant);
+    }
+
+    @Test
+    public void itShouldAlwaysProduceMillis() throws Exception {
+        final ObjectMapper mapper = createMapper();
+        final Instant nowTruncatedToSeconds = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        final String actual = mapper.writeValueAsString(nowTruncatedToSeconds);
+        assertTrue(
+            String.format(
+                "Expected the output to end with millis and zero offset '000+0000', but when serializing %s the result "
+                + "was: %s",
+                nowTruncatedToSeconds,
+                actual
+            ),
+            actual.contains(".000+0000")
+        );
     }
 
     @Test
