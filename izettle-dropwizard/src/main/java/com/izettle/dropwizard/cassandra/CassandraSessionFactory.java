@@ -1,8 +1,10 @@
 package com.izettle.dropwizard.cassandra;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.HostDistance;
 import com.datastax.driver.core.PoolingOptions;
+import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.ConstantSpeculativeExecutionPolicy;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
@@ -66,10 +68,13 @@ public class CassandraSessionFactory {
         if (localDc != null) {
             builder.withLocalDc(localDc);
         }
+        QueryOptions queryOptions = new QueryOptions();
+        queryOptions.setConsistencyLevel(ConsistencyLevel.LOCAL_ONE).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
         final Cluster cluster = Cluster
             .builder()
             .withRetryPolicy(DefaultRetryPolicy.INSTANCE)
             .withReconnectionPolicy(new ExponentialReconnectionPolicy(10L, 1000L))
+            .withQueryOptions(queryOptions)
             .withLoadBalancingPolicy(new TokenAwarePolicy(builder.build()))
             .addContactPoints(getContactPoints().stream().toArray(String[]::new))
             .withPort(getPort())
