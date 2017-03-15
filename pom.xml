@@ -73,6 +73,7 @@
         <mockito-all.version>1.10.19</mockito-all.version>
         <slf4j.version>1.7.21</slf4j.version>
         <dropwizard.version>1.0.5</dropwizard.version>
+        <javax-ws-rs.version>2.0.1</javax-ws-rs.version>
     </properties>
 
     <profiles>
