@@ -51,6 +51,12 @@
             <artifactId>javax.ws.rs-api</artifactId>
             <version>${javax-ws-rs.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.truth</groupId>
+            <artifactId>truth</artifactId>
+            <version>${google-truth.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
