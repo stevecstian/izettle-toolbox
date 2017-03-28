@@ -1,5 +1,7 @@
 package com.izettle.cart;
 
+import static com.izettle.cart.CartUtils.coalesce;
+
 import java.io.Serializable;
 
 /**
@@ -54,6 +56,14 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Se
      */
     public Long getActualVat() {
         return actualVat;
+    }
+
+    /**
+     * The value of the line before VAT has been added.
+     * @return the taxable value, or the actual value if no VAT exists.
+     */
+    public Long getActualTaxableValue() {
+        return actualValue - coalesce(actualVat, 0L);
     }
 
     /**
