@@ -62,7 +62,7 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Se
      * The value of the line before VAT has been added.
      * @return the taxable value, or the actual value if no VAT exists.
      */
-    public Long getActualTaxableValue() {
+    public long getActualTaxableValue() {
         return actualValue - coalesce(actualVat, 0L);
     }
 
