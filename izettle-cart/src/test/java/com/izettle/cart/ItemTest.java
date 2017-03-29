@@ -47,6 +47,42 @@ public class ItemTest {
     }
 
     @Test
+    public void testTaxableValueIsCorrect() {
+        //Arrange
+        Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart;
+        List<TestItem> items = new ArrayList<TestItem>();
+        items.add(new TestItem(
+            "Without VAT",
+            1000L,
+            null,
+            BigDecimal.ONE,
+            new TestDiscount(null, 50d, BigDecimal.ONE)
+        ));
+        items.add(new TestItem(
+            "With VAT",
+            1000L,
+            25f,
+            BigDecimal.ONE,
+            new TestDiscount(null, 50d, BigDecimal.ONE)
+        ));
+        List<TestDiscount> discounts = new ArrayList<TestDiscount>();
+        discounts.add(new TestDiscount(null, 20d, BigDecimal.ONE));
+
+        //Act
+        cart = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(items, discounts, null);
+
+        //Assert
+        assertEquals(800L, cart.getValue());
+        List<ItemLine<TestItem, TestDiscount>> itemLines = cart.getItemLines();
+        ItemLine<TestItem, TestDiscount> line1 = itemLines.get(0);
+        assertEquals(400L, line1.getActualValue());
+        assertEquals(400L, line1.getActualTaxableValue());
+        ItemLine<TestItem, TestDiscount> line2 = itemLines.get(1);
+        assertEquals(400L, line2.getActualValue());
+        assertEquals(320L, line2.getActualTaxableValue());
+    }
+
+    @Test
     public void testThatInverseIsCorrectWhenIncludingDiscounts() {
         List<TestItem> items;
         Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart;
