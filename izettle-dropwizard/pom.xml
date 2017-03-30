@@ -11,8 +11,6 @@
 	<artifactId>izettle-dropwizard</artifactId>
 
 	<properties>
-		<cassandra-driver.version>[3.1,3.2)</cassandra-driver.version>
-		<cassandra-unit.version>2.1.9.2</cassandra-unit.version>
 		<truth.version>0.28</truth.version>
 	</properties>
 
