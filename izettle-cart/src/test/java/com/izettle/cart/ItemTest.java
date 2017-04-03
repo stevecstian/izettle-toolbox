@@ -80,6 +80,7 @@ public class ItemTest {
         ItemLine<TestItem, TestDiscount> line2 = itemLines.get(1);
         assertEquals(400L, line2.getActualValue());
         assertEquals(320L, line2.getActualTaxableValue());
+        assertEquals(200L, (long) line2.getUnitVat());
     }
 
     @Test

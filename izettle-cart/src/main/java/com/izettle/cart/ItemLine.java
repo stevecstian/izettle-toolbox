@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @param <T> The type of the Item itself
  * @param <K> The type of the optional Discount that might be associated with the provided Item
  */
-public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Serializable{
+public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Serializable {
 
     private static final long serialVersionUID = -6348123371367411158L;
     private final T item;
@@ -19,14 +19,24 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Se
     private final long actualValue;
     private final Long actualVat;
     private final Long discountValue;
+    private final Long unitVat;
 
-    ItemLine(T item, long grossValue, Long grossVat, long actualValue, Long actualVat, Long discountValue) {
+    ItemLine(
+        T item,
+        long grossValue,
+        Long grossVat,
+        long actualValue,
+        Long actualVat,
+        Long discountValue,
+        Long unitVat
+    ) {
         this.item = item;
         this.grossValue = grossValue;
         this.grossVat = grossVat;
         this.actualValue = actualValue;
         this.actualVat = actualVat;
         this.discountValue = discountValue;
+        this.unitVat = unitVat;
     }
 
     /**
@@ -90,6 +100,14 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Se
         return discountValue;
     }
 
+    /**
+     * The amount of the VAT per unit of this line.
+     * @return The amount of VAT per unit of this line.
+     */
+    public Long getUnitVat() {
+        return unitVat;
+    }
+
     @Override
     public String toString() {
         return ""
@@ -99,7 +117,9 @@ public class ItemLine<T extends Item<T, K>, K extends Discount<K>> implements Se
             + ", grossVat = " + grossVat
             + ", actualValue = " + actualValue
             + ", actualVat = " + actualVat
-            + '}';
+            + ", discountValue = " + discountValue
+            + ", unitVat = " + unitVat
+            + " }";
     }
 
 }

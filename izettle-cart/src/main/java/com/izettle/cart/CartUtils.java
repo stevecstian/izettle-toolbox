@@ -309,8 +309,9 @@ class CartUtils {
             } else {
                 effectivePrice = ItemUtils.getValue(item);
             }
-            final Long grossVat = calculateVatFromGrossAmount(ItemUtils.getGrossValue(item), item.getVatPercentage());
-            final Long effectiveVat = calculateVatFromGrossAmount(effectivePrice, item.getVatPercentage());
+            final Long grossVat = calculateVatFromAmount(ItemUtils.getGrossValue(item), item.getVatPercentage());
+            final Long effectiveVat = calculateVatFromAmount(effectivePrice, item.getVatPercentage());
+            final Long unitVat = calculateVatFromAmount(item.getUnitPrice(), item.getVatPercentage());
 
             final ItemLine<T, K> itemLine = new ItemLine<T, K>(
                 item,
@@ -318,7 +319,8 @@ class CartUtils {
                 grossVat,
                 effectivePrice,
                 effectiveVat,
-                ItemUtils.getDiscountValue(item)
+                ItemUtils.getDiscountValue(item),
+                unitVat
             );
 
             retList.add(itemLine);
@@ -326,7 +328,7 @@ class CartUtils {
         return retList;
     }
 
-    static Long calculateVatFromGrossAmount(final Long amountIncVat, final Float vatPercent) {
+    static Long calculateVatFromAmount(final Long amountIncVat, final Float vatPercent) {
         if (amountIncVat == null || vatPercent == null) {
             return null;
         }
