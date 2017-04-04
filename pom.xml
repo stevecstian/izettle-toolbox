@@ -62,7 +62,8 @@
         <astyanax.version>3.9.0</astyanax.version>
         <aws.version>1.11.86</aws.version>
         <bouncycastle.version>1.55</bouncycastle.version>
-        <cassandra-unit.version>3.1.1.0</cassandra-unit.version>
+        <cassandra-driver.version>3.2.0</cassandra-driver.version>
+        <cassandra-unit.version>2.2.2.1</cassandra-unit.version>
         <findbugs-maven-plugin.version>3.0.3</findbugs-maven-plugin.version>
         <guava.version>19.0</guava.version>
         <jackson.version>2.8.6</jackson.version>
@@ -71,6 +72,7 @@
         <maven.version.range>[3.2.3,3.4.0)</maven.version.range>
         <metrics.version>3.1.2</metrics.version>
         <mockito-all.version>1.10.19</mockito-all.version>
+        <netty.version>4.0.44.Final</netty.version>
         <slf4j.version>1.7.21</slf4j.version>
         <dropwizard.version>1.0.5</dropwizard.version>
         <javax-ws-rs.version>2.0.1</javax-ws-rs.version>
@@ -136,6 +138,15 @@
         </dependency>
     </dependencies>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <build>
         <plugins>
             <plugin>
