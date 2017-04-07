@@ -221,4 +221,15 @@ public class TLVDecoderTest {
         // Act
         new TLVDecoder().decode(tlvData);
     }
+
+    @Test
+    public void shouldThrowExceptionOnMalformedTag() throws Exception {
+        // Arrange
+        final byte[] tlvData = Hex.hexToByteArray("FFFFFFFF");
+        thrown.expect(TLVException.class);
+        thrown.expectMessage(startsWith("Malformed tag, exceeds buffer size"));
+
+        // Act
+        new TLVDecoder().decode(tlvData);
+    }
 }
