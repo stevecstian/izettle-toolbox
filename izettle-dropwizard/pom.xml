@@ -12,6 +12,7 @@
 
 	<properties>
 		<truth.version>0.28</truth.version>
+		<guava.version>18.0</guava.version>
 	</properties>
 
 	<dependencies>
@@ -42,6 +43,11 @@
 			<version>${jackson.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+		</dependency>
 
 		<!-- test only -->
 		<dependency>
@@ -64,12 +70,6 @@
 			<groupId>org.cassandraunit</groupId>
 			<artifactId>cassandra-unit</artifactId>
 			<version>${cassandra-unit.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
