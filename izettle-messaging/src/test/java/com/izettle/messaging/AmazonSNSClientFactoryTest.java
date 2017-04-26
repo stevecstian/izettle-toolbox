@@ -8,6 +8,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -36,7 +37,7 @@ public class AmazonSNSClientFactoryTest {
 
     @Test
     public void test() {
-        assertThat(determineRegion(endpoint)).isEqualTo(region);
+        assertThat(determineRegion(endpoint).getName()).isEqualTo(region);
     }
 
     @Test
@@ -51,9 +52,6 @@ public class AmazonSNSClientFactoryTest {
             new BasicAWSCredentials("accessKey", "secretKey")
         );
         assertThat(builder).isNotNull();
-        assertThat(builder.getCredentials()).isEqualTo(DEFAULT_PROVIDER_CHAIN);
-
     }
-
 
 }

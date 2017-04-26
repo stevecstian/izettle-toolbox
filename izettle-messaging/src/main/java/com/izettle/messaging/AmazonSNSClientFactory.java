@@ -64,29 +64,20 @@ public class AmazonSNSClientFactory {
      * @param endpoint
      * @return region if endpoint is standard
      */
-    static Optional<Regions> determineRegion(String endpoint) {
+    static Regions determineRegion(String endpoint) {
         return Arrays.stream(Regions.values())
             .filter(r -> endpoint.contains(r.getName()))
-            .findFirst();
+            .findFirst()
+            .orElse(Regions.EU_WEST_1);
     }
 
     static AmazonSNSAsyncClientBuilder builder(
         String endpoint,
         AWSCredentials awsCredentials
     ) {
-        final AmazonSNSAsyncClientBuilder builder = AmazonSNSAsyncClientBuilder.standard();
-        Optional<Regions> region = determineRegion(endpoint);
+        final AmazonSNSAsyncClientBuilder builder = AmazonSNSAsyncClientBuilder.standard()
+            .withEndpointConfiguration(new EndpointConfiguration(endpoint, determineRegion(endpoint).getName()));
 
-        // endpoint is standard, set region to that of endpoint
-        region.ifPresent(builder::withRegion);
-
-        if (!region.isPresent()) {
-            // endpoint is non-standard, probably a local development environment
-            builder.withEndpointConfiguration(new EndpointConfiguration(
-                endpoint,
-                EU_WEST_1.getName()
-            ));
-        }
         // add credentials then default provider chain
         if (awsCredentials != null) {
             return builder
