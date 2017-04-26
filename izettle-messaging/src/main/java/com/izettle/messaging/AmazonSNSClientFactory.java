@@ -1,7 +1,5 @@
 package com.izettle.messaging;
 
-import static com.amazonaws.regions.Regions.EU_WEST_1;
-
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -11,7 +9,6 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder;
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * Factory that creates Amazon SNS clients for specific endpoints.
