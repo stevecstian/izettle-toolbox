@@ -39,6 +39,7 @@ public class AmazonSNSClientFactory {
      * @param secretKey AWS credentials with access to the endpoint.
      * @return Amazon SNS client.
      */
+    @Deprecated
     public static AmazonSNSAsync createInstance(String endpoint, String accessKey, String secretKey) {
         return builder(
             endpoint,
@@ -77,7 +78,7 @@ public class AmazonSNSClientFactory {
         Optional<Regions> region = determineRegion(endpoint);
 
         // endpoint is standard, set region to that of endpoint
-        region.ifPresent(r -> builder.withRegion(r));
+        region.ifPresent(builder::withRegion);
 
         if (!region.isPresent()) {
             // endpoint is non-standard, probably a local development environment

@@ -36,6 +36,7 @@ public class AmazonSQSClientFactory {
      * @param secretKey AWS credentials with access to the endpoint.
      * @return Amazon SQS client.
      */
+    @Deprecated
     public static AmazonSQSAsync createInstance(String endpoint, String accessKey, String secretKey) {
         return builder(endpoint, AWSCredentialsWrapper.getCredentials(accessKey, secretKey)).build();
     }
