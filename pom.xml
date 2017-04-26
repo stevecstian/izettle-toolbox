@@ -50,7 +50,7 @@
         <module>izettle-cassandra-datastax</module>
         <module>izettle-cassandra-astyanax</module>
         <module>izettle-dropwizard</module>
-        <module>izettle-java-alb</module>
+		<module>izettle-java-alb</module>
         <module>izettle-jackson</module>
     </modules>
 
@@ -60,7 +60,7 @@
 
         <assertj-core.version>3.4.1</assertj-core.version>
         <astyanax.version>3.9.0</astyanax.version>
-        <aws.version>1.11.86</aws.version>
+        <aws.version>1.11.95</aws.version>
         <bouncycastle.version>1.55</bouncycastle.version>
         <cassandra-driver.version>3.2.0</cassandra-driver.version>
         <cassandra-unit.version>2.2.2.1</cassandra-unit.version>
