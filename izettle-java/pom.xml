@@ -5,7 +5,7 @@
     <parent>
         <artifactId>izettle-toolbox</artifactId>
         <groupId>com.izettle.toolbox</groupId>
-        <version>1.0.93-SNAPSHOT</version>
+        <version>1.0.93</version>
     </parent>
 
     <artifactId>izettle-java</artifactId>
