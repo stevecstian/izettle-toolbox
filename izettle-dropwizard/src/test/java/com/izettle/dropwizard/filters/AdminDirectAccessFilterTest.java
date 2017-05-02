@@ -22,7 +22,7 @@ public class AdminDirectAccessFilterTest {
         PrintWriter respWriter = mock(PrintWriter.class);
 
         when(req.getRemoteAddr()).thenReturn("11.22.22.33");
-        when(req.getContextPath()).thenReturn("/admin");
+        when(req.getContextPath()).thenReturn("/system");
         when(req.getHeader(HttpHeaders.X_FORWARDED_FOR)).thenReturn("1.2.3.4");
         when(resp.getWriter()).thenReturn(respWriter);
 
@@ -38,7 +38,7 @@ public class AdminDirectAccessFilterTest {
         FilterChain nextFilter = mock(FilterChain.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
-        when(req.getContextPath()).thenReturn("/admin");
+        when(req.getContextPath()).thenReturn("/system");
         when(req.getHeader(HttpHeaders.X_FORWARDED_FOR)).thenReturn(null);
 
         adaFilter.doFilter(req, resp, nextFilter);

@@ -51,7 +51,7 @@ public class AdminDirectAccessFilter implements Filter {
     }
 
     boolean isAdmin(HttpServletRequest request) {
-        return request.getContextPath().startsWith("/admin");
+        return request.getContextPath().startsWith("/system");
     }
 
     boolean isDirectAccess(HttpServletRequest request) {
