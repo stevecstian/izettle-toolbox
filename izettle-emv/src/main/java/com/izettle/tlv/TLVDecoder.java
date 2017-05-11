@@ -57,6 +57,9 @@ public class TLVDecoder {
              * tag. Subsequent tag bytes have 0x80 bit set.
              */
             do {
+                if (offset + 1 >= input.length) {
+                    throw new TLVException("Malformed tag, exceeds buffer size: " + Hex.toHexString(tag));
+                }
                 tag = ArrayUtils.concat(tag, new byte[]{input[++offset]});
             } while ((input[offset] & 0x80) == 0x80);
         }
