@@ -1,6 +1,5 @@
 package com.izettle.dropwizard.filters;
 
-import com.google.common.net.HttpHeaders;
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -10,7 +9,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.http.HttpStatus;
 
 /**
  * Allow access to /admin from localhost and from load balancer but not via a LB (from the outside)
@@ -23,6 +21,8 @@ import org.eclipse.jetty.http.HttpStatus;
  *
  */
 public class AdminDirectAccessFilter implements Filter {
+    static final int UNAUTHORIZED_401 = 401;
+    static final String X_FORWARDED_FOR = "X-Forwarded-For";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -37,7 +37,7 @@ public class AdminDirectAccessFilter implements Filter {
             if (isAdmin(httpRequest) && !isDirectAccess(httpRequest)) {
 
                 HttpServletResponse httpResponse = (HttpServletResponse) response;
-                httpResponse.setStatus(HttpStatus.UNAUTHORIZED_401);
+                httpResponse.setStatus(UNAUTHORIZED_401);
                 httpResponse.getWriter().print("401 Unauthorized");
             } else {
                 chain.doFilter(request, response); // This signals that the request should pass this filter
@@ -55,6 +55,6 @@ public class AdminDirectAccessFilter implements Filter {
     }
 
     boolean isDirectAccess(HttpServletRequest request) {
-        return request.getHeader(HttpHeaders.X_FORWARDED_FOR) == null;
+        return request.getHeader(X_FORWARDED_FOR) == null;
     }
 }
