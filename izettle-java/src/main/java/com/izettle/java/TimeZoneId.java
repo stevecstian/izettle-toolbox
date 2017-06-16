@@ -23,7 +23,6 @@ public enum TimeZoneId {
     AMERICA_ADAK("America/Adak"),
     AMERICA_ATKA("America/Atka"),
     ETC_GMT_PLUS10("Etc/GMT+10"),
-    HST("HST"),
     PACIFIC_FAKAOFO("Pacific/Fakaofo"),
     PACIFIC_HONOLULU("Pacific/Honolulu"),
     PACIFIC_JOHNSTON("Pacific/Johnston"),
@@ -33,7 +32,6 @@ public enum TimeZoneId {
     US_ALEUTIAN("US/Aleutian"),
     US_HAWAII("US/Hawaii"),
     PACIFIC_MARQUESAS("Pacific/Marquesas"),
-    AST("AST"),
     AMERICA_ANCHORAGE("America/Anchorage"),
     AMERICA_JUNEAU("America/Juneau"),
     AMERICA_NOME("America/Nome"),
@@ -56,7 +54,6 @@ public enum TimeZoneId {
     CANADA_YUKON("Canada/Yukon"),
     ETC_GMT_PLUS8("Etc/GMT+8"),
     MEXICO_BAJANORTE("Mexico/BajaNorte"),
-    PST("PST"),
     PST8PDT("PST8PDT"),
     PACIFIC_PITCAIRN("Pacific/Pitcairn"),
     SYSTEMV_PST8("SystemV/PST8"),
@@ -78,11 +75,9 @@ public enum TimeZoneId {
     AMERICA_YELLOWKNIFE("America/Yellowknife"),
     CANADA_MOUNTAIN("Canada/Mountain"),
     ETC_GMT_PLUS7("Etc/GMT+7"),
-    MST("MST"),
     MST7MDT("MST7MDT"),
     MEXICO_BAJASUR("Mexico/BajaSur"),
     NAVAJO("Navajo"),
-    PNT("PNT"),
     SYSTEMV_MST7("SystemV/MST7"),
     SYSTEMV_MST7MDT("SystemV/MST7MDT"),
     US_ARIZONA("US/Arizona"),
@@ -113,7 +108,6 @@ public enum TimeZoneId {
     AMERICA_SWIFT_CURRENT("America/Swift_Current"),
     AMERICA_TEGUCIGALPA("America/Tegucigalpa"),
     AMERICA_WINNIPEG("America/Winnipeg"),
-    CST("CST"),
     CST6CDT("CST6CDT"),
     CANADA_CENTRAL("Canada/Central"),
     CANADA_EAST_SASKATCHEWAN("Canada/East-Saskatchewan"),
@@ -160,10 +154,8 @@ public enum TimeZoneId {
     AMERICA_TORONTO("America/Toronto"),
     CANADA_EASTERN("Canada/Eastern"),
     CUBA("Cuba"),
-    EST("EST"),
     EST5EDT("EST5EDT"),
     ETC_GMT_PLUS5("Etc/GMT+5"),
-    IET("IET"),
     JAMAICA("Jamaica"),
     SYSTEMV_EST5("SystemV/EST5"),
     SYSTEMV_EST5EDT("SystemV/EST5EDT"),
@@ -221,13 +213,10 @@ public enum TimeZoneId {
     CANADA_ATLANTIC("Canada/Atlantic"),
     CHILE_CONTINENTAL("Chile/Continental"),
     ETC_GMT_PLUS4("Etc/GMT+4"),
-    PRT("PRT"),
     SYSTEMV_AST4("SystemV/AST4"),
     SYSTEMV_AST4ADT("SystemV/AST4ADT"),
     AMERICA_ST_JOHNS("America/St_Johns"),
-    CNT("CNT"),
     CANADA_NEWFOUNDLAND("Canada/Newfoundland"),
-    AGT("AGT"),
     AMERICA_ARAGUAINA("America/Araguaina"),
     AMERICA_ARGENTINA_BUENOS_AIRES("America/Argentina/Buenos_Aires"),
     AMERICA_ARGENTINA_CATAMARCA("America/Argentina/Catamarca"),
@@ -260,7 +249,6 @@ public enum TimeZoneId {
     AMERICA_SANTAREM("America/Santarem"),
     AMERICA_SAO_PAULO("America/Sao_Paulo"),
     ANTARCTICA_ROTHERA("Antarctica/Rothera"),
-    BET("BET"),
     BRAZIL_EAST("Brazil/East"),
     ETC_GMT_PLUS3("Etc/GMT+3"),
     AMERICA_NORONHA("America/Noronha"),
@@ -341,7 +329,6 @@ public enum TimeZoneId {
     ARCTIC_LONGYEARBYEN("Arctic/Longyearbyen"),
     ATLANTIC_JAN_MAYEN("Atlantic/Jan_Mayen"),
     CET("CET"),
-    ECT("ECT"),
     ETC_GMT_MINUS1("Etc/GMT-1"),
     EUROPE_AMSTERDAM("Europe/Amsterdam"),
     EUROPE_ANDORRA("Europe/Andorra"),
@@ -375,7 +362,6 @@ public enum TimeZoneId {
     EUROPE_ZURICH("Europe/Zurich"),
     MET("MET"),
     POLAND("Poland"),
-    ART("ART"),
     AFRICA_BLANTYRE("Africa/Blantyre"),
     AFRICA_BUJUMBURA("Africa/Bujumbura"),
     AFRICA_CAIRO("Africa/Cairo"),
@@ -398,7 +384,6 @@ public enum TimeZoneId {
     ASIA_JERUSALEM("Asia/Jerusalem"),
     ASIA_NICOSIA("Asia/Nicosia"),
     ASIA_TEL_AVIV("Asia/Tel_Aviv"),
-    CAT("CAT"),
     EET("EET"),
     EGYPT("Egypt"),
     ETC_GMT_MINUS2("Etc/GMT-2"),
@@ -438,19 +423,12 @@ public enum TimeZoneId {
     ASIA_KUWAIT("Asia/Kuwait"),
     ASIA_QATAR("Asia/Qatar"),
     ASIA_RIYADH("Asia/Riyadh"),
-    EAT("EAT"),
     ETC_GMT_MINUS3("Etc/GMT-3"),
     EUROPE_KALININGRAD("Europe/Kaliningrad"),
     EUROPE_MINSK("Europe/Minsk"),
     INDIAN_ANTANANARIVO("Indian/Antananarivo"),
     INDIAN_COMORO("Indian/Comoro"),
     INDIAN_MAYOTTE("Indian/Mayotte"),
-    ASIA_RIYADH87("Asia/Riyadh87"),
-    ASIA_RIYADH88("Asia/Riyadh88"),
-    ASIA_RIYADH89("Asia/Riyadh89"),
-    MIDEAST_RIYADH87("Mideast/Riyadh87"),
-    MIDEAST_RIYADH88("Mideast/Riyadh88"),
-    MIDEAST_RIYADH89("Mideast/Riyadh89"),
     ASIA_TEHRAN("Asia/Tehran"),
     IRAN("Iran"),
     ASIA_BAKU("Asia/Baku"),
@@ -465,7 +443,6 @@ public enum TimeZoneId {
     INDIAN_MAHE("Indian/Mahe"),
     INDIAN_MAURITIUS("Indian/Mauritius"),
     INDIAN_REUNION("Indian/Reunion"),
-    NET("NET"),
     W_MINUSSU("W-SU"),
     ASIA_KABUL("Asia/Kabul"),
     ANTARCTICA_MAWSON("Antarctica/Mawson"),
@@ -481,11 +458,9 @@ public enum TimeZoneId {
     ETC_GMT_MINUS5("Etc/GMT-5"),
     INDIAN_KERGUELEN("Indian/Kerguelen"),
     INDIAN_MALDIVES("Indian/Maldives"),
-    PLT("PLT"),
     ASIA_CALCUTTA("Asia/Calcutta"),
     ASIA_COLOMBO("Asia/Colombo"),
     ASIA_KOLKATA("Asia/Kolkata"),
-    IST("IST"),
     ASIA_KATHMANDU("Asia/Kathmandu"),
     ASIA_KATMANDU("Asia/Katmandu"),
     ANTARCTICA_VOSTOK("Antarctica/Vostok"),
@@ -497,7 +472,6 @@ public enum TimeZoneId {
     ASIA_THIMBU("Asia/Thimbu"),
     ASIA_THIMPHU("Asia/Thimphu"),
     ASIA_YEKATERINBURG("Asia/Yekaterinburg"),
-    BST("BST"),
     ETC_GMT_MINUS6("Etc/GMT-6"),
     INDIAN_CHAGOS("Indian/Chagos"),
     ASIA_RANGOON("Asia/Rangoon"),
@@ -516,7 +490,6 @@ public enum TimeZoneId {
     ASIA_VIENTIANE("Asia/Vientiane"),
     ETC_GMT_MINUS7("Etc/GMT-7"),
     INDIAN_CHRISTMAS("Indian/Christmas"),
-    VST("VST"),
     ANTARCTICA_CASEY("Antarctica/Casey"),
     ASIA_BRUNEI("Asia/Brunei"),
     ASIA_CHOIBALSAN("Asia/Choibalsan"),
@@ -541,7 +514,6 @@ public enum TimeZoneId {
     ASIA_URUMQI("Asia/Urumqi"),
     AUSTRALIA_PERTH("Australia/Perth"),
     AUSTRALIA_WEST("Australia/West"),
-    CTT("CTT"),
     ETC_GMT_MINUS8("Etc/GMT-8"),
     HONGKONG("Hongkong"),
     PRC("PRC"),
@@ -554,18 +526,15 @@ public enum TimeZoneId {
     ASIA_SEOUL("Asia/Seoul"),
     ASIA_TOKYO("Asia/Tokyo"),
     ETC_GMT_MINUS9("Etc/GMT-9"),
-    JST("JST"),
     JAPAN("Japan"),
     PACIFIC_PALAU("Pacific/Palau"),
     ROK("ROK"),
-    ACT("ACT"),
     AUSTRALIA_ADELAIDE("Australia/Adelaide"),
     AUSTRALIA_BROKEN_HILL("Australia/Broken_Hill"),
     AUSTRALIA_DARWIN("Australia/Darwin"),
     AUSTRALIA_NORTH("Australia/North"),
     AUSTRALIA_SOUTH("Australia/South"),
     AUSTRALIA_YANCOWINNA("Australia/Yancowinna"),
-    AET("AET"),
     ANTARCTICA_DUMONTDURVILLE("Antarctica/DumontDUrville"),
     ASIA_YAKUTSK("Asia/Yakutsk"),
     AUSTRALIA_ACT("Australia/ACT"),
@@ -599,7 +568,6 @@ public enum TimeZoneId {
     PACIFIC_NOUMEA("Pacific/Noumea"),
     PACIFIC_POHNPEI("Pacific/Pohnpei"),
     PACIFIC_PONAPE("Pacific/Ponape"),
-    SST("SST"),
     PACIFIC_NORFOLK("Pacific/Norfolk"),
     ANTARCTICA_MCMURDO("Antarctica/McMurdo"),
     ANTARCTICA_SOUTH_POLE("Antarctica/South_Pole"),
@@ -608,7 +576,6 @@ public enum TimeZoneId {
     ASIA_MAGADAN("Asia/Magadan"),
     ETC_GMT_MINUS12("Etc/GMT-12"),
     KWAJALEIN("Kwajalein"),
-    NST("NST"),
     NZ("NZ"),
     PACIFIC_AUCKLAND("Pacific/Auckland"),
     PACIFIC_FIJI("Pacific/Fiji"),
@@ -622,7 +589,6 @@ public enum TimeZoneId {
     NZ_MINUSCHAT("NZ-CHAT"),
     PACIFIC_CHATHAM("Pacific/Chatham"),
     ETC_GMT_MINUS13("Etc/GMT-13"),
-    MIT("MIT"),
     PACIFIC_APIA("Pacific/Apia"),
     PACIFIC_ENDERBURY("Pacific/Enderbury"),
     PACIFIC_TONGATAPU("Pacific/Tongatapu"),
@@ -635,7 +601,16 @@ public enum TimeZoneId {
     ASIA_SREDNEKOLYMSK("Asia/Srednekolymsk"),
     EUROPE_BUSINGEN("Europe/Busingen"),
     AMERICA_CRESTON("America/Creston"),
-    PACIFIC_KIRITIMATI("Pacific/Kiritimati");
+    PACIFIC_KIRITIMATI("Pacific/Kiritimati"),
+    AMERICA_FORT_NELSON("America/Fort_Nelson"),
+    ASIA_BARNAUL("Asia/Barnaul"),
+    ASIA_FAMAGUSTA("Asia/Famagusta"),
+    ASIA_TOMSK("Asia/Tomsk"),
+    ASIA_YANGON("Asia/Yangon"),
+    EUROPE_ASTRAKHAN("Europe/Astrakhan"),
+    EUROPE_KIROV("Europe/Kirov"),
+    EUROPE_ULYANOV("Europe/Ulyanovsk");
+
     private final String stringId;
 
     private static Map<String, TimeZoneId> TIME_ZONE_ID_BY_STRING_ID = new HashMap<>();
@@ -653,8 +628,12 @@ public enum TimeZoneId {
         this.stringId = stringId;
     }
 
+    public String getStringId() {
+        return stringId;
+    }
+
     public TimeZone getTimeZone() {
-        return TimeZone.getTimeZone(this.stringId);
+        return TimeZone.getTimeZone(toZoneId());
     }
 
     public static TimeZoneId fromString(String stringId) {
@@ -666,6 +645,6 @@ public enum TimeZoneId {
     }
 
     public ZoneId toZoneId() {
-        return getTimeZone().toZoneId();
+        return ZoneId.of(stringId);
     }
 }
