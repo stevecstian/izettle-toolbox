@@ -50,6 +50,14 @@
             <artifactId>javax.ws.rs-api</artifactId>
             <version>${javax-ws-rs.version}</version>
         </dependency>
+
+        <!-- To be able to test BadRequestException for instance -->
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+            <version>${javax-ws-rs.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.google.truth</groupId>
             <artifactId>truth</artifactId>
