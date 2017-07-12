@@ -1,5 +1,7 @@
 package com.izettle.jackson.module;
 
+import static com.izettle.java.DateTimeFormatters.RFC_3339_INSTANT;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,7 +12,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -25,13 +26,10 @@ import java.time.format.DateTimeParseException;
  */
 public class InstantRFC3339Module extends SimpleModule {
 
-    private static final DateTimeFormatter INSTANT_PARSING_FORMATTER = DateTimeFormatter
+    private static final DateTimeFormatter ZULU_OR_OFFSET_PARSER = DateTimeFormatter
         .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXX");
-    private static final DateTimeFormatter INSTANT_PARSING_FORMATTER2 = DateTimeFormatter
+    private static final DateTimeFormatter NO_MILLIS_FALLBACK = DateTimeFormatter
         .ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
-    private static final DateTimeFormatter INSTANT_FORMATTING_FORMATTER = DateTimeFormatter
-        .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-        .withZone(ZoneId.of("UTC"));
 
     /**
      * Note: This module needs to be registered after other possible modules that might try to control `Instant`, such
@@ -51,7 +49,7 @@ public class InstantRFC3339Module extends SimpleModule {
             final JsonGenerator jsonGenerator,
             final SerializerProvider serializerProvider
         ) throws IOException, JsonProcessingException {
-            jsonGenerator.writeString(INSTANT_FORMATTING_FORMATTER.format(instant));
+            jsonGenerator.writeString(RFC_3339_INSTANT.format(instant));
         }
     }
 
@@ -64,9 +62,9 @@ public class InstantRFC3339Module extends SimpleModule {
         ) throws IOException, JsonProcessingException {
             final String value = jp.readValueAs(String.class);
             try {
-                return Instant.from(INSTANT_PARSING_FORMATTER.parse(value));
+                return Instant.from(ZULU_OR_OFFSET_PARSER.parse(value));
             } catch (DateTimeParseException e) {
-                return Instant.from(INSTANT_PARSING_FORMATTER2.parse(value));
+                return Instant.from(NO_MILLIS_FALLBACK.parse(value));
             }
         }
     }
