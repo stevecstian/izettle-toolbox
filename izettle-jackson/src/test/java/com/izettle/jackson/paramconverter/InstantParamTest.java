@@ -49,4 +49,36 @@ public class InstantParamTest {
             assertTrue(ex.getCause() instanceof DateTimeParseException);
         }
     }
+
+    @Test
+    public void shouldBeAbleToDeserializeIncomingRequestParameterWithZuluIndicator() throws Exception {
+        final String requestParamValue = "2013-12-24T21:34:56.123Z";
+        final InstantParam result = InstantParam.valueOf(requestParamValue);
+        assertEquals(myInstant, result.getInstant());
+    }
+
+    @Test
+    public void shouldBeAbleToDeserializeIncomingRequestParameterWithoutMillis() throws Exception {
+        final String requestParamValue = "2013-12-24T21:34:56+0000";
+        final InstantParam result = InstantParam.valueOf(requestParamValue);
+        final Instant expected = Instant.parse("2013-12-24T21:34:56Z");
+        assertEquals(expected, result.getInstant());
+    }
+
+    @Test
+    public void shouldBeAbleToDeserializeIncomingRequestParameterWithSomeFractionalSeconds() throws Exception {
+        final String requestParamValue = "2013-12-24T21:34:56.21+0000";
+        final InstantParam result = InstantParam.valueOf(requestParamValue);
+        final Instant expected = Instant.parse("2013-12-24T21:34:56.21Z");
+        assertEquals(expected, result.getInstant());
+    }
+
+    @Test
+    public void shouldBeAbleToDeserializeIncomingRequestParameterWithZuluIndicatorWithoutMillis() throws Exception {
+        final String requestParamValue = "2013-12-24T21:34:56Z";
+        final InstantParam result = InstantParam.valueOf(requestParamValue);
+        final Instant expected = Instant.parse("2013-12-24T21:34:56Z");
+        assertEquals(expected, result.getInstant());
+    }
+
 }

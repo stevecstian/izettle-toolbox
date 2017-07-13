@@ -1,5 +1,7 @@
 package com.izettle.jackson.paramconverter;
 
+import static com.izettle.java.DateTimeFormatters.INSTANT_WITH_NO_MILLIS_FALLBACK;
+import static com.izettle.java.DateTimeFormatters.INSTANT_WITH_ZULU_OR_OFFSET;
 import static com.izettle.java.DateTimeFormatters.RFC_3339_INSTANT;
 
 import java.time.Instant;
@@ -21,10 +23,15 @@ public class InstantParam {
 
     public static InstantParam valueOf(final String rfc3339DateString) throws BadRequestException {
         try {
-            final Instant instant = RFC_3339_INSTANT.parse(rfc3339DateString, Instant::from);
+            final Instant instant = INSTANT_WITH_ZULU_OR_OFFSET.parse(rfc3339DateString, Instant::from);
             return new InstantParam(instant);
         } catch (final DateTimeParseException e) {
-            throw new BadRequestException(e);
+            try {
+                final Instant instant =  INSTANT_WITH_NO_MILLIS_FALLBACK.parse(rfc3339DateString, Instant::from);
+                return new InstantParam(instant);
+            } catch (final DateTimeParseException e2) {
+                throw new BadRequestException(e2);
+            }
         }
     }
 
