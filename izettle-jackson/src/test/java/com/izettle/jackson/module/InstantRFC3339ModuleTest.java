@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.junit.Test;
@@ -67,5 +68,13 @@ public class InstantRFC3339ModuleTest {
         final String value = "\"2017-02-16T16:33:55Z\"";
         final Instant parsedInstant = mapper.readValue(value, Instant.class);
         assertEquals(Instant.parse("2017-02-16T16:33:55Z"), parsedInstant);
+    }
+
+    @Test
+    public void itShouldHandleEpochTimestamp() throws IOException {
+        final ObjectMapper mapper = createMapper();
+        final String value = "1437495773948";
+        final Instant parsedInstant = mapper.readValue(value, Instant.class);
+        assertEquals(Instant.parse("2015-07-21T16:22:53.948Z"), parsedInstant);
     }
 }
