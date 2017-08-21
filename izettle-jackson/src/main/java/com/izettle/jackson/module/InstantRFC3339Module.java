@@ -57,10 +57,20 @@ public class InstantRFC3339Module extends SimpleModule {
             final DeserializationContext context
         ) throws IOException, JsonProcessingException {
             final String value = jp.readValueAs(String.class);
+
             try {
                 return Instant.from(INSTANT_WITH_ZULU_OR_OFFSET.parse(value));
             } catch (DateTimeParseException e) {
-                return Instant.from(INSTANT_WITH_NO_MILLIS_FALLBACK.parse(value));
+                try {
+                    return Instant.from(INSTANT_WITH_NO_MILLIS_FALLBACK.parse(value));
+                } catch (DateTimeParseException e2) {
+                    try {
+                        long timeStamp = Long.parseLong(value);
+                        return Instant.ofEpochMilli(timeStamp);
+                    } catch (NumberFormatException e3) {
+                        throw e;
+                    }
+                }
             }
         }
     }
