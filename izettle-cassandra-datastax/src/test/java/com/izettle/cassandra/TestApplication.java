@@ -1,4 +1,4 @@
-package com.izettle.dropwizard.cassandra;
+package com.izettle.cassandra;
 
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
