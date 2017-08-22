@@ -1,4 +1,4 @@
-package com.izettle.dropwizard.cassandra;
+package com.izettle.cassandra;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;

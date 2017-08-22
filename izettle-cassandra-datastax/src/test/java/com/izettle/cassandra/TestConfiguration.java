@@ -1,4 +1,4 @@
-package com.izettle.dropwizard.cassandra;
+package com.izettle.cassandra;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;

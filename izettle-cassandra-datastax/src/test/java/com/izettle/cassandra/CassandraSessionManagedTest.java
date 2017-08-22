@@ -1,4 +1,4 @@
-package com.izettle.dropwizard.cassandra;
+package com.izettle.cassandra;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
