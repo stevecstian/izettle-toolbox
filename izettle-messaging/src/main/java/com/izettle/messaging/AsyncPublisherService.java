@@ -3,9 +3,10 @@ package com.izettle.messaging;
 import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
 
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSAsyncClient;
+import com.amazonaws.handlers.AsyncHandler;
+import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.PublishResult;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.messaging.serialization.DefaultMessageSerializer;
 import com.izettle.messaging.serialization.MessageSerializer;
@@ -14,38 +15,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Convenience class for using Amazon Simple Notification Service.
+ * Convenience class for using Amazon Simple Notification Service in an non-blocking manner.
  */
-public class PublisherService implements MessagePublisher {
+public class AsyncPublisherService implements MessagePublisher {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PublisherService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncPublisherService.class);
 
     private final String topicArn;
-    private final AmazonSNS amazonSNS;
+    private final AmazonSNSAsync amazonSNS;
     private final MessageSerializer messageSerializer;
 
-    public static MessagePublisher nonEncryptedPublisherService(AmazonSNS client, final String topicArn) {
-        return PublisherService.nonEncryptedPublisherService(client, topicArn, new DefaultMessageSerializer());
+    public static MessagePublisher nonEncryptedPublisherService(AmazonSNSAsync client, final String topicArn) {
+        return AsyncPublisherService.nonEncryptedPublisherService(client, topicArn, new DefaultMessageSerializer());
     }
 
     public static MessagePublisher nonEncryptedPublisherService(
-            final AmazonSNS client,
+            final AmazonSNSAsync client,
             final String topicArn,
             final MessageSerializer messageSerializer
     ) {
-        return new PublisherService(client, topicArn, messageSerializer);
+        return new AsyncPublisherService(client, topicArn, messageSerializer);
     }
 
     public static MessagePublisher encryptedPublisherService(
-            AmazonSNS client,
+            AmazonSNSAsync client,
             final String topicArn,
             final byte[] publicPgpKey
     ) throws MessagingException {
-
-        if (client instanceof AmazonSNSAsyncClient) {
-            LOG.warn("PublisherService was constructed with a AmazonSNSAsyncClient. This will not make message "
-                + "publishing asynchronous. If you want asynchronous publishing, use AsyncPublisherService.");
-        }
 
         if (empty(publicPgpKey)) {
             throw new MessagingException("Can't create encryptedPublisherService with null as public PGP key");
@@ -57,10 +53,10 @@ public class PublisherService implements MessagePublisher {
         } catch (CryptographyException e) {
             throw new MessagingException("Failed to load public PGP key needed to encrypt messages.", e);
         }
-        return new PublisherService(client, topicArn, messageSerializer);
+        return new AsyncPublisherService(client, topicArn, messageSerializer);
     }
 
-    private PublisherService(AmazonSNS client, String topicArn, MessageSerializer messageSerializer) {
+    private AsyncPublisherService(AmazonSNSAsync client, String topicArn, MessageSerializer messageSerializer) {
         if (anyEmpty(client, topicArn, messageSerializer)) {
             throw new IllegalArgumentException(
                     "None of client, topicArn or messageSerializer can be empty!\n"
@@ -75,16 +71,12 @@ public class PublisherService implements MessagePublisher {
     }
 
     /**
-     * Posts message to queue.
-     *
-     * Note: The message will be sent synchronously, even if this PublisherService was constructed with an
-     * AmazonSNSAsyncClient.
+     * Posts message to queue asynchronously. SNS errors will be logged.
      *
      * @param message Message to post.
      * @param eventName Message subject (type of message).
      * @throws MessagingException Failed to post message.
      */
-    @Override
     public <M> void post(M message, String eventName) throws MessagingException {
 
         if (empty(eventName)) {
@@ -94,7 +86,20 @@ public class PublisherService implements MessagePublisher {
             String jsonBody = messageSerializer.serialize(message);
             String encryptedBody = messageSerializer.encrypt(jsonBody);
             PublishRequest publishRequest = new PublishRequest(topicArn, encryptedBody, eventName);
-            amazonSNS.publish(publishRequest);
+            amazonSNS.publishAsync(
+                publishRequest,
+                new AsyncHandler<PublishRequest, PublishResult>() {
+                    @Override
+                    public void onError(Exception e) {
+                        LOG.warn("Failed to publish message " + eventName, e);
+                    }
+
+                    @Override
+                    public void onSuccess(PublishRequest request, PublishResult publishResult) {
+                        // Do nothing
+                    }
+                }
+            );
         } catch (Exception e) {
             throw new MessagingException("Failed to publish message " + eventName, e);
         }
