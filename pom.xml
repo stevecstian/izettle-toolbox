@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.izettle</groupId>
         <artifactId>izettle</artifactId>
-        <version>1.13</version>
+        <version>1.14</version>
     </parent>
 
     <groupId>com.izettle.toolbox</groupId>
@@ -62,7 +62,7 @@
         <astyanax.version>3.9.0</astyanax.version>
         <aws.version>1.11.86</aws.version>
         <bouncycastle.version>1.55</bouncycastle.version>
-        <cassandra-driver.version>3.2.0</cassandra-driver.version>
+        <cassandra-driver.version>3.3.0</cassandra-driver.version>
         <cassandra-unit.version>2.2.2.1</cassandra-unit.version>
         <findbugs-maven-plugin.version>3.0.3</findbugs-maven-plugin.version>
         <guava.version>19.0</guava.version>
@@ -156,7 +156,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven.enforcer.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>enforce-banned-dependencies</id>
@@ -187,7 +186,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 
