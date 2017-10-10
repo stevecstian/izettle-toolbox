@@ -109,6 +109,14 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     }
 
     /**
+     * Returns the total value of all cart-wide discounts (VAT still included)
+     * @return the discount value, or null if there are no discounts
+     */
+    public Long getCartWideDiscountValue() {
+        return cartWideDiscountValue;
+    }
+
+    /**
      * The total value of this cart before cart wide discounts has been applied
      * @return the gross value of the cart
      */
