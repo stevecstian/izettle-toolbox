@@ -40,4 +40,10 @@ public interface Item<T, K extends Discount<?>> {
      * @return
      */
     K getDiscount();
+
+    /**
+     * The identifier of the item in relation to other line items in the cart
+     * @return the identifier of the item
+     */
+    Object getId();
 }

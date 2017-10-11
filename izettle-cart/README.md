@@ -75,9 +75,57 @@ Cart {
 }
 ```
 
+## Full refunds
+When a full cart is refunded, there is no complex maths going on. The easiest
+way to create a new cart, representing the refund itself is by simply calling
+`Cart::inverse`: this will generate a cart with all quantities negated,
+effectively generating a cart with the opposite value. It's guaranteed to have
+the exact same (albeit negated) value as the original cart.
+
+## Partial alterations (refunds or additions)
+Partial refunds is a bit more complex than a full refund. Why so? Consider the
+scenario when 10 units of item A with a price of 1 has been sold in the original
+cart. Also, the original cart had a 50% discount, effectively making the total
+value of the cart equal to 5. If each refunded unit of A would be calculated as
+a separate cart, that would result in the customer getting 0 funds back each
+time. The only way to address this is to *always* take the original cart (and
+its possible previous refunds) into consideration, apply the sequence of
+reductions (alterations) to it and calculate the residual value. The amount of
+funds that's supposed to be paid back is the difference between the original
+value and the residual value. To aid handling this logic, there are two public
+methods on the `Cart` object: `Cart::getRemainingItems` and
+`Cart:createAlterationCart`. The first is used to get a list of items (and their
+quantities) remaining in the cart (think of a UI where the user by this can get
+a list of returnable items). The second method is used to create a 'cart-like'
+object `AlterationCart`, that can be queried for details such as value, vat,
+discount etc.
+
+Note one: Discounts are treated as distributed over all items, and will be to
+the disadvantage for the customer when calculating the value for the refund (an
+alteration with negative quantities). This applies no matter if the discount is
+based on a percentage or on a fixed amount.
+
+Note two: An alteration can have negative quantities, and would then represent a
+refund event. The resulting `AlterationCart` will then also represent negative
+amounts (as something is removed from the original cart). If an alteration is
+positive, however, it will represent an addition to the original cart and
+consequently have positive values.
+
+### Example 1:
+Item A has a price of 10
+Original cart has quantity 2 of item A and a 50% cart-wide discount.
+Customer returns one unit of item A
+The value of the AlterationCart here is -5
+
+### Example 2:
+Item A has a price of 10
+Original cart has quantity 2 of item A and a cart-wide discount of fixed value 4.
+Customer returns one unit of item A
+The value of the AlterationCart here is -8
+
 ## Todos
-* Possibility to treat a cart as an item, effectively opening up for adding one cart into another.
-* Add a `refund()` method to the cart object, accepting a list of previous refunds, and a list of the new items that should be refunded.
-
-
+* Possibility to treat a cart as an item, effectively opening up for adding one
+  cart into another.
+* Consider a way for the user of the library to specify whether prices are
+  including or excluding VAT (right now they're assumed to be including VAT).
 

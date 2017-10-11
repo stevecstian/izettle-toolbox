@@ -68,4 +68,19 @@ class ItemUtils {
             throw new IllegalArgumentException("Item cannot have ZERO quantity: " + item);
         }
     }
+
+    static void validateQuantities(final Collection<BigDecimal> quantities) {
+        for (BigDecimal quantity : quantities) {
+            validateQuantity(quantity);
+        }
+    }
+
+    static void validateQuantity(final BigDecimal quantity) {
+        if (quantity == null) {
+            throw new IllegalArgumentException("Quantity cannot be null");
+        }
+        if (quantity.compareTo(BigDecimal.ZERO) == 0) {
+            throw new IllegalArgumentException("Quantity cannot be ZERO: " + quantity);
+        }
+    }
 }
