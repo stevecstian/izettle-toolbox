@@ -179,6 +179,94 @@ public class AlterationTest {
 
     @Test
     /**
+     * Verifies that there is no amounts remaining after all items has been removed, even if there was a fixed line item
+     * discount
+     */
+    public void itShouldHandleFullDrainageForFixedLineItemDiscounts() {
+        final Object id1 = UUID.randomUUID();
+        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart = createCart(
+            new TestItem(id1, "Main thing", 1L, 30f, BigDecimal.valueOf(1L), new TestDiscount(10L, null, BigDecimal.ONE))
+        );
+        final long originalValue = cart.getValue();
+        final Map<Object, BigDecimal> currentRefund = Maps.newHashMap(id1, BigDecimal.ONE.negate());
+        final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> alterationCart = cart
+            .createAlterationCart(null, currentRefund);
+        final long alterationValue = alterationCart.getValue();
+        assertEquals(originalValue, -1 * alterationValue);
+    }
+
+    @Test
+    /**
+     * Verifies that there is no amounts remaining after all items has been removed, even if there was a percentage line
+     * item discount
+     */
+    public void itShouldHandleFullDrainageForPercentageLineItemDiscounts() {
+        final Object id = UUID.randomUUID();
+        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart = createCart(
+            new TestItem(id, "Main thing", 1L, 30f, BigDecimal.valueOf(1L), new TestDiscount(null, 50d, BigDecimal.ONE))
+        );
+        final long originalValue = cart.getValue();
+        final Map<Object, BigDecimal> currentRefund = Maps.newHashMap(id, BigDecimal.ONE.negate());
+        final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> alterationCart2 = cart
+            .createAlterationCart(null, currentRefund);
+        final long alterationValue2 = alterationCart2.getValue();
+        assertEquals(originalValue, -1 * alterationValue2);
+    }
+
+    @Test
+    /**
+     * Verifies that there is no amounts remaining after all items has been removed, even if there was a fixed cart wide
+     * discount
+     */
+    public void itShouldHandleFullDrainageForFixedCartWideDiscounts() {
+        final Object id = UUID.randomUUID();
+        final TestDiscount discount = new TestDiscount(10L, null, BigDecimal.ONE);
+        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart
+            = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(
+                Arrays.asList(createItem(id, 10L, 30f, BigDecimal.valueOf(2L))),
+                Arrays.asList(discount),
+                null
+            );
+        final long originalValue = cart.getValue();
+        final Map<Object, BigDecimal> firstAlteration = Maps.newHashMap(id, BigDecimal.ONE.negate());
+        final Map<Object, BigDecimal> currentRefund = Maps.newHashMap(id, BigDecimal.ONE.negate());
+        final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> firstAlterationCart = cart
+            .createAlterationCart(null, firstAlteration);
+        final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> secondAlterationCart = cart
+            .createAlterationCart(Arrays.asList(firstAlteration), currentRefund);
+        final long firstAlterationValue = firstAlterationCart.getValue();
+        final long secondalterationValue = secondAlterationCart.getValue();
+        assertEquals(originalValue, -1 * (firstAlterationValue + secondalterationValue));
+    }
+
+    @Test
+    /**
+     * Verifies that there is no amounts remaining after all items has been removed, even if there was a percentage cart
+     * wide discount
+     */
+    public void itShouldHandleFullDrainageForPercentageCartWideDiscounts() {
+        final Object id = UUID.randomUUID();
+        final TestDiscount discount = new TestDiscount(null, 20d, BigDecimal.ONE);
+        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart
+            = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(
+                Arrays.asList(createItem(id, 10L, 30f, BigDecimal.valueOf(2L))),
+                Arrays.asList(discount),
+                null
+            );
+        final long originalValue = cart.getValue();
+        final Map<Object, BigDecimal> firstAlteration = Maps.newHashMap(id, BigDecimal.ONE.negate());
+        final Map<Object, BigDecimal> currentRefund = Maps.newHashMap(id, BigDecimal.ONE.negate());
+        final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> firstAlterationCart = cart
+            .createAlterationCart(null, firstAlteration);
+        final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> secondAlterationCart = cart
+            .createAlterationCart(Arrays.asList(firstAlteration), currentRefund);
+        final long firstAlterationValue = firstAlterationCart.getValue();
+        final long secondalterationValue = secondAlterationCart.getValue();
+        assertEquals(originalValue, -1 * (firstAlterationValue + secondalterationValue));
+    }
+
+    @Test
+    /**
      * Verifiy that a cart, after previous alterations, has the correct items (and it's quantities) available for
      * further alterations.
      */
