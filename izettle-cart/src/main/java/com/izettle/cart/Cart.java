@@ -111,8 +111,9 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             for (DiscountLine<K> discountLine : discountLines) {
                 final K oldDiscount = discountLine.getDiscount();
                 final BigDecimal newQuantity = oldDiscount.getQuantity().multiply(grossValueRatio);
-                final AlteredCartDiscount newDiscount = AlteredCartDiscount.from(oldDiscount).withQuantity(newQuantity);
-                remainingDiscounts.add(newDiscount);
+                if (newQuantity.signum() != 0) {
+                    remainingDiscounts.add(AlteredCartDiscount.from(oldDiscount).withQuantity(newQuantity));
+                }
             }
             //reduce service charge
             if (serviceChargeLine == null) {
