@@ -174,8 +174,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     }
 
     /**
-     * Utility method to retrieve what items and the quantity is available for alteration, while keeping the quantities
-     * non-negative.
+     * Utility method to retrieve the full list of items and their remaining quantity available for alteration.
      * @param previousAlterations possibly previous alterations that needs to be taken into consideration
      * @return A map of quantities available for alteration
     */

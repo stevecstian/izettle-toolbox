@@ -3,29 +3,81 @@
 This set of utility classes aims at helping out doing generic calculations on a (shopping) cart.
 
 ## Why is this needed?
-At a point we started having lot's of different implementation for doing this logic in different places. While not very complicated, it's easy to go wrong, and introduce small differences between implementations. Problems such as rounding and distribution of vat amounts when applying discounts have been seen.
-Also, the source level is intentionally kept at java 6 to allow android apps to use the library. In this way, both apps and backend services can apply the same logic for handling carts.
+At a point we started having lot's of different implementation for doing this
+logic in different places. While not very complicated, it's easy to go wrong,
+and introduce small differences between implementations. Problems such as
+rounding and distribution of vat amounts when applying discounts have been seen.
+Also, the source level is intentionally kept at java 6 to allow android apps to
+use the library. In this way, both apps and backend services can apply the same
+logic for handling carts.
 
 ## What is this?
-This set of classes intends to help out only in doing calculations on the cart itself as an abstract concept. It handles no other business properties such as shipment, fees etc. As the calculations are purely numerical, there is no need to include information about actual currency in this scope. The general concept is that a Cart is cheap to build, and should be built (and directly thrown away) whenever one needs financial data from a collection of items and discounts. For example a complex entity containing lots of other stuff needn't necessarily itself represent a Cart, but could for example in a hypothetical method `getPrice()` just temporarily build a Cart and then ask that object for it's value.
+This set of classes intends to help out only in doing calculations on the cart
+itself as an abstract concept. It handles no other business properties such as
+shipment, fees etc. As the calculations are purely numerical, there is no need
+to include information about actual currency in this scope. The general concept
+is that a Cart is cheap to build, and should be built (and directly thrown away)
+whenever one needs financial data from a collection of items and discounts. For
+example a complex entity containing lots of other stuff needn't necessarily
+itself represent a Cart, but could for example in a hypothetical method
+`getPrice()` just temporarily build a Cart and then ask that object for it's
+value.
 
 ## Basic types used:
+
 ### Money
-Represented as whole numbers (`long` and `Long`), using the (unknown) currency's minimal denominator. E.g. $10 would be represented as 1000 (cents). This is to make sure that no fractional values are used, and that all necessary rounding takes place on each line.
+Represented as whole numbers (`long` and `Long`), using the (unknown) currency's
+minimal denominator. E.g. $10 would be represented as 1000 (cents). This is to
+make sure that no fractional values are used, and that all necessary rounding
+takes place on each line.
+
 ### Quantities
-Represented as `BigDecimal` to allow for arbitrarily precise values, e.g. 0.000123 kg of saffron. Quantity is also the field indicating direction of the purchase: a refund cart would have negative quantities on most lines.
+Represented as `BigDecimal` to allow for arbitrarily precise values, e.g.
+0.000123 kg of saffron. Quantity is also the field indicating direction of the
+purchase: a refund cart would have negative quantities on most lines.
+
 ### VAT Percentage
-In most countries, valid VAT percentages are expressed in whole numbers, but as always, there are exceptions. Therefore, VAT percentages are expressed as a floating point number, with `Float`. nullable for scenarios when VAT is not applicable. The constructed cart object has methods for getting different versions of the VAT outcome, for example `groupValuesByVatPercentage`, where all the different percentages are mapped against their values (commonly displayed on receipts).
+In most countries, valid VAT percentages are expressed in whole numbers, but as
+always, there are exceptions. Therefore, VAT percentages are expressed as a
+floating point number, with `Float`. nullable for scenarios when VAT is not
+applicable. The constructed cart object has methods for getting different
+versions of the VAT outcome, for example `groupValuesByVatPercentage`, where all
+the different percentages are mapped against their values (commonly displayed on
+receipts).
 ### Primitive vs Object
-The distinction between `Float` and `float` has been made to indicate when a value is nullable or not. Same goes for `Long` vs `long`.
+
+The distinction between `Float` and `float` has been made to indicate when a
+value is nullable or not. Same goes for `Long` vs `long`.
 
 ## Classes and interfaces
+
 ### `Item`, `Discount` and `ServiceCharge`
-These are the interfaces that should be implemented by a user of the library, providing getters for accessing `unitPrice`, `quantity`, `vatPercentage` etc. An Item can also contain an optional local discount that will be applied to only the item itself, as opposed to the cart-wide discount that will affect the entire carts value. Multiple cart-wide discounts is possible: they will then be calculated as if applied on the gross value of the cart in consecutive order. E.g. two 10% discounts will result in a total discount of 19%. Also noteworthy is that discounts can be negative, and would then represent a value addition/a 'top up'. A ServiceCharge is something that's applied as the last calculation when the value of the rest of the cart is known. This may be used for representing a top up or a mandatory tip, used in some countries.
+These are the interfaces that should be implemented by a user of the library,
+providing getters for accessing `unitPrice`, `quantity`, `vatPercentage` etc. An
+Item can also contain an optional local discount that will be applied to only
+the item itself, as opposed to the cart-wide discount that will affect the
+entire carts value. Multiple cart-wide discounts is possible: they will then be
+calculated as if applied on the gross value of the cart in consecutive order.
+E.g. two 10% discounts will result in a total discount of 19%. Also noteworthy
+is that discounts can be negative, and would then represent a value addition/a
+'top up'. A ServiceCharge is something that's applied as the last calculation
+when the value of the rest of the cart is known. This may be used for
+representing a top up or a mandatory tip, used in some countries.
+
 ### `Cart`
-The cart is constructed as an immutable object, where the collections of items and discounts are given at construction time. After construction, the cart holds information on a per line level, and a total level. Each line is represented by a `ItemLine` or a `DiscountLine`. The object is queryable for properties such as grossValue, value, groupedVatAmounts etc. Also, the cart can be cloned into it's negative counterpart by calling `Cart.inverse()`, which is useful for example when creating a cart that is representing a full refund of the original.
+The cart is constructed as an immutable object, where the collections of items
+and discounts are given at construction time. After construction, the cart holds
+information on a per line level, and a total level. Each line is represented by
+a `ItemLine` or a `DiscountLine`. The object is queryable for properties such as
+grossValue, value, groupedVatAmounts etc. Also, the cart can be cloned into it's
+negative counterpart by calling `Cart.inverse()`, which is useful for example
+when creating a cart that is representing a full refund of the original.
+
 ### `ItemLine`, `DiscountLine` and `ServiceChargeLine`
-These are the objects that will populate the cart's three different list sections. Each item, discount and service charge line will hold information such as actual value and actual VAT, but also keeping a reference to it's original item/discount/servicecharge.
+These are the objects that will populate the cart's three different list
+sections. Each item, discount and service charge line will hold information such
+as actual value and actual VAT, but also keeping a reference to it's original
+item/discount/servicecharge.
 
 ## Example
 ```java
