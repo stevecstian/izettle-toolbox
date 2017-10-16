@@ -186,9 +186,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
         if (cartAfterAlterations.itemLines != null) {
             for (ItemLine<AlteredCartItem, AlteredCartDiscount> itemLine : cartAfterAlterations.itemLines) {
                 final AlteredCartItem item = itemLine.getItem();
-                if (item.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
-                    alterableItems.put(item.getId(), item.getQuantity());
-                }
+                alterableItems.put(item.getId(), item.getQuantity());
             }
         }
         return alterableItems;
