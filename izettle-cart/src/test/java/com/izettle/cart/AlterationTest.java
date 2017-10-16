@@ -134,6 +134,38 @@ public class AlterationTest {
 
     @Test
     /**
+     * Verifies that the returned map of available inventory is correct, and that all items are present even if they
+     * have quantity of zero
+     */
+    public void itShouldReturnTheExpectedQuantitiesForRemainintItems() {
+        final Object id1 = UUID.randomUUID();
+        final Object id2 = UUID.randomUUID();
+        final List<TestItem> itemList = Arrays.asList(
+            createItem(id1, 100L, 30f, BigDecimal.TEN),
+            createItem(id2, 300L, 10f, BigDecimal.valueOf(4))
+        );
+        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart =
+            new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(itemList, null, null);
+
+        final Map<Object, BigDecimal> firstAlteration = Maps.newHashMap(id1, BigDecimal.valueOf(6).negate());
+        final Map<Object, BigDecimal> remainingItemsAfterFirst = cart.getRemainingItems(Arrays.asList(firstAlteration));
+        assertEquals(2, remainingItemsAfterFirst.size());
+        assertEquals(BigDecimal.valueOf(4), remainingItemsAfterFirst.get(id1));
+        assertEquals(BigDecimal.valueOf(4), remainingItemsAfterFirst.get(id2));
+
+        final Map<Object, BigDecimal> secondAlteration = new HashMap<Object, BigDecimal>();
+        secondAlteration.put(id1, BigDecimal.valueOf(4).negate());
+        secondAlteration.put(id2, BigDecimal.valueOf(4).negate());
+        final Map<Object, BigDecimal> remainingItemsAfterSecond = cart.getRemainingItems(
+            Arrays.asList(firstAlteration, secondAlteration)
+        );
+        assertEquals(2, remainingItemsAfterFirst.size());
+        assertEquals(BigDecimal.valueOf(0), remainingItemsAfterSecond.get(id1));
+        assertEquals(BigDecimal.valueOf(0), remainingItemsAfterSecond.get(id2));
+    }
+
+    @Test
+    /**
      * Verify that the protected method `applyAlteration` does what it should, and that discounts are changed
      * proportionally to the size of the alteration
      */
@@ -270,7 +302,7 @@ public class AlterationTest {
      * Verifiy that a cart, after previous alterations, has the correct items (and it's quantities) available for
      * further alterations.
      */
-    public void itShouldPresentCorrectAlterableItems() {
+    public void itShouldPresentCorrectRemainingItems() {
         final Object id1 = UUID.randomUUID();
         final Object id2 = UUID.randomUUID();
         final List<TestItem> itemList = Arrays.asList(
@@ -288,8 +320,8 @@ public class AlterationTest {
             );
         final Map<Object, BigDecimal> alterableItems = originalCart.getRemainingItems(previousAlterations);
         assertEquals(
-            "Expected only inte type of items to be alterable, but was " + alterableItems.size(),
-            1,
+            "Expected 2 type of items to be alterable, but was " + alterableItems.size(),
+            2,
             alterableItems.size()
         );
         assertEquals(

@@ -188,6 +188,13 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
                 alterableItems.put(item.getId(), item.getQuantity());
             }
         }
+        //fill out missing ones with zeroes
+        for (ItemLine<T, D> itemLine : getItemLines()) {
+            final Object key = itemLine.getItem().getId();
+            if (!alterableItems.containsKey(key)) {
+                alterableItems.put(itemLine.getItem().getId(), BigDecimal.ZERO);
+            }
+        }
         return alterableItems;
     }
 
