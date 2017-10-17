@@ -22,6 +22,9 @@ public class InstantAdjusters {
      * <br>
      * For example calling method with {@link ChronoUnit#HOURS} and using it to adjust the
      * instant 2016-02-24T12:12:55.854Z will adjust the instant into 2016-02-24T12:00:00.000Z <br>
+     * If the the instant falls within a offset overlap, for example daylight changes, the earlier
+     * offset will be choosen.
+     *
      * <br>
      * Adjusting an instant weeks will use the ISO-8601 standard where weeks start on Mondays
      */
@@ -35,12 +38,11 @@ public class InstantAdjusters {
 
         return temporal -> {
             ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.from(temporal), zoneId);
-
             if (chronoUnit.compareTo(ChronoUnit.DAYS) <= 0) {
                 zonedDateTime = zonedDateTime.truncatedTo(chronoUnit);
+                return temporal.with(zonedDateTime.toInstant());
             } else {
                 zonedDateTime = zonedDateTime.truncatedTo(ChronoUnit.DAYS);
-
                 if (chronoUnit.compareTo(ChronoUnit.WEEKS) == 0) {
                     zonedDateTime = zonedDateTime.with(WeekFields.ISO.dayOfWeek(), 1);
                 }
@@ -52,9 +54,16 @@ public class InstantAdjusters {
                 if (chronoUnit.compareTo(ChronoUnit.YEARS) == 0) {
                     zonedDateTime = zonedDateTime.with(firstDayOfYear());
                 }
-            }
 
-            return temporal.with(zonedDateTime.toInstant());
+                final Instant truncatedInstant = zonedDateTime
+                    .toLocalDate()
+                    .atStartOfDay()
+                    .atZone(zonedDateTime.getZone())
+                    .withEarlierOffsetAtOverlap()
+                    .toInstant();
+
+                return temporal.with(truncatedInstant);
+            }
         };
     }
 
