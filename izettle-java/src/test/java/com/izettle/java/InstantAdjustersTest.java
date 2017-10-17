@@ -140,4 +140,24 @@ public class InstantAdjustersTest {
             .toInstant();
         assertThat(result).isEqualTo(expected);
     }
+
+    @Test
+    public void itShouldTruncateByMonthAcrossDstOverlapp() {
+        final ZoneId zoneId = TimeZoneId.AMERICA_SAO_PAULO.toZoneId();
+        final Instant beforeOffsetChange = Instant.parse("2017-10-15T02:38:01Z");
+        final Instant afterOffsetChange = Instant.parse("2017-10-15T20:38:01Z");
+        final Instant expectedInstant = Instant.parse("2017-10-01T03:00:00Z");
+        final Instant truncatedBeforeOffsetChange = beforeOffsetChange.with(
+            InstantAdjusters.truncationBy(
+                ChronoUnit.MONTHS,
+                zoneId
+        ));
+        final Instant truncatedAfterOffsetChange = afterOffsetChange.with(
+            InstantAdjusters.truncationBy(
+                ChronoUnit.MONTHS,
+                zoneId
+        ));
+        assertThat(truncatedBeforeOffsetChange).isEqualTo(expectedInstant);
+        assertThat(truncatedAfterOffsetChange).isEqualTo(expectedInstant);
+    }
 }
