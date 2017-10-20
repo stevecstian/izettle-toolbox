@@ -216,6 +216,46 @@ public class ValueChecksSpec {
     }
 
     @Test
+    public void testNotEmptyForByteArrayMessageEmpty() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Fruitbasket must have data");
+        final byte[] fruitBasket = new byte[]{};
+        ValueChecks.assertNotEmpty(fruitBasket, "Fruitbasket must have data");
+    }
+
+    @Test
+    public void testNotEmptyForCharArrayMessageEmpty() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Letters must have content");
+        final char[] letters = new char[]{};
+        ValueChecks.assertNotEmpty(letters, "Letters must have content");
+    }
+
+    @Test
+    public void testNotEmptyForIntArrayMessageEmpty() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Ages must have elements");
+        final int[] ages = new int[]{};
+        ValueChecks.assertNotEmpty(ages, "Ages must have elements");
+    }
+
+    @Test
+    public void testNotEmptyForLongArrayMessageEmpty() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Wallet must have bills");
+        final long[] bills = new long[]{};
+        ValueChecks.assertNotEmpty(bills, "Wallet must have bills");
+    }
+
+    @Test
+    public void testNotEmptyForDoubleArrayMessageEmpty() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Percentages must have content");
+        final double[] percentages = new double[]{};
+        ValueChecks.assertNotEmpty(percentages, "Percentages must have content");
+    }
+
+    @Test
     public void testNoNullElements() {
         final String[] fruits = {"Banana", "Apple"};
         final String[] result = ValueChecks.assertNoNulls(fruits, "Fruitbasket must not contain null elements");

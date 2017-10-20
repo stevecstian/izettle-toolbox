@@ -212,6 +212,81 @@ public class ValueChecks {
     }
 
     /**
+     * Assert that an byte array has elements; that is, it must not be
+     * {@code null} and must have at least one element.
+     * <pre class="code">Assert.assertNotEmpty(array, "The array must have elements");</pre>
+     * @param array the array to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object array is {@code null} or has no elements
+     */
+    public static byte[] assertNotEmpty(byte[] array, String message) {
+        if (empty(array)) {
+            throw new IllegalArgumentException(message);
+        }
+        return array;
+    }
+
+    /**
+     * Assert that an char array has elements; that is, it must not be
+     * {@code null} and must have at least one element.
+     * <pre class="code">Assert.assertNotEmpty(array, "The array must have elements");</pre>
+     * @param array the array to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object array is {@code null} or has no elements
+     */
+    public static char[] assertNotEmpty(char[] array, String message) {
+        if (empty(array)) {
+            throw new IllegalArgumentException(message);
+        }
+        return array;
+    }
+
+    /**
+     * Assert that an int array has elements; that is, it must not be
+     * {@code null} and must have at least one element.
+     * <pre class="code">Assert.assertNotEmpty(array, "The array must have elements");</pre>
+     * @param array the array to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object array is {@code null} or has no elements
+     */
+    public static int[] assertNotEmpty(int[] array, String message) {
+        if (empty(array)) {
+            throw new IllegalArgumentException(message);
+        }
+        return array;
+    }
+
+    /**
+     * Assert that an long array has elements; that is, it must not be
+     * {@code null} and must have at least one element.
+     * <pre class="code">Assert.assertNotEmpty(array, "The array must have elements");</pre>
+     * @param array the array to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object array is {@code null} or has no elements
+     */
+    public static long[] assertNotEmpty(long[] array, String message) {
+        if (empty(array)) {
+            throw new IllegalArgumentException(message);
+        }
+        return array;
+    }
+
+    /**
+     * Assert that an double array has elements; that is, it must not be
+     * {@code null} and must have at least one element.
+     * <pre class="code">Assert.assertNotEmpty(array, "The array must have elements");</pre>
+     * @param array the array to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object array is {@code null} or has no elements
+     */
+    public static double[] assertNotEmpty(double[] array, String message) {
+        if (empty(array)) {
+            throw new IllegalArgumentException(message);
+        }
+        return array;
+    }
+
+    /**
      * Assert that an array is not null and has no null elements.
      * Note: Does not complain if the array is empty!
      * <pre class="code">Assert.assertNoNulls(array, "The array must have non-null elements");</pre>
