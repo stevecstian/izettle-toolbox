@@ -212,6 +212,23 @@ public class ValueChecks {
     }
 
     /**
+     * Assert that an object is not "empty". See {@link ValueChecks#empty(Object)}
+     * for definition of "empty".
+     * <pre class="code">Assert.assertNotEmpty(array, "The array must have elements");</pre>
+     * <pre class="code">Assert.assertNotEmpty(optional, "The optional must exist");</pre>
+     * <pre class="code">Assert.assertNotEmpty(object, "The object must not be null");</pre>
+     * @param object the object to check
+     * @param message the exception message to use if the assertion fails
+     * @throws IllegalArgumentException if the object is "empty"
+     */
+    public static Object assertNotEmpty(Object object, String message) {
+        if (empty(object)) {
+            throw new IllegalArgumentException(message);
+        }
+        return object;
+    }
+
+    /**
      * Assert that an array is not null and has no null elements.
      * Note: Does not complain if the array is empty!
      * <pre class="code">Assert.assertNoNulls(array, "The array must have non-null elements");</pre>
