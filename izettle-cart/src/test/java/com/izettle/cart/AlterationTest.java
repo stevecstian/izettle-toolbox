@@ -298,6 +298,28 @@ public class AlterationTest {
     }
 
     @Test
+    public void itShouldCalculateCorrectCartWideDiscountValueAfterAlteration() {
+        final Object id1 = UUID.randomUUID();
+        final Object id2 = UUID.randomUUID();
+        final Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> cart
+            = new Cart<TestItem, TestDiscount, TestDiscount, TestServiceCharge>(
+                Arrays.asList(
+                    new TestItem(id1, "banan", 1000L, 30f, BigDecimal.valueOf(2L), new TestDiscount(200L, null, BigDecimal.ONE)),
+                    new TestItem(id2, "äpple", 1000L, 30f, BigDecimal.valueOf(1L), null)
+                ),
+                Arrays.asList(new TestDiscount(600L, null, BigDecimal.ONE)),
+                null
+            );
+        final Map<Object, BigDecimal> currentAlteration = Maps.newHashMap(id1, BigDecimal.ONE.negate());
+        final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> firstAlterationCart = cart
+            .createAlterationCart(null, currentAlteration);
+        final long originalCartWideDiscount = cart.getCartWideDiscountValue();
+        assertEquals(600L, originalCartWideDiscount);
+        final long alterationCartWideDiscount = firstAlterationCart.getCartWideDiscountValue();
+        assertEquals(-193L, alterationCartWideDiscount);
+    }
+
+    @Test
     /**
      * Verifiy that a cart, after previous alterations, has the correct items (and it's quantities) available for
      * further alterations.

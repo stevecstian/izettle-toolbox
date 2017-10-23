@@ -84,6 +84,17 @@ public class AlterationCart<T extends Item<T, D>, D extends Discount<D>, K exten
         return resultingCart.getValue() - originalCart.getValue();
     }
 
+    /**
+     * Returns the total value of all cart-wide discounts for this alteration (VAT still included)
+     * @return the discount value, or null if there are no discounts
+     */
+    public Long getCartWideDiscountValue() {
+        if (originalCart.getCartWideDiscountValue() == null && resultingCart.getCartWideDiscountValue() == null) {
+            return null;
+        }
+        return coalesce(resultingCart.getCartWideDiscountValue(), 0L) - coalesce(originalCart.getCartWideDiscountValue(), 0L);
+    }
+
     public SortedMap<Float, VatGroupValues> groupValuesByVatPercentage() {
         final SortedMap<Float, VatGroupValues> orignalVats = originalCart.groupValuesByVatPercentage();
         final SortedMap<Float, VatGroupValues> resultingVats = resultingCart.groupValuesByVatPercentage();
