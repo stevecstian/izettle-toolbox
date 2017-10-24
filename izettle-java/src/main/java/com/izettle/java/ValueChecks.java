@@ -221,7 +221,7 @@ public class ValueChecks {
      * @param message the exception message to use if the assertion fails
      * @throws IllegalArgumentException if the object is "empty"
      */
-    public static Object assertNotEmpty(Object object, String message) {
+    public static <T> T assertNotEmpty(T object, String message) {
         if (empty(object)) {
             throw new IllegalArgumentException(message);
         }
