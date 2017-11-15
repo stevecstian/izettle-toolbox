@@ -51,7 +51,7 @@
         <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
         <maven.version.range>[3.2.3,)</maven.version.range>
         <metrics.version>3.1.2</metrics.version>
-        <mockito-all.version>1.10.19</mockito-all.version>
+        <mockito-core.version>2.12.0</mockito-core.version>
         <netty.version>4.1.17.Final</netty.version>
         <slf4j.version>1.7.21</slf4j.version>
         <dropwizard.version>1.0.5</dropwizard.version>
@@ -107,8 +107,8 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito-all.version}</version>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito-core.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
