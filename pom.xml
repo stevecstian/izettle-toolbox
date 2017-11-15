@@ -38,10 +38,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <assertj-core.version>3.4.1</assertj-core.version>
+        <assertj-core.version>3.8.0</assertj-core.version>
         <astyanax.version>3.9.0</astyanax.version>
         <aws.version>1.11.86</aws.version>
-        <bouncycastle.version>1.55</bouncycastle.version>
+        <bouncycastle.version>1.58</bouncycastle.version>
         <cassandra-driver.version>3.3.0</cassandra-driver.version>
         <cassandra-unit.version>2.2.2.1</cassandra-unit.version>
         <findbugs-maven-plugin.version>3.0.3</findbugs-maven-plugin.version>
@@ -52,12 +52,12 @@
         <maven.version.range>[3.2.3,)</maven.version.range>
         <metrics.version>3.1.2</metrics.version>
         <mockito-all.version>1.10.19</mockito-all.version>
-        <netty.version>4.0.44.Final</netty.version>
+        <netty.version>4.1.17.Final</netty.version>
         <slf4j.version>1.7.21</slf4j.version>
         <dropwizard.version>1.0.5</dropwizard.version>
         <javax-ws-rs.version>2.0.1</javax-ws-rs.version>
         <google-truth.version>0.30</google-truth.version>
-        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <javax.servlet-api.version>4.0.0</javax.servlet-api.version>
     </properties>
 
     <profiles>
