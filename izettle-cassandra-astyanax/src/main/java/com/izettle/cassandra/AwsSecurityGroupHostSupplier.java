@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
  * Cassandra Astyanax Host Supplier for Multiregion AWS implementations,
  * that discovers Cassandra nodes based on a given security group
  * and returns nodes only in the current/given region.
- *
- * @author progre55
  */
 public class AwsSecurityGroupHostSupplier extends AbstractAwsSecurityGroupHostSupplier<List<Host>> {
 

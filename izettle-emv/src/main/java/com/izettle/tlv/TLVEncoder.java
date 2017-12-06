@@ -2,7 +2,6 @@ package com.izettle.tlv;
 
 /**
  * ISO 7816 / ASN.1 compliantish encoder.
- * @author fidde
  */
 public class TLVEncoder {
 
