@@ -7,7 +7,6 @@ import java.util.Set;
 
 /**
  * ISO 7816 / ASN.1 compliantish decoder.
- * @author fidde
  */
 public class TLVDecoder {
 

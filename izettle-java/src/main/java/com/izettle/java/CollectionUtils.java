@@ -12,10 +12,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-/**
- *
- * @author adam
- */
 public class CollectionUtils {
     private CollectionUtils() {}
 
