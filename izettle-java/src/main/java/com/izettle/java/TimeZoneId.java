@@ -1,6 +1,7 @@
 package com.izettle.java;
 
 import java.time.ZoneId;
+import java.time.zone.ZoneRulesException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -620,7 +621,12 @@ public enum TimeZoneId {
             .of(values())
             .forEach(timeZoneId -> {
                 TIME_ZONE_ID_BY_STRING_ID.put(timeZoneId.stringId, timeZoneId);
-                TIME_ZONE_ID_BY_STRING_ID.put(timeZoneId.toZoneId().toString(), timeZoneId);
+                try {
+                    final ZoneId zoneId = timeZoneId.toZoneId();
+                    TIME_ZONE_ID_BY_STRING_ID.put(zoneId.toString(), timeZoneId);
+                } catch (ZoneRulesException e) {
+                    // swallow, in case the zoneId does not exist any more.
+                }
             });
     }
 
