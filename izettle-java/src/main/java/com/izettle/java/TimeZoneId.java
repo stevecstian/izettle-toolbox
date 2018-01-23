@@ -111,7 +111,6 @@ public enum TimeZoneId {
     AMERICA_WINNIPEG("America/Winnipeg"),
     CST6CDT("CST6CDT"),
     CANADA_CENTRAL("Canada/Central"),
-    CANADA_EAST_SASKATCHEWAN("Canada/East-Saskatchewan"),
     CANADA_SASKATCHEWAN("Canada/Saskatchewan"),
     CHILE_EASTERISLAND("Chile/EasterIsland"),
     ETC_GMT_PLUS6("Etc/GMT+6"),
