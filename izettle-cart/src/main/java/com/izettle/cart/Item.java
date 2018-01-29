@@ -42,7 +42,10 @@ public interface Item<T, K extends Discount<?>> {
     K getDiscount();
 
     /**
-     * The identifier of the item in relation to other line items in the cart
+     * The identifier of the item in relation to other line items in the cart. This identifier can be anything that's
+     * uniquely identifying this item in the cart, and can be both something that's persistent across the entire life
+     * cycle of the purchase (such as a SKU or a product/variant UUID), or just something that's temporarily created at
+     * the time of the runtime cart instantiation (for example a hashCode).
      * @return the identifier of the item
      */
     Object getId();
