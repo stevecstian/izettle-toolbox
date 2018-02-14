@@ -11,18 +11,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Allow access to /system from localhost and from load balancer but not via a LB (from the outside)
+ * Allow access to admin resources from localhost and from load balancer but not via a LB (from the outside)
  * by denying all access where header X-ForwardedFor is set.
  *
- * This filter is required when running a Dropwizard app on a single port for with:
- *
- * type: simple
- * adminContextPath: /system
+ * This filter is required when running a Dropwizard app on a single port (e.g. when 'server.type' is set to 'simple').
  *
  */
 public class AdminDirectAccessFilter implements Filter {
     static final int UNAUTHORIZED_401 = 401;
     static final String X_FORWARDED_FOR = "X-Forwarded-For";
+
+    private final String adminPath;
+
+
+    public AdminDirectAccessFilter() {
+        // In order to be able to initialize using ServletContextHandler.addFilter(Class, String, EnumSet).
+        this.adminPath = "/system";
+    }
+
+    public AdminDirectAccessFilter(String adminPath) {
+        this.adminPath = adminPath;
+    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -51,7 +60,7 @@ public class AdminDirectAccessFilter implements Filter {
     }
 
     boolean isAdmin(HttpServletRequest request) {
-        return request.getContextPath().startsWith("/system");
+        return request.getContextPath().startsWith(adminPath);
     }
 
     boolean isDirectAccess(HttpServletRequest request) {
