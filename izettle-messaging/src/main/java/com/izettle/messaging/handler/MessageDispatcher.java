@@ -25,31 +25,54 @@ public class MessageDispatcher implements MessageHandler<Message> {
     private final MessageDeserializer<String> messageDeserializer;
     private final Map<String, ListOfMessageHandlersForType> messageHandlersPerEventName = new ConcurrentHashMap<>();
     private final List<MessageHandler<AmazonSNSMessage>> defaultMessageHandlers = new ArrayList<>();
-    private static final ObjectMapper JSON_MAPPER = JsonSerializer.getInstance();
+    private final ObjectMapper objectMapper;
 
     public static MessageDispatcher nonEncryptedMessageDispatcher() {
-        return new MessageDispatcher();
+        return nonEncryptedMessageDispatcher(JsonSerializer.getInstance());
+    }
+
+    public static MessageDispatcher nonEncryptedMessageDispatcher(ObjectMapper objectMapper) {
+        return new MessageDispatcher(objectMapper);
     }
 
     public static MessageDispatcher encryptedMessageDispatcher(byte[] privatePgpKey, final String privatePgpKeyPassphrase) throws MessagingException {
+        return encryptedMessageDispatcher(privatePgpKey, privatePgpKeyPassphrase, JsonSerializer.getInstance());
+    }
+
+    public static MessageDispatcher encryptedMessageDispatcher(
+        byte[] privatePgpKey,
+        final String privatePgpKeyPassphrase,
+        ObjectMapper objectMapper
+    ) throws MessagingException {
         if (empty(privatePgpKey) || empty(privatePgpKeyPassphrase)) {
             throw new MessagingException("Can't create encryptedMessageDispatcher with private PGP key as null or privatePgpKeyPassphrase as null");
         }
-        return new MessageDispatcher(privatePgpKey, privatePgpKeyPassphrase);
+        return new MessageDispatcher(privatePgpKey, privatePgpKeyPassphrase, objectMapper);
     }
 
-    private MessageDispatcher() {
-        this.messageDeserializer = new MessageDeserializer<>(String.class);
+
+    private MessageDispatcher(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+        this.messageDeserializer = new MessageDeserializer<>(String.class, objectMapper);
     }
 
-    private MessageDispatcher(byte[] privatePgpKey, String privatePgpKeyPassphrase) {
-        this.messageDeserializer = new MessageDeserializer<>(String.class, privatePgpKey, privatePgpKeyPassphrase);
+    private MessageDispatcher(
+        byte[] privatePgpKey,
+        String privatePgpKeyPassphrase,
+        ObjectMapper objectMapper
+    ) {
+        this.objectMapper = objectMapper;
+        this.messageDeserializer = new MessageDeserializer<>(
+            String.class,
+            privatePgpKey,
+            privatePgpKeyPassphrase,
+            this.objectMapper
+        );
     }
 
-    private static class ListOfMessageHandlersForType<M> {
+    private class ListOfMessageHandlersForType<M> {
         private final Class<M> messageType;
         public final List<MessageHandler<M>> handlers = new ArrayList<>();
-        private static final ObjectMapper JSON_MAPPER = JsonSerializer.getInstance();
 
         ListOfMessageHandlersForType(Class<M> messageType) {
             this.messageType = messageType;
@@ -58,7 +81,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
             handlers.add(handler);
         }
         public void callAllHandlers(String message) throws Exception {
-            M msg = JSON_MAPPER.readValue(message, messageType);
+            M msg = objectMapper.readValue(message, messageType);
             MessageDispatcher.callAllHandlers(handlers, msg);
         }
     }
@@ -94,7 +117,7 @@ public class MessageDispatcher implements MessageHandler<Message> {
     @Override
     public void handle(Message message) throws Exception {
         String messageBody = message.getBody();
-        AmazonSNSMessage sns = JSON_MAPPER.readValue(messageBody, AmazonSNSMessage.class);
+        AmazonSNSMessage sns = objectMapper.readValue(messageBody, AmazonSNSMessage.class);
         String decryptedMessage = messageDeserializer.decrypt(sns.getMessage());
         String eventName = sns.getSubject();
         String typeName = sns.getType();

@@ -8,8 +8,10 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.messaging.handler.MessageHandler;
 import com.izettle.messaging.handler.MessageHandlerForSingleMessageType;
+import com.izettle.messaging.serialization.JsonSerializer;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -78,15 +80,55 @@ public class QueueProcessor implements MessageQueueProcessor {
         String name,
         String queueUrl,
         String deadLetterQueueUrl,
-        MessageHandler<M> messageHandler
+        MessageHandler<M> messageHandler,
+        ObjectMapper objectMapper
     ) {
         return new QueueProcessor(
             name,
             queueUrl,
             deadLetterQueueUrl,
             amazonSQS,
-            new MessageHandlerForSingleMessageType<>(messageHandler, classType),
+            new MessageHandlerForSingleMessageType<>(messageHandler, classType, objectMapper),
             null
+        );
+    }
+
+    public static <M> MessageQueueProcessor createQueueProcessor(
+        AmazonSQS amazonSQS,
+        Class<M> classType,
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        MessageHandler<M> messageHandler
+    ) {
+        return createQueueProcessor(
+            amazonSQS,
+            classType,
+            name,
+            queueUrl,
+            deadLetterQueueUrl,
+            messageHandler,
+            JsonSerializer.getInstance()
+        );
+    }
+
+    public static <M> MessageQueueProcessor createQueueProcessor(
+        AmazonSQS amazonSQS,
+        Class<M> classType,
+        String name,
+        String queueUrl,
+        String deadLetterQueueUrl,
+        MessageHandler<M> messageHandler,
+        ExecutorService executorService,
+        ObjectMapper objectMapper
+    ) {
+        return new QueueProcessor(
+            name,
+            queueUrl,
+            deadLetterQueueUrl,
+            amazonSQS,
+            new MessageHandlerForSingleMessageType<>(messageHandler, classType, objectMapper),
+            executorService
         );
     }
 
@@ -99,13 +141,15 @@ public class QueueProcessor implements MessageQueueProcessor {
         MessageHandler<M> messageHandler,
         ExecutorService executorService
     ) {
-        return new QueueProcessor(
+        return createQueueProcessor(
+            amazonSQS,
+            classType,
             name,
             queueUrl,
             deadLetterQueueUrl,
-            amazonSQS,
-            new MessageHandlerForSingleMessageType<>(messageHandler, classType),
-            executorService
+            messageHandler,
+            executorService,
+            JsonSerializer.getInstance()
         );
     }
 
