@@ -7,6 +7,8 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.izettle.messaging.serialization.JsonSerializer;
 import com.izettle.messaging.serialization.MessageDeserializer;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +31,26 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
     public static <T> MessageQueueConsumer<T> nonEncryptedMessageQueueConsumer(
             final Class<T> messageClass,
             final String queueUrl,
-            final AmazonSQS amazonSQSClient
+            final AmazonSQS amazonSQSClient,
+            final ObjectMapper objectMapper
     ) {
         return new QueueServicePoller<>(messageClass,
                 queueUrl,
-                amazonSQSClient);
+                amazonSQSClient,
+                objectMapper);
+    }
+
+    public static <T> MessageQueueConsumer<T> nonEncryptedMessageQueueConsumer(
+        final Class<T> messageClass,
+        final String queueUrl,
+        final AmazonSQS amazonSQSClient
+    ) {
+        return nonEncryptedMessageQueueConsumer(
+            messageClass,
+            queueUrl,
+            amazonSQSClient,
+            JsonSerializer.getInstance()
+        );
     }
 
     public static <T> MessageQueueConsumer<T> encryptedMessageQueueConsumer(
@@ -41,7 +58,8 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
             final String queueUrl,
             final AmazonSQS amazonSQSClient,
             byte[] privatePgpKey,
-            final String privatePgpKeyPassphrase
+            final String privatePgpKeyPassphrase,
+            final ObjectMapper objectMapper
     ) throws MessagingException {
         if (empty(privatePgpKey) || empty(privatePgpKeyPassphrase)) {
             throw new MessagingException("Can't create encryptedQueueServicePoller with private PGP key as null or privatePgpKeyPassphrase as null");
@@ -50,7 +68,25 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
                 queueUrl,
                 amazonSQSClient,
                 privatePgpKey,
-                privatePgpKeyPassphrase);
+                privatePgpKeyPassphrase,
+                objectMapper);
+    }
+
+    public static <T> MessageQueueConsumer<T> encryptedMessageQueueConsumer(
+        final Class<T> messageClass,
+        final String queueUrl,
+        final AmazonSQS amazonSQSClient,
+        byte[] privatePgpKey,
+        final String privatePgpKeyPassphrase
+    ) throws MessagingException {
+        return encryptedMessageQueueConsumer(
+            messageClass,
+            queueUrl,
+            amazonSQSClient,
+            privatePgpKey,
+            privatePgpKeyPassphrase,
+            JsonSerializer.getInstance()
+        );
     }
 
     private QueueServicePoller(
@@ -58,21 +94,29 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
             String queueUrl,
             AmazonSQS amazonSQS,
             byte[] privatePgpKey,
-            String privatePgpKeyPassphrase
+            String privatePgpKeyPassphrase,
+            ObjectMapper objectMapper
+
     ) {
         this.queueUrl = queueUrl;
         this.amazonSQS = amazonSQS;
-        this.messageDeserializer = new MessageDeserializer<>(messageClass, privatePgpKey, privatePgpKeyPassphrase);
+        this.messageDeserializer = new MessageDeserializer<>(
+            messageClass,
+            privatePgpKey,
+            privatePgpKeyPassphrase,
+            objectMapper
+        );
     }
 
     private QueueServicePoller(
             Class<M> messageClass,
             String queueUrl,
-            AmazonSQS amazonSQS
+            AmazonSQS amazonSQS,
+            ObjectMapper objectMapper
     ) {
         this.queueUrl = queueUrl;
         this.amazonSQS = amazonSQS;
-        this.messageDeserializer = new MessageDeserializer<>(messageClass);
+        this.messageDeserializer = new MessageDeserializer<>(messageClass, objectMapper);
     }
 
     /**
@@ -127,7 +171,7 @@ public class QueueServicePoller<M> implements MessageQueueConsumer<M> {
             String decryptedMessage = "";
             try {
                 String messageBody = message.getBody();
-                messageBody = MessageDeserializer.removeSnsEnvelope(messageBody);
+                messageBody = messageDeserializer.removeSnsEnvelope(messageBody);
                 decryptedMessage = messageDeserializer.decrypt(messageBody);
                 M messageEntity = messageDeserializer.deserialize(decryptedMessage);
                 String messageReceiptHandle = message.getReceiptHandle();

@@ -35,7 +35,7 @@ public class DefaultMessageSerializerTest {
         // public key exported to file by:   gpg --export --armor >pgp-example-public.key
         // private key exported to file by:  gpg --export-secret-keys --armor >pgp-example-private.key
         pgpSerializer = new DefaultMessageSerializer(ResourceUtils.getResourceAsBytes("pgp-example-public.key"));
-        pgpDeserializer = new MessageDeserializer<>(TestMessage.class, ResourceUtils.getResourceAsBytes("pgp-example-private.key"), "example");
+        pgpDeserializer = new MessageDeserializer<>(TestMessage.class, ResourceUtils.getResourceAsBytes("pgp-example-private.key"), "example", JsonSerializer.getInstance());
     }
 
     @Test

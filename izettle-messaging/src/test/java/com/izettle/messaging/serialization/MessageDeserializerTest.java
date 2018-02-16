@@ -25,10 +25,12 @@ public class MessageDeserializerTest {
     private String messageSentThroughSQS;
     private String messageSentDirectlyToSQS;
 
+    private final MessageDeserializer<Void> messageDeserializer = messageDeserializer(Void.class);
+
     @Before
     public void setup() throws IOException {
-        plaintextDeserializer = new MessageDeserializer<>(TestMessage.class);
-        plaintextWithUUIDDeserializer = new MessageDeserializer<>(TestMessageWithUUID.class);
+        plaintextDeserializer = messageDeserializer(TestMessage.class);
+        plaintextWithUUIDDeserializer = messageDeserializer(TestMessageWithUUID.class);
         plaintextMessage = new String(getResourceAsBytes("example-message.json"));
         messageSentThroughSNS = new String(getResourceAsBytes("example-message-sent-with-messagepublisher-through-sns.json"));
         messageSentThroughSQS = new String(getResourceAsBytes("example-message-sent-with-messagepublisher-to-sqs.json"));
@@ -53,7 +55,7 @@ public class MessageDeserializerTest {
         String json = "{\"date\":\"2001-12-23T03:05:06.123+0100\"}";
 
         // Act
-        TestMessageWithDate msg = new MessageDeserializer<>(TestMessageWithDate.class).deserialize(json);
+        TestMessageWithDate msg = messageDeserializer(TestMessageWithDate.class).deserialize(json);
 
         // Assert
         String dateFieldAsString = DateFormatCreator.createDateAndTimeMillisFormatter(TimeZoneId.UTC)
@@ -67,7 +69,7 @@ public class MessageDeserializerTest {
         String json = "{\"instant\":\"2001-12-23T03:05:06.123+0100\"}";
 
         // Act
-        TestMessageWithInstant msg = new MessageDeserializer<>(TestMessageWithInstant.class).deserialize(json);
+        TestMessageWithInstant msg = messageDeserializer(TestMessageWithInstant.class).deserialize(json);
 
         // Assert
         String dateFieldAsString = DateTimeFormatter.ISO_INSTANT.withZone(TimeZoneId.UTC.toZoneId()).format(msg.getInstant());
@@ -80,7 +82,7 @@ public class MessageDeserializerTest {
         String json = "{\"instant\":\"2001-12-23T02:05:06.123Z\"}";
 
         // Act
-        TestMessageWithInstant msg = new MessageDeserializer<>(TestMessageWithInstant.class).deserialize(json);
+        TestMessageWithInstant msg = messageDeserializer(TestMessageWithInstant.class).deserialize(json);
 
         // Assert
         String dateFieldAsString = DateTimeFormatter.ISO_INSTANT.withZone(TimeZoneId.UTC.toZoneId()).format(msg.getInstant());
@@ -89,20 +91,20 @@ public class MessageDeserializerTest {
 
     @Test
     public void shouldRemoveSNSEnvelopeFromMessageSentWithMessagePublisherThroughSNS() throws Exception {
-        String msg = MessageDeserializer.removeSnsEnvelope(messageSentThroughSNS);
+        String msg = messageDeserializer.removeSnsEnvelope(messageSentThroughSNS);
         assertEquals("{\"amount\":3135,\"message\":\"MessagePublisher to SNS\","
             + "\"uuid1\":\"0SFwIEwSEeWQb_kt6mwGgg\",\"uuid2\":\"49c07050-7675-4a65-9e5e-e26d52146d2a\"}", msg);
     }
 
     @Test
     public void shouldRemoveSNSEnvelopeFromMessageSentWithMessagePublisherThroughSQS() throws Exception {
-        String msg = MessageDeserializer.removeSnsEnvelope(messageSentThroughSQS);
+        String msg = messageDeserializer.removeSnsEnvelope(messageSentThroughSQS);
         assertEquals("{\"amount\":3133,\"message\":\"MessagePublisher to SQS\"}", msg);
     }
 
     @Test
     public void shouldRemoveSNSEnvelopeFromMessageSentWithMessageQueueProducerToSQS() throws Exception {
-        String msg = MessageDeserializer.removeSnsEnvelope(messageSentDirectlyToSQS);
+        String msg = messageDeserializer.removeSnsEnvelope(messageSentDirectlyToSQS);
         assertEquals("{\"amount\":3134,\"message\":\"MessageQueueProducer to SQS\"}", msg);
     }
 
@@ -112,7 +114,7 @@ public class MessageDeserializerTest {
         UUID uuid2 = UUID.fromString("49c07050-7675-4a65-9e5e-e26d52146d2a");
 
         TestMessageWithUUID msg = plaintextWithUUIDDeserializer.deserialize(
-            MessageDeserializer.removeSnsEnvelope(messageSentThroughSNS)
+            messageDeserializer.removeSnsEnvelope(messageSentThroughSNS)
         );
         assertEquals("MessagePublisher to SNS", msg.getMessage());
         assertEquals(uuid1, msg.getUuid1());
@@ -122,7 +124,7 @@ public class MessageDeserializerTest {
     @Test
     public void shouldDeserializeMessageSentWithMessagePublisherThroughSQS() throws Exception {
         TestMessage msg = plaintextDeserializer.deserialize(
-            MessageDeserializer.removeSnsEnvelope(messageSentThroughSQS)
+            messageDeserializer.removeSnsEnvelope(messageSentThroughSQS)
         );
         assertEquals("MessagePublisher to SQS", msg.getMessage());
     }
@@ -130,8 +132,12 @@ public class MessageDeserializerTest {
     @Test
     public void shouldDeserializeMessageSentWithMessageQueueProducerToSQS() throws Exception {
         TestMessage msg = plaintextDeserializer.deserialize(
-            MessageDeserializer.removeSnsEnvelope(messageSentDirectlyToSQS)
+            messageDeserializer.removeSnsEnvelope(messageSentDirectlyToSQS)
         );
         assertEquals("MessageQueueProducer to SQS", msg.getMessage());
+    }
+
+    private static <T> MessageDeserializer<T> messageDeserializer(Class<T> clazz) {
+        return new MessageDeserializer<>(clazz, JsonSerializer.getInstance());
     }
 }

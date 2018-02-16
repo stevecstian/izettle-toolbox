@@ -14,16 +14,23 @@ public class MessageDeserializer<M> {
 
     private final byte[] privatePgpKey;
     private final String privatePgpKeyPassphrase;
-    private static final ObjectMapper JSON_MAPPER = JsonSerializer.getInstance();
+    private final ObjectMapper objectMapper;
     private final Class<M> messageClass;
 
-    public MessageDeserializer(Class<M> messageClass, byte[] privatePgpKey, final String privatePgpKeyPassphrase) {
+    public MessageDeserializer(
+        Class<M> messageClass,
+        byte[] privatePgpKey,
+        final String privatePgpKeyPassphrase,
+        ObjectMapper objectMapper
+    ) {
         this.privatePgpKey = privatePgpKey;
         this.privatePgpKeyPassphrase = privatePgpKeyPassphrase;
         this.messageClass = messageClass;
+        this.objectMapper = objectMapper;
     }
 
-    public MessageDeserializer(Class<M> messageClass) {
+    public MessageDeserializer(Class<M> messageClass, ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         this.privatePgpKey = null;
         this.privatePgpKeyPassphrase = null;
         this.messageClass = messageClass;
@@ -40,12 +47,12 @@ public class MessageDeserializer<M> {
     }
 
     public M deserialize(String message) throws IOException {
-        return JSON_MAPPER.readValue(message, messageClass);
+        return objectMapper.readValue(message, messageClass);
     }
 
-    public static String removeSnsEnvelope(String message) throws IOException {
+    public String removeSnsEnvelope(String message) throws IOException {
         if (!empty(message) && message.startsWith("{")) {
-            JsonNode root = JSON_MAPPER.readTree(message);
+            JsonNode root = objectMapper.readTree(message);
             if (root.has("Subject") && root.has("Message")) {
                 return root.get("Message").asText();
             }

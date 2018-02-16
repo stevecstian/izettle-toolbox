@@ -13,11 +13,9 @@ import com.amazonaws.services.sqs.model.SendMessageBatchResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izettle.cryptography.CryptographyException;
 import com.izettle.messaging.serialization.AmazonSNSMessage;
 import com.izettle.messaging.serialization.DefaultMessageSerializer;
-import com.izettle.messaging.serialization.JsonSerializer;
 import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,7 +39,6 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
     private final String queueUrl;
     private final AmazonSQS amazonSQS;
     private final MessageSerializer messageSerializer;
-    private final ObjectMapper jsonMapper = JsonSerializer.getInstance();
 
     public static MessagePublisher nonEncryptedMessagePublisher(
             final String queueUrl,
@@ -196,7 +193,7 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
     ) throws JsonProcessingException, CryptographyException {
         String messageBody = messageSerializer.encrypt(messageSerializer.serialize(message));
         AmazonSNSMessage snsMessage = new AmazonSNSMessage(subject, messageBody);
-        return jsonMapper.writeValueAsString(snsMessage);
+        return messageSerializer.serialize(snsMessage);
     }
 
     private void sendMessageBatch(Collection<SendMessageBatchRequestEntry> messages) {
