@@ -17,17 +17,17 @@ import java.util.stream.Collectors;
 /**
  * Convenience class for using Amazon Simple Notification Service.
  */
-public class PublisherService implements MessagePublisherWithAttributes {
+public class PublisherService implements MessagePublisher {
 
     private final String topicArn;
     private final AmazonSNS amazonSNS;
     private final MessageSerializer messageSerializer;
 
-    public static MessagePublisherWithAttributes nonEncryptedPublisherService(AmazonSNS client, final String topicArn) {
+    public static MessagePublisher nonEncryptedPublisherService(AmazonSNS client, final String topicArn) {
         return PublisherService.nonEncryptedPublisherService(client, topicArn, new DefaultMessageSerializer());
     }
 
-    public static MessagePublisherWithAttributes nonEncryptedPublisherService(
+    public static MessagePublisher nonEncryptedPublisherService(
             final AmazonSNS client,
             final String topicArn,
             final MessageSerializer messageSerializer

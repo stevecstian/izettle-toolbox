@@ -125,7 +125,7 @@ public class PublisherServiceTest {
 
         // Arrange
         TestMessage message = new TestMessage("ad99bb4f");
-        MessagePublisherWithAttributes publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
+        MessagePublisher publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
         Map<String, String> attributes = new HashMap<>();
         String key = "attr";
         String value = "value";
@@ -151,7 +151,7 @@ public class PublisherServiceTest {
         thrown.expect(MessagingException.class);
         thrown.expectMessage(startsWith("Cannot publish message with more than 10 attributes!"));
         TestMessage message = new TestMessage("ad99bb4f");
-        MessagePublisherWithAttributes publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
+        MessagePublisher publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
         Map<String, String> attributes = new HashMap<>();
         IntStream.range(0, 11).forEach(num-> attributes.put("attr" + num, "value" + num));
 
