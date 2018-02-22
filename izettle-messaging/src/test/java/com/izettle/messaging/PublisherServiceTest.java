@@ -2,15 +2,21 @@ package com.izettle.messaging;
 
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import com.izettle.messaging.serialization.MessageSerializer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.IntStream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -112,5 +118,44 @@ public class PublisherServiceTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(startsWith("None of client, topicArn or messageSerializer can be empty!"));
         PublisherService.nonEncryptedPublisherService(snsClient, "topicArn", null);
+    }
+
+    @Test
+    public void shouldSetMessageAttributesWhenPostingToSNS() throws Exception {
+
+        // Arrange
+        TestMessage message = new TestMessage("ad99bb4f");
+        MessagePublisherWithAttributes publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
+        Map<String, String> attributes = new HashMap<>();
+        String key = "attr";
+        String value = "value";
+        attributes.put(key, value);
+
+        // Act
+        publisherService.post(message, TestMessage.class.getName(), attributes);
+
+        // Assert
+        ArgumentCaptor<PublishRequest> argumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+        verify(snsClient).publish(argumentCaptor.capture());
+        Map<String, MessageAttributeValue> messageAttributes = argumentCaptor.getValue().getMessageAttributes();
+        assertNotNull(messageAttributes);
+        assertTrue(messageAttributes.containsKey(key));
+        MessageAttributeValue messageAttribute = messageAttributes.get(key);
+        assertEquals("String", messageAttribute.getDataType());
+        assertEquals(value, messageAttribute.getStringValue());
+    }
+    @Test
+    public void shouldFailIfYouAddToManyAttributesWhenPostingToSNS() throws Exception {
+
+        // Arrange
+        thrown.expect(MessagingException.class);
+        thrown.expectMessage(startsWith("Cannot publish message with more than 10 attributes!"));
+        TestMessage message = new TestMessage("ad99bb4f");
+        MessagePublisherWithAttributes publisherService = PublisherService.nonEncryptedPublisherService(snsClient, "topicArn");
+        Map<String, String> attributes = new HashMap<>();
+        IntStream.range(0, 11).forEach(num-> attributes.put("attr" + num, "value" + num));
+
+        // Act
+        publisherService.post(message, TestMessage.class.getName(), attributes);
     }
 }
