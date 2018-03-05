@@ -3,10 +3,12 @@ package com.izettle.messaging;
 import static com.izettle.java.CollectionUtils.partition;
 import static com.izettle.java.ValueChecks.anyEmpty;
 import static com.izettle.java.ValueChecks.empty;
+import static com.izettle.java.ValueChecks.noneNull;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.BatchResultErrorEntry;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageBatchResult;
@@ -20,6 +22,7 @@ import com.izettle.messaging.serialization.MessageSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -148,13 +151,34 @@ public class QueueServiceSender<M> implements MessageQueueProducer<M>, MessagePu
      */
     @Override
     public <T> void post(T message, String eventName) throws MessagingException {
+        post(message, eventName, Collections.emptyMap());
+    }
+
+    @Override
+    public <M> void post(M message, String eventName, Map<String, String> attributes) throws MessagingException {
         if (empty(eventName)) {
             throw new MessagingException("Cannot publish message with empty eventName!");
         }
+        if (noneNull(attributes) && attributes.size() > 10) {
+            throw new MessagingException("Cannot publish message with more than 10 attributes!");
+        }
         try {
-            amazonSQS.sendMessage(
-                new SendMessageRequest(queueUrl, wrapInSNSMessage(message, eventName))
-            );
+            final SendMessageRequest sendMessageRequest =
+                new SendMessageRequest(queueUrl, wrapInSNSMessage(message, eventName));
+            if (!empty(attributes)) {
+                sendMessageRequest.setMessageAttributes(
+                    attributes
+                        .entrySet()
+                        .stream()
+                        .collect(
+                            Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> new MessageAttributeValue().withStringValue(e.getValue()).withDataType("String")
+                            )
+                        )
+                );
+            }
+            amazonSQS.sendMessage(sendMessageRequest);
         } catch (Exception e) {
             throw new MessagingException("Failed to post message: " + message.getClass(), e);
         }
