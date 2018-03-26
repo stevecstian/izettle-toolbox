@@ -3,14 +3,11 @@ package com.izettle.cassandra;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.izettle.java.ResourceUtils.getBytesFromStream;
 
-import com.datastax.driver.core.ColumnMetadata;
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.izettle.java.ResourceUtils;
@@ -20,7 +17,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,8 +38,8 @@ import org.slf4j.LoggerFactory;
  * program by calling this:
  * <code>
  *     public static void main(String[] args) {
- *         Session session = cluster.connect(keySpace);
- *         SchemaVersionUpdaterWithDatastaxDriver updater = new SchemaVersionUpdaterWithDatastaxDriver(session);
+ *         Keyspace myKeyspace = ..
+ *         SchemaVersionUpdater updater = new SchemaVersionUpdater(myKeyspace);
  *         updater.applyFromResources(MyProgram.class, "update-scripts");
  *     }
  * </code>
@@ -57,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public class SchemaVersionUpdaterWithDatastaxDriver {
 
     private static final Logger LOG = LoggerFactory.getLogger(SchemaVersionUpdaterWithDatastaxDriver.class);
-    private static final String TABLE_NAME = "schema_scripts_version";
+    static final String TABLE_NAME = "schema_scripts_version";
 
     private final Session session;
 
@@ -67,25 +64,28 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
 
     public void applyFromResources(Class<?> clazz, String path) throws IOException, URISyntaxException {
         List<SchemaUpdatingScript> scripts = new ArrayList<>();
-        String resourcePath = path.endsWith(File.separator) ? path : path + File.separator;
-        for (String resourceName : ResourceUtils.getResourceListing(clazz, resourcePath)) {
+        String resourcePath = path;
+        if (!resourcePath.endsWith(File.separator)) {
+            resourcePath += File.separator;
+        }
+        for (String resourceName : ResourceUtils.getResourceListing(clazz, path)) {
+            URL url = clazz.getClassLoader().getResource(resourcePath + resourceName);
+            // Take the first digits from the filename and use as "sequenceNr".
+            int sequenceNr;
             try {
-                // Take the first digits from the filename and use as "sequenceNr".
-                int sequenceNr = Integer.parseInt(resourceName.split("[^0-9]")[0]);
-                URL url = clazz.getClassLoader().getResource(resourcePath + resourceName);
-                scripts.add(new SchemaUpdatingScript(sequenceNr, resourceName, url));
-            } catch (Exception e) {
-                LOG.error("Failed to process script: {}", resourcePath + resourceName);
-                throw e;
+                sequenceNr = Integer.parseInt(resourceName.split("[^0-9]")[0]);
+            } catch (NumberFormatException ignored) {
+                throw new NumberFormatException("Cannot parse sequence number from resource filename=\"" + resourceName
+                    + "\". Expected sequence number to be numeric first part of filename.");
             }
-
+            scripts.add(new SchemaUpdatingScript(sequenceNr, resourceName, url));
         }
         apply(scripts);
     }
 
     private void apply(List<SchemaUpdatingScript> scripts) throws IOException {
         LOG.debug("Updating Cassandra schema");
-        ensureTableExists();
+        ensureColumnFamilyExists();
 
         Set<String> alreadyExecutedScripts = new HashSet<>();
         Statement select = QueryBuilder.select()
@@ -101,27 +101,25 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         while (iterator.hasNext()) {
             SchemaUpdatingScript script = iterator.next();
             if (alreadyExecutedScripts.contains(script.name)) {
-                LOG.debug("Script " + script.name + " has already been applied (1st check), skipping.");
+                LOG.debug("Script={} has already been applied (1st check), skipping.", script.name);
                 iterator.remove();
             }
         }
 
         // Sort in ascending sequence nr order
-        Collections.sort(scripts, (a, b) -> a.sequenceNr - b.sequenceNr);
+        scripts.sort(Comparator.comparingInt(a -> a.sequenceNr));
 
         for (SchemaUpdatingScript script : scripts) {
             apply(script);
         }
     }
 
-    private void ensureTableExists() {
+    private void ensureColumnFamilyExists() {
         KeyspaceMetadata keyspaceMetadata =
             session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace());
-        TableMetadata tableMetadata = keyspaceMetadata.getTable(TABLE_NAME);
 
-        if (tableMetadata != null) {
+        if (keyspaceMetadata.getTable(TABLE_NAME) != null) {
             LOG.debug("Versioning column family already exists, skipping creation.");
-            ensureTableSchema(tableMetadata);
             return;
         }
 
@@ -129,55 +127,45 @@ public class SchemaVersionUpdaterWithDatastaxDriver {
         session.execute(
             "CREATE TABLE " + TABLE_NAME + " ("
                 + "key text PRIMARY KEY,"
-                + "executed timestamp"
+                + "executed timestamp,"
                 + ");");
 
         LOG.debug("Versioning column family created.");
     }
 
-    private static void ensureTableSchema(TableMetadata tableMetadata) throws IllegalStateException {
-        ColumnMetadata primaryKey = tableMetadata.getPrimaryKey().get(0);
-
-        if (!primaryKey.getName().equals("key")) {
-            throw new IllegalStateException(String.format("The name of primary key in table [%s] should be 'key'", TABLE_NAME));
-        }
-
-        if (primaryKey.getType() != DataType.text()) {
-            throw new IllegalStateException(String.format("Primary key in table [%s] should have type 'text'", TABLE_NAME));
-        }
-
-        ColumnMetadata executedColumn = tableMetadata.getColumn("executed");
-
-        if (executedColumn == null) {
-            throw new IllegalStateException(String.format("Cannot find column 'executed' in table [%s]", TABLE_NAME));
-        }
-
-        if (executedColumn.getType() != DataType.timestamp()) {
-            throw new IllegalStateException(String.format("Column 'executed' in table [%s] should have type 'timestamp'", TABLE_NAME));
-        }
-    }
-
     private void apply(SchemaUpdatingScript script) throws IOException {
-        if (isNotApplied(script)) {
-
-            LOG.info("Applying script " + script);
-            session.execute(script.readCQLContents());
-
-            Insert insert = QueryBuilder.insertInto(TABLE_NAME)
-                .value("key", script.name)
-                .value("executed", new Date());
-            session.execute(insert);
-
-            LOG.debug("Script " + script + " successfully applied.");
+        if (isAlreadyApplied(script)) {
+            LOG.debug("Script {} has already been applied (2nd check), skipping.", script.name);
+            return;
         }
+
+        LOG.info("Applying script {}", script.name);
+
+        String fileContent = script.readCQLContents();
+        // remove comments
+        fileContent = fileContent.replaceAll("(?m)^--.*\r?\n", "");
+        String[] statements = fileContent.split(";");
+        for (String statement : statements) {
+            if (!statement.trim().isEmpty()) {
+                session.execute(statement + ";");
+            }
+        }
+
+        Insert insert = QueryBuilder.insertInto(TABLE_NAME)
+            .value("key", script.name)
+            .value("executed", new Date());
+
+        session.execute(insert);
+
+        LOG.debug("Script {} successfully applied.", script);
     }
 
-    private boolean isNotApplied(SchemaUpdatingScript script) {
+    private boolean isAlreadyApplied(SchemaUpdatingScript script) {
         Statement select = QueryBuilder.select()
             .all()
             .from(TABLE_NAME)
             .where(eq("key", script.name));
-        return session.execute(select).isExhausted();
+        return !session.execute(select).isExhausted();
     }
 
     private static final class SchemaUpdatingScript {
