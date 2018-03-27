@@ -32,6 +32,7 @@
         <module>izettle-filters</module>
         <module>izettle-java-alb</module>
         <module>izettle-jackson</module>
+        <module>izettle-data-migrator</module>
     </modules>
 
     <properties>
