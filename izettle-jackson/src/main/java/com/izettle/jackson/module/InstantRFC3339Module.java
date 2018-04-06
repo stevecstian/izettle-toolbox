@@ -1,20 +1,18 @@
 package com.izettle.jackson.module;
 
-import static com.izettle.java.DateTimeFormatters.INSTANT_WITH_NO_MILLIS_FALLBACK;
-import static com.izettle.java.DateTimeFormatters.INSTANT_WITH_ZULU_OR_OFFSET;
 import static com.izettle.java.DateTimeFormatters.RFC_3339_INSTANT;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import java.io.IOException;
+import java.text.ParseException;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
 
 /**
  * A simple Jackson module that will serialize and deserialize an Instant in accordance with RFC3339
@@ -27,6 +25,7 @@ import java.time.format.DateTimeParseException;
  */
 public class InstantRFC3339Module extends SimpleModule {
 
+    private static final StdDateFormat STD_DATE_FORMAT = new StdDateFormat();
     /**
      * Note: This module needs to be registered after other possible modules that might try to control `Instant`, such
      * as the JaveTimeModule.
@@ -44,33 +43,22 @@ public class InstantRFC3339Module extends SimpleModule {
             final Instant instant,
             final JsonGenerator jsonGenerator,
             final SerializerProvider serializerProvider
-        ) throws IOException, JsonProcessingException {
+        ) throws IOException {
             jsonGenerator.writeString(RFC_3339_INSTANT.format(instant));
         }
     }
 
     public static class InstantDeserializer extends JsonDeserializer<Instant> {
-
         @Override
         public Instant deserialize(
             final JsonParser jp,
             final DeserializationContext context
-        ) throws IOException, JsonProcessingException {
+        ) throws IOException {
             final String value = jp.readValueAs(String.class);
-
             try {
-                return Instant.from(INSTANT_WITH_ZULU_OR_OFFSET.parse(value));
-            } catch (DateTimeParseException e) {
-                try {
-                    return Instant.from(INSTANT_WITH_NO_MILLIS_FALLBACK.parse(value));
-                } catch (DateTimeParseException e2) {
-                    try {
-                        long timeStamp = Long.parseLong(value);
-                        return Instant.ofEpochMilli(timeStamp);
-                    } catch (NumberFormatException e3) {
-                        throw e;
-                    }
-                }
+                return STD_DATE_FORMAT.parse(value).toInstant();
+            } catch (ParseException e) {
+                throw new IOException(e);
             }
         }
     }
