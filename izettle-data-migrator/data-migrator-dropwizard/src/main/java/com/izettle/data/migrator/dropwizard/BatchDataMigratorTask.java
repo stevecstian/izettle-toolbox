@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.izettle.cassandra.CassandraSessionManaged;
 import com.izettle.data.migrator.cassandra.datastax.CassandraDataStaxMigratorParameters;
 import com.izettle.data.migrator.core.BatchDataMigrator;
 import com.izettle.data.migrator.core.MigrationThrottlingParameters;
@@ -33,22 +32,19 @@ public class BatchDataMigratorTask extends Task {
     private final Function<CassandraDataStaxMigratorParameters, List<BatchDataMigrator<?, ?>>>
         databaseMigratorsSupplier;
     private final AtomicReference<List<BatchDataMigrator<?, ?>>> currentMigrators = new AtomicReference<>();
-    private final CassandraSessionManaged cassandraSession;
     private final AtomicReference<MigrationThrottlingParameters> migrationThrottlingParameters
         = new AtomicReference<>(MigrationThrottlingParameters.DEFAULT);
 
     /**
      * Create a task to run Cassandra-DataStax-based data migrators.
-     * @param cassandraSession a Cassandra session to be used exclusively by the migrators. The session will be
-     *                         managed by this task, being started and closed when appropriate.
+     * @param taskName name of the task
      * @param databaseMigratorsSupplier supplier of migrators to be run.
      */
     public BatchDataMigratorTask(
-        CassandraSessionManaged cassandraSession,
-        Function<CassandraDataStaxMigratorParameters, List<BatchDataMigrator<?, ?>>> databaseMigratorsSupplier
+        Function<CassandraDataStaxMigratorParameters, List<BatchDataMigrator<?, ?>>> databaseMigratorsSupplier,
+        String taskName
     ) {
-        super("batch-migrator");
-        this.cassandraSession = cassandraSession;
+        super(taskName);
         this.databaseMigratorsSupplier = databaseMigratorsSupplier;
     }
 
@@ -65,18 +61,10 @@ public class BatchDataMigratorTask extends Task {
             return;
         }
 
-        stopPreviousCassandraSession();
-
         LOG.info("Starting a full Cassandra database data migration");
-
-        // start a session just to run the migrators... only close this session in case the migration gets
-        // cancelled (at the end of the batch migration, the migrators should continue active in order to
-        // perform the migration of any new items that the old DAOs create or update).
-        cassandraSession.start();
 
         List<BatchDataMigrator<?, ?>> migrators = databaseMigratorsSupplier.apply(
             new CassandraDataStaxMigratorParameters(
-                cassandraSession.getSession(),
                 batchSize,
                 maxThreads,
                 rowsToVerifyPerBatch
@@ -94,8 +82,6 @@ public class BatchDataMigratorTask extends Task {
         // when one migrator is cancelled, all others should be also cancelled
         migrators.forEach(m -> m.setOnCancelCallback(() -> {
             cancel(null);
-            // call is idempotent, so we can call it multiple times without error
-            cassandraSession.stop();
         }));
 
         // let migrators know about the throttling policy
@@ -134,11 +120,6 @@ public class BatchDataMigratorTask extends Task {
             // mark as not executed so that the task can be re-run if necessary
             currentMigrators.set(null);
         }, "database-migrator-scheduler").start();
-    }
-
-    private void stopPreviousCassandraSession() {
-        LOG.info("Stopping a previous data migration Cassandra Session");
-        cassandraSession.stop();
     }
 
     public List<BatchDataMigrator<?, ?>> getCurrentMigrators() {
