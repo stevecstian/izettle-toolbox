@@ -53,7 +53,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 
     /**
      * Creates a new cart representing the results after altering quantities of some of the items. This would typically
-     * be used when doing a partial refund
+     * be used when doing a partial return
      * This instance is immutable and unaffected by this method call.
      * @param alteration The items to be altered in the cart. Needs to be a subset of the items in this cart
      * @return A newly created cart representing the state after the alteration. This cart is not intended to be exposed
@@ -140,7 +140,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 
     /**
      * Creates a new cart representing the results after performing multiple quantity alterations of some of the items.
-     * This would typically be used when doing a partial refund
+     * This would typically be used when doing a partial return
      * This instance is immutable and unaffected by this method call.
      * @param alterations The items to be altered in the cart. Needs to be a subset of the items in this cart
      * @return A newly created cart representing the reduced cart
@@ -153,8 +153,8 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
     }
 
     /**
-     * Because it's impossible to calculate the value of a refund or addition without the context of it's original cart
-     * and possible previous alterations, this method does just that: calculates the value of a specific alteration.
+     * Because it's impossible to calculate the value of a return without the context of it's original cart and possible
+     * previous returns, this method does just that: calculates the value of a specific alteration.
      * As an example, let's consider a cart of 2 apples and 1 carrot with a % discount on the entire cart. First, there
      * is an alteration where one of the apples is returned. Then the carrot is returned, and now we ask: "How much
      * money is the return of the carrot worth?"
@@ -200,7 +200,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
 
     /**
      * Produces a new cart that is inversed, eg an identical cart where all quantities are negated. Useful for example
-     * for refunds
+     * for full returns.
      * This instance is immutable and unaffected by this method call.
      * @return the inversed cart
      */

@@ -32,7 +32,7 @@ public interface ServiceCharge<S> {
     /**
      * Utility method that subclasses need to implement. Inverse here, means the concept of negating the service charge, which
      * would normally be done by cloning it's own fields, but negating the sign on the amount. Used for situations
-     * such as refunds
+     * such as full returns.
      * @return the inversed ServiceCharge
      */
     S inverse();
