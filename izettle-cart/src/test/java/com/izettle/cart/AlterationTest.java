@@ -353,6 +353,30 @@ public class AlterationTest {
         );
     }
 
+    @Test
+    public void itShouldPresentExpectedAlterationItemLines() {
+        //given
+        final Object id1 = UUID.randomUUID();
+        final List<TestItem> items = Arrays.asList(createItem(id1, 1L, 30f, BigDecimal.valueOf(2L)));
+        final List<TestDiscount> discounts = Arrays.asList(new TestDiscount(null, 50d, BigDecimal.ONE));
+        final Cart originalCart = new Cart(items, discounts, null);
+        final Map<Object, BigDecimal> alteration1 = Maps.newHashMap(id1, BigDecimal.ONE.negate());
+        final Map<Object, BigDecimal> alteration2 = Maps.newHashMap(id1, BigDecimal.ONE.negate());
+
+        //when
+        final AlterationCart alterationCart1 = originalCart.createAlterationCart(null, alteration1);
+        //then
+        final List<ItemLine> itemLines1 = alterationCart1.getItemLines();
+        assertEquals("Expected the first returned item to have value -1L", -1L, itemLines1.get(0).getActualValue());
+
+        //when
+        final AlterationCart alterationCart2 = originalCart.createAlterationCart(Arrays.asList(alteration1), alteration2);
+        //then
+        final List<ItemLine> itemLines2 = alterationCart2.getItemLines();
+        assertEquals("Expected the second returned item to have value -0L", 0L, itemLines2.get(0).getActualValue());
+    }
+
+
     private TestItem createItem(
         final Object id,
         final long unitPrice,

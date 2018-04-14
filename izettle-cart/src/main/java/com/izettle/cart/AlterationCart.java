@@ -2,6 +2,10 @@ package com.izettle.cart;
 
 import static com.izettle.cart.CartUtils.coalesce;
 
+import com.izettle.cart.exception.CartException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -24,13 +28,22 @@ public class AlterationCart<T extends Item<T, D>, D extends Discount<D>, K exten
      */
     private final Cart<T, D, K, S> originalCart;
     /**
+     * The applied altered quantities
+     */
+    private final Map<Object, BigDecimal> alteration;
+    /**
      * The residual cart after the current alteration has been applied
     */
     private final Cart<T, D, K, S> resultingCart;
 
-    AlterationCart(final Cart<T, D, K, S> originalCart, final Cart<T, D, K, S> resultingCart) {
+    AlterationCart(
+        final Cart<T, D, K, S> originalCart,
+        final Cart<T, D, K, S> resultingCart,
+        final Map<Object, BigDecimal> alteration
+    ) {
         this.originalCart = originalCart;
         this.resultingCart = resultingCart;
+        this.alteration = alteration;
     }
 
     public Double getActualDiscountPercentage() {
@@ -115,5 +128,134 @@ public class AlterationCart<T extends Item<T, D>, D extends Discount<D>, K exten
             }
         }
         return vatGroupValues;
+    }
+
+    /**
+     * Method used for synthesizing "fake" item lines. As an alteration is not an actual cart, it's not possible to call
+     * the cart methods and iterate over the line items. In reality, an alteration does not even consist of item lines,
+     * just a number of reduced quantities.
+     * Sometimes, however, there's a need for getting the list of altered items, and their corresponding "price". This
+     * method provides that functionality by synthesizing fake item lines.
+     * @return The altered items as a list of faked item lines.
+     */
+    public List<ItemLine> getItemLines() {
+        final List<ItemLine> retList = new ArrayList<ItemLine>();
+        for (Map.Entry<Object, BigDecimal> entrySet : alteration.entrySet()) {
+            final Object identifier = entrySet.getKey();
+            final BigDecimal quantity = entrySet.getValue();
+            final ItemLine<T, D> originalItemLine = getItemLineFromIdentifier(originalCart, identifier, true);
+            final ItemLine<T, D> resultingItemLine = getItemLineFromIdentifier(resultingCart, identifier, false);
+            final long actualValue;
+            final long grossValue;
+            final Long discountValue;
+            final Long grossVat;
+            final Long actualVat;
+            if (resultingItemLine == null) {
+                actualValue = -originalItemLine.getActualValue();
+                grossValue = -originalItemLine.getGrossValue();
+                discountValue = originalItemLine.getDiscountValue() == null ? null : -originalItemLine.getDiscountValue();
+                grossVat = originalItemLine.getGrossVat() == null ? null : -originalItemLine.getGrossVat();
+                actualVat = originalItemLine.getActualVat() == null ? null : -originalItemLine.getActualVat();
+            } else {
+                actualValue = resultingItemLine.getActualValue() - originalItemLine.getActualValue();
+                grossValue = resultingItemLine.getGrossValue() - originalItemLine.getGrossValue();
+                if (resultingItemLine.getDiscountValue() == null && originalItemLine.getDiscountValue() == null) {
+                    discountValue = null;
+                } else {
+                    discountValue = coalesce(resultingItemLine.getDiscountValue(), 0L)
+                        - coalesce(originalItemLine.getDiscountValue(), 0L);
+                }
+                if (resultingItemLine.getGrossVat() == null && originalItemLine.getGrossVat() == null) {
+                    grossVat = null;
+                } else {
+                    grossVat = coalesce(resultingItemLine.getGrossVat(), 0L)
+                        - coalesce(originalItemLine.getGrossVat(), 0L);
+                }
+                if (resultingItemLine.getActualVat() == null && originalItemLine.getActualVat() == null) {
+                    actualVat = null;
+                } else {
+                    actualVat = coalesce(resultingItemLine.getActualVat(), 0L)
+                        - coalesce(originalItemLine.getActualVat(), 0L);
+                }
+            }
+            final ReturnItem item = new ReturnItem(
+                identifier,
+                originalItemLine.getItem().getUnitPrice(),
+                originalItemLine.getItem().getVatPercentage(),
+                quantity,
+                originalItemLine.getItem().getDiscount()
+            );
+            retList.add(new ItemLine(item, grossValue, grossVat, actualValue, actualVat, discountValue));
+        }
+        return retList;
+    }
+
+    public static class ReturnItem implements Item<ReturnItem, Discount<?>> {
+
+        private final long unitPrice;
+        private final Float vatPercentage;
+        private final BigDecimal quantity;
+        private final Discount discount;
+        private final Object id;
+
+        public ReturnItem(
+            final Object id,
+            final long unitPrice,
+            final Float vatPercentage,
+            final BigDecimal quantity,
+            final Discount discount
+        ) {
+            this.unitPrice = unitPrice;
+            this.vatPercentage = vatPercentage;
+            this.quantity = quantity;
+            this.discount = discount;
+            this.id = id;
+        }
+
+        @Override
+        public long getUnitPrice() {
+            return unitPrice;
+        }
+
+        @Override
+        public Float getVatPercentage() {
+            return vatPercentage;
+        }
+
+        @Override
+        public BigDecimal getQuantity() {
+            return quantity;
+        }
+
+        @Override
+        public Discount getDiscount() {
+            return discount;
+        }
+
+        @Override
+        public Object getId() {
+            return id;
+        }
+
+        @Override
+        public ReturnItem inverse() {
+            throw new UnsupportedOperationException("Not supported.");
+        }
+    }
+
+    private ItemLine<T, D> getItemLineFromIdentifier(
+        final Cart<T, D, K, S> cart,
+        final Object identifier,
+        final boolean requireMatch
+    ) {
+        for (ItemLine<T, D> tmpItem : cart.getItemLines()) {
+            if (identifier.equals(tmpItem.getItem().getId())) {
+                return tmpItem;
+            }
+        }
+        if (requireMatch) {
+            throw new CartException("Unexpected error: Couldn't find the original item.");
+        }
+        return null;
     }
 }

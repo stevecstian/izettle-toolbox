@@ -110,9 +110,14 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             remainingDiscounts = new LinkedList<AlteredCartDiscount>();
             for (DiscountLine<K> discountLine : discountLines) {
                 final K oldDiscount = discountLine.getDiscount();
-                final BigDecimal newQuantity = oldDiscount.getQuantity().multiply(grossValueRatio);
-                if (newQuantity.signum() != 0) {
-                    remainingDiscounts.add(AlteredCartDiscount.from(oldDiscount).withQuantity(newQuantity));
+                if (oldDiscount.getPercentage() != null && oldDiscount.getAmount() == null) {
+                    //add discount as is, as it's percentage only
+                    remainingDiscounts.add(AlteredCartDiscount.from(oldDiscount));
+                } else {
+                    final BigDecimal newQuantity = oldDiscount.getQuantity().multiply(grossValueRatio);
+                    if (newQuantity.signum() != 0) {
+                        remainingDiscounts.add(AlteredCartDiscount.from(oldDiscount).withQuantity(newQuantity));
+                    }
                 }
             }
             //reduce service charge
@@ -170,7 +175,7 @@ public class Cart<T extends Item<T, D>, D extends Discount<D>, K extends Discoun
             = applyAlterations(previousAlterations);
         final Cart<AlteredCartItem, AlteredCartDiscount, AlteredCartDiscount, AlteredCartServiceCharge> cartAfterLatestAlteration
             = cartBeforeLastAlteration.applyAlteration(alteration);
-        return new AlterationCart(cartBeforeLastAlteration, cartAfterLatestAlteration);
+        return new AlterationCart(cartBeforeLastAlteration, cartAfterLatestAlteration, alteration);
     }
 
     /**
