@@ -17,9 +17,30 @@ public class InstantRFC3339ModuleTest {
     }
 
     @Test
+    public void itShouldInterpretInstantWithoutMillis() throws Exception {
+        final ObjectMapper mapper = createMapper();
+        final Instant parsedInstant = mapper.readValue("\"2016-08-04T09:42:51+0200\"", Instant.class);
+        assertEquals(Instant.parse("2016-08-04T07:42:51Z"), parsedInstant);
+    }
+
+    @Test
+    public void itShouldInterpretInstantWithoutMillisAndOffsetWithColonCorrectly() throws Exception {
+        final ObjectMapper mapper = createMapper();
+        final Instant parsedInstant = mapper.readValue("\"2016-08-04T09:42:51+02:00\"", Instant.class);
+        assertEquals(Instant.parse("2016-08-04T07:42:51Z"), parsedInstant);
+    }
+
+    @Test
     public void itShouldInterpretOffsetCorrectly() throws Exception {
         final ObjectMapper mapper = createMapper();
         final Instant parsedInstant = mapper.readValue("\"2016-08-04T09:42:51.336+0200\"", Instant.class);
+        assertEquals(Instant.parse("2016-08-04T07:42:51.336Z"), parsedInstant);
+    }
+
+    @Test
+    public void itShouldInterpretOffsetWithColonsCorrectly() throws Exception {
+        final ObjectMapper mapper = createMapper();
+        final Instant parsedInstant = mapper.readValue("\"2016-08-04T09:42:51.336+02:00\"", Instant.class);
         assertEquals(Instant.parse("2016-08-04T07:42:51.336Z"), parsedInstant);
     }
 
@@ -30,8 +51,7 @@ public class InstantRFC3339ModuleTest {
         final String actual = mapper.writeValueAsString(nowTruncatedToSeconds);
         assertTrue(
             String.format(
-                "Expected the output to end with millis and zero offset '000+0000', but when serializing %s the result "
-                + "was: %s",
+                "Expected the output to end with millis and zero offset '000+0000', but when serializing %s the result was: %s",
                 nowTruncatedToSeconds,
                 actual
             ),
