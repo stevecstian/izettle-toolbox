@@ -34,7 +34,7 @@ takes place on each line.
 ### Quantities
 Represented as `BigDecimal` to allow for arbitrarily precise values, e.g.
 0.000123 kg of saffron. Quantity is also the field indicating direction of the
-purchase: a refund cart would have negative quantities on most lines.
+purchase: a full return cart would have negative quantities on most lines.
 
 ### VAT Percentage
 In most countries, valid VAT percentages are expressed in whole numbers, but as
@@ -71,7 +71,7 @@ information on a per line level, and a total level. Each line is represented by
 a `ItemLine` or a `DiscountLine`. The object is queryable for properties such as
 grossValue, value, groupedVatAmounts etc. Also, the cart can be cloned into it's
 negative counterpart by calling `Cart.inverse()`, which is useful for example
-when creating a cart that is representing a full refund of the original.
+when creating a cart that is representing a full return of the original.
 
 ### `ItemLine`, `DiscountLine` and `ServiceChargeLine`
 These are the objects that will populate the cart's three different list
@@ -127,21 +127,21 @@ Cart {
 }
 ```
 
-## Full refunds
-When a full cart is refunded, there is no complex maths going on. The easiest
-way to create a new cart, representing the refund itself is by simply calling
+## Full returns
+When a full cart is returned, there is no complex maths going on. The easiest
+way to create a new cart, representing the return itself is by simply calling
 `Cart::inverse`: this will generate a cart with all quantities negated,
 effectively generating a cart with the opposite value. It's guaranteed to have
 the exact same (albeit negated) value as the original cart.
 
-## Partial alterations (refunds or additions)
-Partial refunds is a bit more complex than a full refund. Why so? Consider the
+## Partial returns
+Partial returns is a bit more complex than a full return. Why so? Consider the
 scenario when 10 units of item A with a price of 1 has been sold in the original
 cart. Also, the original cart had a 50% discount, effectively making the total
-value of the cart equal to 5. If each refunded unit of A would be calculated as
+value of the cart equal to 5. If each returned unit of A would be calculated as
 a separate cart, that would result in the customer getting 0 funds back each
 time. The only way to address this is to *always* take the original cart (and
-its possible previous refunds) into consideration, apply the sequence of
+its possible previous returns) into consideration, apply the sequence of
 reductions (alterations) to it and calculate the residual value. The amount of
 funds that's supposed to be paid back is the difference between the original
 value and the residual value. To aid handling this logic, there are two public
@@ -153,15 +153,13 @@ object `AlterationCart`, that can be queried for details such as value, vat,
 discount etc.
 
 Note one: Discounts are treated as distributed over all items, and will be to
-the disadvantage for the customer when calculating the value for the refund (an
+the disadvantage for the customer when calculating the value for the return (an
 alteration with negative quantities). This applies no matter if the discount is
 based on a percentage or on a fixed amount.
 
-Note two: An alteration can have negative quantities, and would then represent a
-refund event. The resulting `AlterationCart` will then also represent negative
-amounts (as something is removed from the original cart). If an alteration is
-positive, however, it will represent an addition to the original cart and
-consequently have positive values.
+Note two: An alteration always has negative quantities, and would then represent
+a return event. The resulting `AlterationCart` will then also represent negative
+amounts (as something is removed from the original cart).
 
 ### Example 1:
 Item A has a price of 10

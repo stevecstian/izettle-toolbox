@@ -8,7 +8,7 @@ import java.util.TreeMap;
 
 /**
  * A cart-like object representing the altered items. An alteration in itself doesn't behave exactly like a normal cart,
- * which is why this class is needed: to avoid rounding errors on repeated refunds issued on the same original cart,
+ * which is why this class is needed: to avoid rounding errors on repeated returns issued on the same original cart,
  * this class needs to compare the previous version of the cart with the current resulting one and answer all queries as
  * the difference between the two. This class doesn't have a public constructor: it should only be created by applying
  * an alteration operation on an existing cart object.

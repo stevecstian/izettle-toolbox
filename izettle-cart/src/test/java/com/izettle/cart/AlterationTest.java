@@ -71,7 +71,7 @@ public class AlterationTest {
 
     @Test
     /**
-     * When the original line item has a rounded value, refunding small quantities at a time can be problematic: looking
+     * When the original line item has a rounded value, returning small quantities at a time can be problematic: looking
      * at one of those alterations separately would result in the same value each time. This in turn would make multiple
      * alterations add up to an amount higher or lower than the original cart. This test verifies that returning small
      * amounts will have different value each time until the entire value of the original cart is exhausted.
@@ -118,15 +118,15 @@ public class AlterationTest {
             itemWithNoDiscount
         );
         assertEquals(2100L, originalCart.getValue());
-        //refund an item part of a percentage disount: it shouldn't have it's full value
+        //return an item part of a percentage disount: it shouldn't have it's full value
         final Map<Object, BigDecimal> alteration1 = singletonMap(id1, BigDecimal.ONE.negate());
         final long alterationValue1 = originalCart.createAlterationCart(null, alteration1).getValue();
         assertEquals(-50L, alterationValue1);
-        //refund an item part of a fixed amount disount: it shouldn't have it's full value
+        //return an item part of a fixed amount disount: it shouldn't have it's full value
         final Map<Object, BigDecimal> alteration2 = singletonMap(id2, BigDecimal.ONE.negate());
         final long alterationValue2 = originalCart.createAlterationCart(null, alteration2).getValue();
         assertEquals(-175L, alterationValue2);
-        //refund an item without any discount at all should yield the same value as originally
+        //return an item without any discount at all should yield the same value as originally
         final Map<Object, BigDecimal> alteration3 = singletonMap(id3, BigDecimal.ONE.negate());
         final long alterationValue3 = originalCart.createAlterationCart(null, alteration3).getValue();
         assertEquals(-300L, alterationValue3);
@@ -220,9 +220,9 @@ public class AlterationTest {
             new TestItem(id1, "Main thing", 1L, 30f, BigDecimal.valueOf(1L), new TestDiscount(10L, null, BigDecimal.ONE))
         );
         final long originalValue = cart.getValue();
-        final Map<Object, BigDecimal> currentRefund = Maps.newHashMap(id1, BigDecimal.ONE.negate());
+        final Map<Object, BigDecimal> currentReturn = Maps.newHashMap(id1, BigDecimal.ONE.negate());
         final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> alterationCart = cart
-            .createAlterationCart(null, currentRefund);
+            .createAlterationCart(null, currentReturn);
         final long alterationValue = alterationCart.getValue();
         assertEquals(originalValue, -1 * alterationValue);
     }
@@ -238,9 +238,9 @@ public class AlterationTest {
             new TestItem(id, "Main thing", 1L, 30f, BigDecimal.valueOf(1L), new TestDiscount(null, 50d, BigDecimal.ONE))
         );
         final long originalValue = cart.getValue();
-        final Map<Object, BigDecimal> currentRefund = Maps.newHashMap(id, BigDecimal.ONE.negate());
+        final Map<Object, BigDecimal> currentReturn = Maps.newHashMap(id, BigDecimal.ONE.negate());
         final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> alterationCart2 = cart
-            .createAlterationCart(null, currentRefund);
+            .createAlterationCart(null, currentReturn);
         final long alterationValue2 = alterationCart2.getValue();
         assertEquals(originalValue, -1 * alterationValue2);
     }
@@ -261,11 +261,11 @@ public class AlterationTest {
             );
         final long originalValue = cart.getValue();
         final Map<Object, BigDecimal> firstAlteration = Maps.newHashMap(id, BigDecimal.ONE.negate());
-        final Map<Object, BigDecimal> currentRefund = Maps.newHashMap(id, BigDecimal.ONE.negate());
+        final Map<Object, BigDecimal> currentReturn = Maps.newHashMap(id, BigDecimal.ONE.negate());
         final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> firstAlterationCart = cart
             .createAlterationCart(null, firstAlteration);
         final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> secondAlterationCart = cart
-            .createAlterationCart(Arrays.asList(firstAlteration), currentRefund);
+            .createAlterationCart(Arrays.asList(firstAlteration), currentReturn);
         final long firstAlterationValue = firstAlterationCart.getValue();
         final long secondalterationValue = secondAlterationCart.getValue();
         assertEquals(originalValue, -1 * (firstAlterationValue + secondalterationValue));
@@ -287,11 +287,11 @@ public class AlterationTest {
             );
         final long originalValue = cart.getValue();
         final Map<Object, BigDecimal> firstAlteration = Maps.newHashMap(id, BigDecimal.ONE.negate());
-        final Map<Object, BigDecimal> currentRefund = Maps.newHashMap(id, BigDecimal.ONE.negate());
+        final Map<Object, BigDecimal> currentReturn = Maps.newHashMap(id, BigDecimal.ONE.negate());
         final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> firstAlterationCart = cart
             .createAlterationCart(null, firstAlteration);
         final AlterationCart<TestItem, TestDiscount, TestDiscount, TestServiceCharge> secondAlterationCart = cart
-            .createAlterationCart(Arrays.asList(firstAlteration), currentRefund);
+            .createAlterationCart(Arrays.asList(firstAlteration), currentReturn);
         final long firstAlterationValue = firstAlterationCart.getValue();
         final long secondalterationValue = secondAlterationCart.getValue();
         assertEquals(originalValue, -1 * (firstAlterationValue + secondalterationValue));
